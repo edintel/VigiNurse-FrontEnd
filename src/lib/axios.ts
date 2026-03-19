@@ -25,6 +25,8 @@ function isLoginRequest(url: unknown): boolean {
     return url.includes("/auth/login");
   }
 }
+
+// Interceptors para agregar token a las solicitudes y manejar errores de autenticación.
 axiosInstance.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
@@ -45,6 +47,8 @@ axiosInstance.interceptors.request.use(
   },
   (error) => Promise.reject(error),
 );
+
+// Interceptor para manejar errores de autenticación globalmente.
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error: unknown) => {

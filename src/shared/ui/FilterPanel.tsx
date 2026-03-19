@@ -21,7 +21,7 @@ export function FilterPanel({
   children,
   onApply,
   onClear,
-  defaultOpen = true,
+  defaultOpen = false,
 }: FilterPanelProps) {
   const [open, setOpen] = useState(defaultOpen);
   return (

@@ -5,6 +5,12 @@ export const PERMISSIONS = {
         create: ["ADMIN"] as AuthRole[],
         edit: ["ADMIN"] as AuthRole[],
     },
+    areas: {
+        view: ["ADMIN"] as AuthRole[],
+        create: ["ADMIN"] as AuthRole[],
+        edit: ["ADMIN"] as AuthRole[],
+        delete: ["ADMIN"] as AuthRole[],
+    },
     users: {
         view: ["SUPER_ADMIN", "ADMIN"] as AuthRole[],
         create: ["SUPER_ADMIN", "ADMIN"] as AuthRole[],

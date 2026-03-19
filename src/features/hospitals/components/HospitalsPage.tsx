@@ -58,7 +58,6 @@ export default function HospitalsPage() {
       setTotalRegistros(0);
       setTotalPaginas(1);
       setPaginaActual(1);
-      setError(`No se encontró ningún hospital con ID ${id}.`);
     } finally {
       setLoading(false);
     }

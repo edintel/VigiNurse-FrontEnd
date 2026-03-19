@@ -4,15 +4,17 @@ import UsersPage from "@/features/users/components/UsersPage";
 import AuditPage from "@/features/audit/components/AuditPage";
 import HospitalsPage from "@/features/hospitals/components/HospitalsPage";
 import EspecialidadesPage from "@/features/especialidades/components/EspecialidadesPage";
+import AreasPage from "@/features/areas/components/AreasPage";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentRole } from "@/store/slices/authSlice";
-type ActiveTab = "usuarios" | "especialidades" | "auditoria" | "hospitales";
+type ActiveTab = "usuarios" | "especialidades" | "auditoria" | "hospitales" | "areas";
 const BASE_TABS: {
     id: ActiveTab;
     label: string;
 }[] = [
     { id: "usuarios", label: "Gestión de Usuarios" },
     { id: "especialidades", label: "Especialidades" },
+    { id: "areas", label: "Áreas" },
     { id: "hospitales", label: "Hospitales" },
     { id: "auditoria", label: "Auditoría" },
 ];
@@ -26,6 +28,8 @@ export default function AdministracionPage() {
         if (t.id === "hospitales")
             return isSuperAdmin;
         if (t.id === "especialidades")
+            return isAdmin;
+        if (t.id === "areas")
             return isAdmin;
         return true;
     });
@@ -65,6 +69,7 @@ export default function AdministracionPage() {
       
       {activeTab === "usuarios" && <UsersPage />}
       {activeTab === "especialidades" && isAdmin && <EspecialidadesPage />}
+      {activeTab === "areas" && isAdmin && <AreasPage />}
       {activeTab === "hospitales" && isSuperAdmin && <HospitalsPage />}
       {activeTab === "auditoria" && <AuditPage />}
     </div>);

@@ -63,7 +63,6 @@ export default function EspecialidadesPage() {
       setTotalRegistros(0);
       setTotalPaginas(1);
       setPaginaActual(1);
-      setError(`No se encontró ninguna especialidad con ID ${id}.`);
     } finally {
       setLoading(false);
     }

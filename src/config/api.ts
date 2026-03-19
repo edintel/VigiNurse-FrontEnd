@@ -34,4 +34,8 @@ export const API_ENDPOINTS = {
         list: `${API_BASE_URL}/hospitales`,
         byId: (id: number) => `${API_BASE_URL}/hospitales/${id}`,
     },
+    areas: {
+        list: `${API_BASE_URL}/areas`,
+        byId: (id: number) => `${API_BASE_URL}/areas/${id}`,
+    },
 } as const;
