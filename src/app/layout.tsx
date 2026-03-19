@@ -1,35 +1,26 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Montserrat } from "next/font/google";
+import { AppProviders } from "@/providers/AppProviders";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const montserrat = Montserrat({
+    subsets: ["latin"],
+    weight: ["400", "500", "600", "700"],
+    variable: "--font-montserrat",
 });
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: {
-    default: "VigiNurse",
-    template: "%s | VigiNurse",
-  },
-  description: "Sistema de monitoreo hospitalario inteligente",
+    title: {
+        default: "VigiNurse",
+        template: "%s | VigiNurse",
+    },
+    description: "Sistema de monitoreo hospitalario inteligente",
 };
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
+// Muestra el componente de root layout.
+export default function RootLayout({ children, }: Readonly<{
+    children: React.ReactNode;
 }>) {
-  return (
-    <html lang="es">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
-      </body>
-    </html>
-  );
+    return (<html lang="es" data-theme="light">
+      <body className={`${montserrat.variable} antialiased bg-slate-50 text-slate-900`}>
+          <AppProviders>{children}</AppProviders>
+        </body>
+    </html>);
 }

@@ -1,11 +1,6 @@
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode;
+// Muestra el componente de autenticacion layout.
+export default function AuthLayout({ children }: {
+    children: React.ReactNode;
 }) {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-muted">
-      {children}
-    </div>
-  );
+    return <>{children}</>;
 }

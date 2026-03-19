@@ -1,9 +1,11 @@
-export const ROLES = {
-  ADMIN: "admin",
-  NURSE: "nurse",
-  DOCTOR: "doctor",
-  SUPERVISOR: "supervisor",
-  VIEWER: "viewer",
+import type { AuthRole } from "@/types";
+export const ROLES: Record<AuthRole, string> = {
+    SUPER_ADMIN: "Super Administrador",
+    ADMIN: "Administrador",
+    SUPERVISOR: "Supervisor",
+    ENFERMERO: "Enfermero",
+    TECNICO: "Técnico",
+    GESTOR: "Gestor",
+    DOCTOR: "Doctor",
+    PACIENTE: "Paciente",
 } as const;
-
-export type Role = (typeof ROLES)[keyof typeof ROLES];

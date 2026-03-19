@@ -1,17 +1,16 @@
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
+import { Sidebar } from "@/features/dashboard/components/Sidebar";
+import { AuthGuard } from "@/features/authentication/components/AuthGuard";
+// Muestra el componente de tablero layout.
+export default function DashboardLayout({ children, }: {
+    children: React.ReactNode;
 }) {
-  return (
-    <div className="flex min-h-screen">
-      {/* Sidebar will go here */}
-      <aside className="w-64 shrink-0 border-r border-border" />
-      <div className="flex flex-1 flex-col">
-        {/* Header will go here */}
-        <header className="h-16 shrink-0 border-b border-border" />
-        <main className="flex-1 p-6">{children}</main>
+    return (<AuthGuard>
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar />
+        
+        <main className="flex-1 min-w-0 h-full overflow-y-auto pt-16 md:pt-0 bg-[#EEEEEE]">
+          {children}
+        </main>
       </div>
-    </div>
-  );
+    </AuthGuard>);
 }
