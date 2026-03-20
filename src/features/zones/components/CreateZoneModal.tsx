@@ -1,69 +1,72 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { InputField } from "@/shared/ui/InputField";
-import { updateTipoActivo } from "@/features/tiposActivos/services/tipoActivoService";
-import type { TipoActivo } from "@/features/tiposActivos/types";
+import { createZona } from "@/features/zones/services/zoneService";
+import type { Zona } from "@/features/zones/types";
 import { toast } from "@/lib/toast";
 
-interface EditTipoActivoModalProps {
+interface CreateZonaModalProps {
   open: boolean;
-  tipoActivo: TipoActivo | null;
   onClose: () => void;
-  onUpdated: (tipoActivo: TipoActivo) => void;
+  onCreated: (zona: Zona) => void;
 }
 
-// Modal para editar un tipo de activo existente.
-export function EditTipoActivoModal({
+// Modal para crear una nueva zona del hospital.
+export function CreateZonaModal({
   open,
-  tipoActivo,
   onClose,
-  onUpdated,
-}: EditTipoActivoModalProps) {
+  onCreated,
+}: CreateZonaModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [esSegura, setEsSegura] = useState(false);
+  const [sensor, setSensor] = useState("");
   const [errors, setErrors] = useState<{
     nombre?: string;
     descripcion?: string;
+    sensor?: string;
   }>({});
   const [apiError, setApiError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (open && tipoActivo) {
-      setNombre(tipoActivo.nombre);
-      setDescripcion(tipoActivo.descripcion);
-      setErrors({});
-      setApiError(null);
+    if (open) {
       dialogRef.current?.showModal();
     } else {
       dialogRef.current?.close();
+      setNombre("");
+      setDescripcion("");
+      setEsSegura(false);
+      setSensor("");
+      setErrors({});
+      setApiError(null);
     }
-  }, [open, tipoActivo]);
+  }, [open]);
 
   function validate() {
-    const next: { nombre?: string; descripcion?: string } = {};
+    const next: { nombre?: string; descripcion?: string; sensor?: string } = {};
     if (!nombre.trim()) next.nombre = "El nombre es obligatorio.";
-    if (!descripcion.trim())
-      next.descripcion = "La descripción es obligatoria.";
+    if (!descripcion.trim()) next.descripcion = "La descripción es obligatoria.";
+    if (!sensor.trim()) next.sensor = "El sensor es obligatorio.";
     setErrors(next);
     return Object.keys(next).length === 0;
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!tipoActivo || !validate()) return;
+    if (!validate()) return;
     setLoading(true);
     setApiError(null);
     try {
-      const updated = await updateTipoActivo(tipoActivo.id, {
+      const zona = await createZona({
         nombre: nombre.trim(),
         descripcion: descripcion.trim(),
+        esSegura,
+        sensor: sensor.trim(),
       });
-      toast.success(
-        `Tipo de activo "${updated.nombre}" actualizado exitosamente.`,
-      );
-      onUpdated(updated);
+      toast.success(`Zona "${zona.nombre}" creada exitosamente.`);
+      onCreated(zona);
       onClose();
     } catch (err: unknown) {
       const data = (
@@ -72,7 +75,7 @@ export function EditTipoActivoModal({
       const msg =
         data?.mensaje ??
         data?.message ??
-        "No se pudo actualizar el tipo de activo. Intente nuevamente.";
+        "No se pudo crear la zona. Intente nuevamente.";
       setApiError(msg);
       toast.error(msg);
     } finally {
@@ -91,12 +94,9 @@ export function EditTipoActivoModal({
           ✕
         </button>
 
-        <h3 className="text-lg font-bold text-[#1A2B5E] mb-1">
-          Editar tipo de activo
+        <h3 className="text-lg font-bold text-[#1A2B5E] mb-4">
+          Agregar zona
         </h3>
-        {tipoActivo && (
-          <p className="text-sm text-slate-400 mb-4">ID: {tipoActivo.id}</p>
-        )}
 
         {apiError && (
           <div role="alert" className="alert alert-error text-sm py-3 mb-4">
@@ -117,37 +117,59 @@ export function EditTipoActivoModal({
           </div>
         )}
 
-        <form
-          onSubmit={handleSubmit}
-          noValidate
-          className="flex flex-col gap-4"
-        >
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
           <InputField
             label="Nombre"
-            id="edit-tipo-activo-nombre"
+            id="create-zona-nombre"
             name="nombre"
             value={nombre}
             onChange={(e) => {
               setNombre(e.target.value);
               setErrors((prev) => ({ ...prev, nombre: undefined }));
             }}
-            placeholder="Ej. Monitor"
+            placeholder="Ej. Salida Norte"
             error={errors.nombre}
             required
           />
           <InputField
             label="Descripción"
-            id="edit-tipo-activo-descripcion"
+            id="create-zona-descripcion"
             name="descripcion"
             value={descripcion}
             onChange={(e) => {
               setDescripcion(e.target.value);
               setErrors((prev) => ({ ...prev, descripcion: undefined }));
             }}
-            placeholder="Ej. Monitor de signos vitales"
+            placeholder="Ej. Salida a la calle 14"
             error={errors.descripcion}
             required
           />
+          <InputField
+            label="Sensor"
+            id="create-zona-sensor"
+            name="sensor"
+            value={sensor}
+            onChange={(e) => {
+              setSensor(e.target.value);
+              setErrors((prev) => ({ ...prev, sensor: undefined }));
+            }}
+            placeholder="Ej. 134232345r32"
+            error={errors.sensor}
+            required
+          />
+
+          <label className="flex items-center gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              className="checkbox"
+              style={{ accentColor: "#09268E" }}
+              checked={esSegura}
+              onChange={(e) => setEsSegura(e.target.checked)}
+            />
+            <span className="text-sm font-medium text-[#1A2B5E]">
+              Zona segura
+            </span>
+          </label>
 
           <div className="modal-action mt-1">
             <button
@@ -168,7 +190,7 @@ export function EditTipoActivoModal({
               {loading && (
                 <span className="loading loading-spinner loading-sm" />
               )}
-              {loading ? "Guardando..." : "Guardar cambios"}
+              {loading ? "Creando..." : "Crear"}
             </button>
           </div>
         </form>

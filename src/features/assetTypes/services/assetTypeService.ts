@@ -5,7 +5,7 @@ import type {
   PaginatedTiposActivos,
   CreateTipoActivoDTO,
   UpdateTipoActivoDTO,
-} from "@/features/tiposActivos/types";
+} from "@/features/assetTypes/types";
 
 // Obtiene tipos de activo paginados.
 export async function getTiposActivos(

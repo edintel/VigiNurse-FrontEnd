@@ -5,10 +5,11 @@ import AuditPage from "@/features/audit/components/AuditPage";
 import HospitalsPage from "@/features/hospitals/components/HospitalsPage";
 import EspecialidadesPage from "@/features/especialidades/components/EspecialidadesPage";
 import AreasPage from "@/features/areas/components/AreasPage";
-import TiposActivosPage from "@/features/tiposActivos/components/TiposActivosPage";
+import TiposActivosPage from "@/features/assetTypes/components/AssetTypesPage";
+import ZonasPage from "@/features/zones/components/ZonesPage";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentRole } from "@/store/slices/authSlice";
-type ActiveTab = "usuarios" | "especialidades" | "auditoria" | "hospitales" | "areas" | "tiposActivos";
+type ActiveTab = "usuarios" | "especialidades" | "auditoria" | "hospitales" | "areas" | "tiposActivos" | "zonas";
 const BASE_TABS: {
     id: ActiveTab;
     label: string;
@@ -17,6 +18,7 @@ const BASE_TABS: {
     { id: "especialidades", label: "Especialidades" },
     { id: "areas", label: "Áreas" },
     { id: "tiposActivos", label: "Tipos de Activos" },
+    { id: "zonas", label: "Zonas" },
     { id: "hospitales", label: "Hospitales" },
     { id: "auditoria", label: "Auditoría" },
 ];
@@ -34,6 +36,8 @@ export default function AdministracionPage() {
         if (t.id === "areas")
             return isAdmin;
         if (t.id === "tiposActivos")
+            return isAdmin;
+        if (t.id === "zonas")
             return isAdmin;
         return true;
     });
@@ -75,6 +79,7 @@ export default function AdministracionPage() {
       {activeTab === "especialidades" && isAdmin && <EspecialidadesPage />}
       {activeTab === "areas" && isAdmin && <AreasPage />}
       {activeTab === "tiposActivos" && isAdmin && <TiposActivosPage />}
+      {activeTab === "zonas" && isAdmin && <ZonasPage />}
       {activeTab === "hospitales" && isSuperAdmin && <HospitalsPage />}
       {activeTab === "auditoria" && <AuditPage />}
     </div>);

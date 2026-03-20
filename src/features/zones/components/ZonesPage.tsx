@@ -1,27 +1,25 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  getTiposActivos,
-  getTipoActivoById,
-} from "@/features/tiposActivos/services/tipoActivoService";
-import { CreateTipoActivoModal } from "@/features/tiposActivos/components/CreateTipoActivoModal";
-import { EditTipoActivoModal } from "@/features/tiposActivos/components/EditTipoActivoModal";
+  getZonas,
+  getZonaById,
+} from "@/features/zones/services/zoneService";
+import { CreateZonaModal } from "@/features/zones/components/CreateZoneModal";
+import { EditZonaModal } from "@/features/zones/components/EditZoneModal";
+import { DeleteZonaModal } from "@/features/zones/components/DeleteZoneModal";
 import { PaginationFooter } from "@/shared/ui/PaginationFooter";
 import {
   FilterPanel,
   FilterLabel,
   filterInputCls,
 } from "@/shared/ui/FilterPanel";
-import type {
-  TipoActivo,
-  PaginatedTiposActivos,
-} from "@/features/tiposActivos/types";
+import type { Zona, PaginatedZonas } from "@/features/zones/types";
 
 const PAGE_SIZE = 10;
 
-// Componente principal para la gestión de tipos de activos.
-export default function TiposActivosPage() {
-  const [tiposActivos, setTiposActivos] = useState<TipoActivo[]>([]);
+// Componente principal para la gestión de zonas del hospital.
+export default function ZonasPage() {
+  const [zonas, setZonas] = useState<Zona[]>([]);
   const [totalRegistros, setTotalRegistros] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(1);
   const [paginaActual, setPaginaActual] = useState(1);
@@ -36,24 +34,20 @@ export default function TiposActivosPage() {
 
   // Estado de modales
   const [showCreate, setShowCreate] = useState(false);
-  const [editTipoActivo, setEditTipoActivo] = useState<TipoActivo | null>(null);
+  const [editZona, setEditZona] = useState<Zona | null>(null);
+  const [deleteZona, setDeleteZona] = useState<Zona | null>(null);
 
   const fetchAll = useCallback(async (page: number) => {
     setLoading(true);
     setError(null);
     try {
-      const result: PaginatedTiposActivos = await getTiposActivos(
-        page,
-        PAGE_SIZE,
-      );
-      setTiposActivos(result.datos);
+      const result: PaginatedZonas = await getZonas(page, PAGE_SIZE);
+      setZonas(result.datos);
       setTotalRegistros(result.totalRegistros);
       setTotalPaginas(result.totalPaginas);
       setPaginaActual(result.paginaActual);
     } catch {
-      setError(
-        "No se pudieron cargar los tipos de activos. Intente nuevamente.",
-      );
+      setError("No se pudieron cargar las zonas. Intente nuevamente.");
     } finally {
       setLoading(false);
     }
@@ -63,13 +57,13 @@ export default function TiposActivosPage() {
     setLoading(true);
     setError(null);
     try {
-      const tipoActivo = await getTipoActivoById(id);
-      setTiposActivos([tipoActivo]);
+      const zona = await getZonaById(id);
+      setZonas([zona]);
       setTotalRegistros(1);
       setTotalPaginas(1);
       setPaginaActual(1);
     } catch {
-      setTiposActivos([]);
+      setZonas([]);
       setTotalRegistros(0);
       setTotalPaginas(1);
       setPaginaActual(1);
@@ -105,15 +99,18 @@ export default function TiposActivosPage() {
     void fetchAll(page);
   }
 
-  function handleTipoActivoCreated(tipoActivo: TipoActivo) {
-    setTiposActivos((prev) => [tipoActivo, ...prev]);
+  function handleZonaCreated(zona: Zona) {
+    setZonas((prev) => [zona, ...prev]);
     setTotalRegistros((n) => n + 1);
   }
 
-  function handleTipoActivoUpdated(updated: TipoActivo) {
-    setTiposActivos((prev) =>
-      prev.map((t) => (t.id === updated.id ? updated : t)),
-    );
+  function handleZonaUpdated(updated: Zona) {
+    setZonas((prev) => prev.map((z) => (z.id === updated.id ? updated : z)));
+  }
+
+  function handleZonaDeleted(id: number) {
+    setZonas((prev) => prev.filter((z) => z.id !== id));
+    setTotalRegistros((n) => Math.max(0, n - 1));
   }
 
   return (
@@ -139,14 +136,14 @@ export default function TiposActivosPage() {
               d="M12 4.5v15m7.5-7.5h-15"
             />
           </svg>
-          Nuevo tipo de activo
+          Nueva zona
         </button>
       </div>
 
       <FilterPanel onApply={handleApplyFilters} onClear={handleClearFilters}>
         <div className="flex flex-wrap gap-4 items-end">
           <div className="flex flex-col gap-1 w-48">
-            <FilterLabel>ID del tipo de activo</FilterLabel>
+            <FilterLabel>ID de la zona</FilterLabel>
             <input
               type="number"
               min="1"
@@ -166,7 +163,9 @@ export default function TiposActivosPage() {
             <button
               className="btn btn-xs btn-ghost"
               onClick={() =>
-                appliedId !== null ? fetchById(appliedId) : fetchAll(paginaActual)
+                appliedId !== null
+                  ? fetchById(appliedId)
+                  : fetchAll(paginaActual)
               }
             >
               Reintentar
@@ -178,7 +177,7 @@ export default function TiposActivosPage() {
           <table className="table table-zebra w-full [&_td]:py-2.5 [&_th]:py-2.5">
             <thead>
               <tr className="bg-[#F8FAFC] text-[#1A2B5E]">
-                <th className="text-xs font-semibold uppercase tracking-wide w-24">
+                <th className="text-xs font-semibold uppercase tracking-wide w-20">
                   ID
                 </th>
                 <th className="text-xs font-semibold uppercase tracking-wide">
@@ -186,6 +185,12 @@ export default function TiposActivosPage() {
                 </th>
                 <th className="text-xs font-semibold uppercase tracking-wide">
                   Descripción
+                </th>
+                <th className="text-xs font-semibold uppercase tracking-wide">
+                  Sensor
+                </th>
+                <th className="text-xs font-semibold uppercase tracking-wide w-28">
+                  Segura
                 </th>
                 <th className="text-xs font-semibold uppercase tracking-wide text-right">
                   Acciones
@@ -195,40 +200,55 @@ export default function TiposActivosPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-12">
+                  <td colSpan={6} className="text-center py-12">
                     <span className="loading loading-spinner loading-md text-[#09268E]" />
                   </td>
                 </tr>
-              ) : tiposActivos.length === 0 ? (
+              ) : zonas.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={6}
                     className="text-center py-12 text-base-content/40 text-sm"
                   >
-                    No se encontraron tipos de activos.
+                    No se encontraron zonas.
                   </td>
                 </tr>
               ) : (
-                tiposActivos.map((tipoActivo) => (
-                  <tr key={tipoActivo.id} className="hover:bg-base-200">
+                zonas.map((zona) => (
+                  <tr key={zona.id} className="hover:bg-base-200">
                     <td className="text-base-content/60 font-mono text-sm">
-                      {tipoActivo.id}
+                      {zona.id}
                     </td>
                     <td>
                       <span className="font-semibold text-[#1A2B5E]">
-                        {tipoActivo.nombre}
+                        {zona.nombre}
                       </span>
                     </td>
                     <td className="text-slate-500 text-sm max-w-xs truncate">
-                      {tipoActivo.descripcion}
+                      {zona.descripcion}
+                    </td>
+                    <td className="font-mono text-sm text-slate-500">
+                      {zona.sensor}
+                    </td>
+                    <td>
+                      <span
+                        className={[
+                          "badge badge-sm font-medium",
+                          zona.esSegura
+                            ? "badge-success text-white"
+                            : "badge-ghost text-slate-500",
+                        ].join(" ")}
+                      >
+                        {zona.esSegura ? "Sí" : "No"}
+                      </span>
                     </td>
                     <td>
                       <div className="flex items-center justify-end gap-1">
                         <button
                           type="button"
                           className="btn btn-square btn-sm btn-ghost text-[#09268E]"
-                          title="Editar tipo de activo"
-                          onClick={() => setEditTipoActivo(tipoActivo)}
+                          title="Editar zona"
+                          onClick={() => setEditZona(zona)}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -245,6 +265,27 @@ export default function TiposActivosPage() {
                             />
                           </svg>
                         </button>
+                        <button
+                          type="button"
+                          className="btn btn-square btn-sm btn-ghost text-red-400 hover:text-red-600"
+                          title="Eliminar zona"
+                          onClick={() => setDeleteZona(zona)}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="2.5"
+                            stroke="currentColor"
+                            className="size-4"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                            />
+                          </svg>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -258,21 +299,27 @@ export default function TiposActivosPage() {
           current={paginaActual}
           total={totalPaginas}
           totalRecords={totalRegistros}
-          showing={tiposActivos.length}
+          showing={zonas.length}
           onPageChange={handlePageChange}
         />
       </div>
 
-      <CreateTipoActivoModal
+      <CreateZonaModal
         open={showCreate}
         onClose={() => setShowCreate(false)}
-        onCreated={handleTipoActivoCreated}
+        onCreated={handleZonaCreated}
       />
-      <EditTipoActivoModal
-        open={editTipoActivo !== null}
-        tipoActivo={editTipoActivo}
-        onClose={() => setEditTipoActivo(null)}
-        onUpdated={handleTipoActivoUpdated}
+      <EditZonaModal
+        open={editZona !== null}
+        zona={editZona}
+        onClose={() => setEditZona(null)}
+        onUpdated={handleZonaUpdated}
+      />
+      <DeleteZonaModal
+        open={deleteZona !== null}
+        zona={deleteZona}
+        onClose={() => setDeleteZona(null)}
+        onDeleted={handleZonaDeleted}
       />
     </div>
   );

@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { InputField } from "@/shared/ui/InputField";
-import { createTipoActivo } from "@/features/tiposActivos/services/tipoActivoService";
-import type { TipoActivo } from "@/features/tiposActivos/types";
+import { createTipoActivo } from "@/features/assetTypes/services/assetTypeService";
+import type { TipoActivo } from "@/features/assetTypes/types";
 import { toast } from "@/lib/toast";
 
 interface CreateTipoActivoModalProps {
