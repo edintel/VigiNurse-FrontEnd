@@ -11,6 +11,11 @@ export const PERMISSIONS = {
         edit: ["ADMIN"] as AuthRole[],
         delete: ["ADMIN"] as AuthRole[],
     },
+    tiposActivos: {
+        view: ["ADMIN"] as AuthRole[],
+        create: ["ADMIN"] as AuthRole[],
+        edit: ["ADMIN"] as AuthRole[],
+    },
     users: {
         view: ["SUPER_ADMIN", "ADMIN"] as AuthRole[],
         create: ["SUPER_ADMIN", "ADMIN"] as AuthRole[],

@@ -38,4 +38,8 @@ export const API_ENDPOINTS = {
         list: `${API_BASE_URL}/areas`,
         byId: (id: number) => `${API_BASE_URL}/areas/${id}`,
     },
+    tiposActivos: {
+        list: `${API_BASE_URL}/tipos-activos`,
+        byId: (id: number) => `${API_BASE_URL}/tipos-activos/${id}`,
+    },
 } as const;
