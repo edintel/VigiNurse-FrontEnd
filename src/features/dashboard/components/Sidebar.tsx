@@ -162,7 +162,7 @@ const NAV_ITEMS = [
   },
   {
     label: "Administración",
-    href: "/administracion",
+    href: "/administration",
     permission: "users.view",
     icon: (
       <svg
@@ -446,7 +446,7 @@ export function Sidebar() {
           ].join(" ")}
         >
           <Link
-            href="/perfil"
+            href="/profile"
             title={collapsed ? userName : undefined}
             className="flex items-center gap-3"
             onClick={() => setMobileOpen(false)}

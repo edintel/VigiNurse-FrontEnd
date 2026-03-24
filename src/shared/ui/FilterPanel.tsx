@@ -8,6 +8,8 @@ export function FilterLabel({ children }: { children: React.ReactNode }) {
     </span>
   );
 }
+
+// Clase CSS para los inputs de filtro, con estilos comunes. Se puede usar en cualquier input dentro del panel de filtros para mantener la consistencia visual.
 export const filterInputCls =
   "bg-white border border-[#e2e8f0] rounded py-2 px-3 text-sm text-slate-900 placeholder:text-gray-400 focus:outline-none focus:border-[#09268E] transition-colors w-full";
 interface FilterPanelProps {
@@ -25,7 +27,9 @@ export function FilterPanel({
 }: FilterPanelProps) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] overflow-hidden">
+    <div
+      className={`bg-white rounded-xl shadow-sm border border-[#E2E8F0] ${open ? "overflow-visible" : "overflow-hidden"}`}
+    >
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

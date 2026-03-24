@@ -46,4 +46,20 @@ export const API_ENDPOINTS = {
         list: `${API_BASE_URL}/zonas`,
         byId: (id: number) => `${API_BASE_URL}/zonas/${id}`,
     },
+    activos: {
+        list: `${API_BASE_URL}/activos`,
+        byId: (id: number) => `${API_BASE_URL}/activos/${id}`,
+        retirar: (id: number) => `${API_BASE_URL}/activos/${id}/retirar`,
+        qr: (id: number) => `${API_BASE_URL}/activos/${id}/qr`,
+    },
+    alertas: {
+        list: `${API_BASE_URL}/alertas`,
+        leer: (id: number) => `${API_BASE_URL}/alertas/${id}/leer`,
+    },
+    mantenimientos: {
+        calendario: `${API_BASE_URL}/mantenimientos/calendario`,
+        byActivo: (activoId: number) => `${API_BASE_URL}/activos/${activoId}/mantenimientos`,
+        byId: (activoId: number, mantenimientoId: number) => `${API_BASE_URL}/activos/${activoId}/mantenimientos/${mantenimientoId}`,
+        estado: (activoId: number, mantenimientoId: number) => `${API_BASE_URL}/activos/${activoId}/mantenimientos/${mantenimientoId}/estado`,
+    },
 } as const;

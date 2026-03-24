@@ -49,7 +49,7 @@ export default function DashboardHomePage() {
           <Link href="/usuarios" className="btn btn-sm" style={{ backgroundColor: "#09268E", borderColor: "#09268E", color: "#fff" }}>
             Gestión de usuarios
           </Link>
-          <Link href="/perfil" className="btn btn-sm btn-outline border-slate-300 text-slate-700">
+          <Link href="/profile" className="btn btn-sm btn-outline border-slate-300 text-slate-700">
             Mi perfil
           </Link>
           <Link href="/nurse-calls" className="btn btn-sm btn-outline border-slate-300 text-slate-700">

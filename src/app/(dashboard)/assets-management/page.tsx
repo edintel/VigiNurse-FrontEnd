@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import AssetsPage from "@/features/assets-managment/inventory/components/AssetsPage";
+
 export const metadata: Metadata = { title: "Gestión de Activos" };
-// Muestra la pagina de assets management.
+
+// Muestra la pagina de inventario y gestión de activos médicos.
 export default function AssetsManagementPage() {
-    return <h1 className="text-2xl font-semibold">Gestión de Activos</h1>;
+    return <AssetsPage />;
 }
