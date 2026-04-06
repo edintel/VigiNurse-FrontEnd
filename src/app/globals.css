@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../features/patients/types/index.ts";
 @import "toastify-js/src/toastify.css";
 @plugin "daisyui" {
   themes: light --default;

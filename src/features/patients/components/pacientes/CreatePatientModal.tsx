@@ -37,6 +37,7 @@ export function CreatePatientModal({
   const [tipoSangre, setTipoSangre] = useState("");
   const [peso, setPeso] = useState("");
   const [altura, setAltura] = useState("");
+  const [telefono, setTelefono] = useState("");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -61,6 +62,7 @@ export function CreatePatientModal({
     setTipoSangre("");
     setPeso("");
     setAltura("");
+    setTelefono("");
     setErrors({});
   }
 
@@ -96,6 +98,7 @@ export function CreatePatientModal({
         tipoSangre,
         peso: pesoNum,
         altura: alturaNum,
+        telefono: telefono.trim(),
       });
       toast.success(`Paciente "${paciente.nombre} ${paciente.apellidos}" registrado exitosamente.`);
       onCreated(paciente);
@@ -196,7 +199,17 @@ export function CreatePatientModal({
                 />
               </div>
 
-              {/* Fila 3: Sexo · Tipo de sangre */}
+              {/* Fila 3: Teléfono */}
+              <InputField
+                label="Teléfono"
+                id="create-paciente-telefono"
+                type="tel"
+                value={telefono}
+                onChange={(e) => setTelefono(e.target.value)}
+                placeholder="Ej. +506 8888-8888"
+              />
+
+              {/* Fila 4: Sexo · Tipo de sangre */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="form-control w-full">
                   <label className="label pb-1" htmlFor="create-paciente-sexo">
@@ -243,7 +256,7 @@ export function CreatePatientModal({
                 </div>
               </div>
 
-              {/* Fila 4: Peso · Altura */}
+              {/* Fila 5: Peso · Altura */}
               <div className="grid grid-cols-2 gap-4">
                 <InputField
                   label="Peso (kg)"

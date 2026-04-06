@@ -1,18 +1,57 @@
 "use client";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getEpisodiosActivos } from "@/features/patients/services/episodioService";
-import { ActivePatientsFilters } from "@/features/patients/components/pacientes/ActivePatientsFilters";
+import { getSignosVitalesEpisodio } from "@/features/patients/services/signoVitalService";
+import { getMedicacion } from "@/features/patients/services/medicacionService";
+import { getAdministraciones } from "@/features/patients/services/medicacionService";
+import { getOrdenesEpisodio } from "@/features/patients/services/ordenService";
+import { ActivePatientsFilters, type FilterUIState } from "@/features/patients/components/pacientes/ActivePatientsFilters";
 import { CreateEpisodioModal } from "@/features/patients/components/episodios/CreateEpisodioModal";
 import { PaginationFooter } from "@/shared/ui/PaginationFooter";
-import { TriageNivel, TRIAGE_CONFIG } from "@/features/patients/types";
+import {
+  TriageNivel,
+  TRIAGE_CONFIG,
+  MedicacionEstado,
+  OrdenEstado,
+} from "@/features/patients/types";
 import type {
   EpisodioActivo,
   EpisodioFilters,
   PaginatedEpisodiosActivos,
+  Medicacion,
+  SignoVital,
 } from "@/features/patients/types";
 
 const PAGE_SIZE = 10;
+const SESSION_KEY = "active-patients-filters";
+
+interface SavedState {
+  filters: EpisodioFilters;
+  ui: FilterUIState;
+  page: number;
+}
+
+function readSavedState(): SavedState | null {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    return raw ? (JSON.parse(raw) as SavedState) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeSavedState(state: SavedState) {
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
+  } catch {}
+}
+
+function clearSavedState() {
+  try {
+    sessionStorage.removeItem(SESSION_KEY);
+  } catch {}
+}
 
 // Formatea una fecha ISO a DD/MM/AAAA HH:MM.
 function formatDate(dateStr: string): string {
@@ -49,24 +88,176 @@ function TriageBadge({ nivel }: { nivel: TriageNivel }) {
   );
 }
 
-// Indicadores clínicos — sin funcionalidad aún, solo visuales de referencia.
-function ClinicalIndicators() {
-  const items = [
-    { label: "Signos vitales" },
-    { label: "Órdenes méd." },
-    { label: "Medicación" },
-  ];
+// ── Tipos de estado para cada indicador ──────────────────────────────────────
+type SignosStatus = "normal" | "fuera_rango" | "sin_signos";
+type OrdenesStatus = "completas" | "pendientes" | "sin_ordenes";
+type MedicacionStatus = "al_dia" | "atrasada" | "pendiente" | "sin_medicacion";
+
+async function nextDoseFromLastAdmin(
+  episodioId: number,
+  m: Medicacion,
+): Promise<Date | null> {
+  try {
+    const admins = await getAdministraciones(episodioId, m.id);
+    const baseStr =
+      admins.length === 0
+        ? m.fechaInicio
+        : admins.reduce((a, b) =>
+            new Date(a.fechaAdministracion) > new Date(b.fechaAdministracion)
+              ? a
+              : b,
+          ).fechaAdministracion;
+
+    const base = new Date(baseStr);
+    if (Number.isNaN(base.getTime())) return null;
+    return new Date(base.getTime() + m.frecuenciaHoras * 60 * 60 * 1000);
+  } catch {
+    return null;
+  }
+}
+
+// ── Indicadores clínicos con lógica real ─────────────────────────────────────
+function ClinicalIndicatorsCell({
+  episodioId,
+  refreshKey,
+}: {
+  episodioId: number;
+  refreshKey: number;
+}) {
+  const [signos, setSignos] = useState<SignosStatus | null>(null);
+  const [ordenes, setOrdenes] = useState<OrdenesStatus | null>(null);
+  const [medicacion, setMedicacion] = useState<MedicacionStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+
+    async function load() {
+      try {
+        // ── Fetch concurrente ────────────────────────────────────
+        const [signosData, completadasResult, activaMeds] = await Promise.all([
+          getSignosVitalesEpisodio(episodioId),
+          getOrdenesEpisodio(episodioId, { estado: OrdenEstado.Completada }, 1, 50),
+          getMedicacion(episodioId, { estado: MedicacionEstado.Activa }),
+        ]);
+
+        // ── Calcular signos ──────────────────────────────────────
+        const latestByType = new Map<number, SignoVital>();
+        for (const s of signosData) {
+          const prev = latestByType.get(s.tipoSignoId);
+          if (!prev || new Date(s.fecha).getTime() > new Date(prev.fecha).getTime()) {
+            latestByType.set(s.tipoSignoId, s);
+          }
+        }
+        const signosValues = Array.from(latestByType.values());
+        const newSignos: SignosStatus =
+          signosValues.length === 0
+            ? "sin_signos"
+            : signosValues.some((s) => s.valor < s.minimoNormal || s.valor > s.maximoNormal)
+            ? "fuera_rango"
+            : "normal";
+
+        // ── Calcular órdenes ─────────────────────────────────────
+        const oneHourAgo = Date.now() - 60 * 60 * 1000;
+        const hayRecienteCompleta = completadasResult.datos.some(
+          (o) => o.fechaEjecucion && new Date(o.fechaEjecucion).getTime() > oneHourAgo,
+        );
+
+        let newOrdenes: OrdenesStatus;
+        if (hayRecienteCompleta) {
+          newOrdenes = "completas";
+        } else {
+          const pendientesResult = await getOrdenesEpisodio(
+            episodioId,
+            { estado: OrdenEstado.Pendiente },
+            1,
+            1,
+          );
+          newOrdenes = pendientesResult.totalRegistros > 0 ? "pendientes" : "sin_ordenes";
+        }
+
+        // ── Calcular medicación ──────────────────────────────────
+        const now = Date.now();
+        const PENDING_MS = 10 * 60 * 1000;
+        let newMed: MedicacionStatus = activaMeds.length === 0 ? "sin_medicacion" : "al_dia";
+
+        if (newMed === "al_dia") {
+          const proximas = await Promise.all(
+            activaMeds.map((m) => nextDoseFromLastAdmin(episodioId, m)),
+          );
+
+          for (const proxima of proximas) {
+            if (proxima && proxima.getTime() < now) {
+              newMed = "atrasada";
+              break;
+            }
+          }
+
+          if (newMed === "al_dia") {
+            for (const proxima of proximas) {
+              if (proxima && proxima.getTime() - now < PENDING_MS) {
+                newMed = "pendiente";
+                break;
+              }
+            }
+          }
+        }
+
+        // ── Aplicar estado solo si el componente sigue montado ───
+        if (!cancelled) {
+          setSignos(newSignos);
+          setOrdenes(newOrdenes);
+          setMedicacion(newMed);
+        }
+      } catch {
+        if (!cancelled) {
+          setSignos("normal");
+          setOrdenes("sin_ordenes");
+          setMedicacion("al_dia");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    void load();
+    return () => { cancelled = true; };
+  }, [episodioId, refreshKey]);
+
+  if (loading) {
+    return <span className="loading loading-spinner loading-xs text-slate-300" />;
+  }
+
+  const signosColor = signos === "fuera_rango" ? "#dc2626" : signos === "sin_signos" ? "#94a3b8" : "#16a34a";
+  const ordenesColor = ordenes === "completas" ? "#16a34a" : ordenes === "pendientes" ? "#ea580c" : "#94a3b8";
+  const medColor = medicacion === "atrasada" ? "#ef4444" : medicacion === "pendiente" ? "#ea580c" : medicacion === "sin_medicacion" ? "#94a3b8" : "#3b82f6";
+
   return (
     <div className="flex flex-col gap-1.5">
-      {items.map(({ label }) => (
-        <span
-          key={label}
-          className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wide"
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-slate-300 flex-shrink-0" />
-          {label}
-        </span>
-      ))}
+      {/* Signos vitales */}
+      <span className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wide" style={{ color: signosColor }}>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke={signosColor} className="size-5 flex-shrink-0">
+          <polyline strokeLinecap="round" strokeLinejoin="round" points="2,12 5,12 7,7 9,17 11,9 13,14 15,12 22,12" />
+        </svg>
+        {signos === "fuera_rango" ? "Fuera de rango" : signos === "sin_signos" ? "Sin signos" : "Normal"}
+      </span>
+
+      {/* Órdenes */}
+      <span className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wide" style={{ color: ordenesColor }}>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke={ordenesColor} className="size-5 flex-shrink-0">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2M9 12h6M9 16h4" />
+        </svg>
+        {ordenes === "completas" ? "Completas" : ordenes === "pendientes" ? "Pendientes" : "Sin órdenes"}
+      </span>
+
+      {/* Medicación */}
+      <span className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wide" style={{ color: medColor }}>
+        <svg width="16" height="16" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+          <path d="M3.28125 10.5C2.36736 10.5 1.59201 10.1816 0.955208 9.54479C0.318403 8.90799 0 8.13264 0 7.21875C0 6.78125 0.0826389 6.36319 0.247917 5.96458C0.413194 5.56597 0.651389 5.21111 0.9625 4.9L4.9 0.9625C5.21111 0.651389 5.56597 0.413194 5.96458 0.247917C6.36319 0.0826389 6.78125 0 7.21875 0C8.13264 0 8.90799 0.318403 9.54479 0.955208C10.1816 1.59201 10.5 2.36736 10.5 3.28125C10.5 3.71875 10.4174 4.13681 10.2521 4.53542C10.0868 4.93403 9.84861 5.28889 9.5375 5.6L5.6 9.5375C5.28889 9.84861 4.93403 10.0868 4.53542 10.2521C4.13681 10.4174 3.71875 10.5 3.28125 10.5ZM7.16042 6.32917L8.72083 4.78333C8.91528 4.58889 9.06597 4.36042 9.17292 4.09792C9.27986 3.83542 9.33333 3.56319 9.33333 3.28125C9.33333 2.69792 9.12674 2.19965 8.71354 1.78646C8.30035 1.37326 7.80208 1.16667 7.21875 1.16667C6.93681 1.16667 6.66458 1.22014 6.40208 1.32708C6.13958 1.43403 5.91111 1.58472 5.71667 1.77917L4.17083 3.33958L7.16042 6.32917ZM3.28125 9.33333C3.56319 9.33333 3.83542 9.27986 4.09792 9.17292C4.36042 9.06597 4.58889 8.91528 4.78333 8.72083L6.32917 7.16042L3.33958 4.17083L1.77917 5.71667C1.58472 5.91111 1.43403 6.13958 1.32708 6.40208C1.22014 6.66458 1.16667 6.93681 1.16667 7.21875C1.16667 7.80208 1.37326 8.30035 1.78646 8.71354C2.19965 9.12674 2.69792 9.33333 3.28125 9.33333Z" fill={medColor}/>
+        </svg>
+        {medicacion === "atrasada" ? "Atrasada" : medicacion === "pendiente" ? "Próxima" : medicacion === "sin_medicacion" ? "Sin medicación" : "Al día"}
+      </span>
     </div>
   );
 }
@@ -113,11 +304,11 @@ export default function ActivePatientsPage() {
   const [paginaActual, setPaginaActual] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [indicatorsRefreshKey, setIndicatorsRefreshKey] = useState(0);
 
   // null = estado vacío (sin filtros aplicados aún)
-  const [appliedFilters, setAppliedFilters] = useState<EpisodioFilters | null>(
-    null,
-  );
+  const [appliedFilters, setAppliedFilters] = useState<EpisodioFilters | null>(null);
+  const [initialUI, setInitialUI] = useState<FilterUIState | undefined>(undefined);
   const [showCreate, setShowCreate] = useState(false);
 
   const fetchEpisodios = useCallback(
@@ -145,13 +336,25 @@ export default function ActivePatientsPage() {
     [],
   );
 
-  function handleApplyFilters(filters: EpisodioFilters) {
+  // Restaurar filtros guardados al montar
+  useEffect(() => {
+    const saved = readSavedState();
+    if (saved) {
+      setAppliedFilters(saved.filters);
+      setInitialUI(saved.ui);
+      void fetchEpisodios(saved.page, saved.filters);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleApplyFilters(filters: EpisodioFilters, ui: FilterUIState) {
     setAppliedFilters(filters);
+    writeSavedState({ filters, ui, page: 1 });
     void fetchEpisodios(1, filters);
   }
 
   function handleClearFilters() {
     setAppliedFilters(null);
+    clearSavedState();
     setEpisodios([]);
     setTotalRegistros(0);
     setTotalPaginas(1);
@@ -161,6 +364,7 @@ export default function ActivePatientsPage() {
 
   function handlePageChange(page: number) {
     if (appliedFilters !== null) {
+      writeSavedState({ filters: appliedFilters, ui: initialUI ?? { nombre: "", cedula: "", nivelTriage: "", areaId: null, areaSearch: "" }, page });
       void fetchEpisodios(page, appliedFilters);
     }
   }
@@ -174,6 +378,21 @@ export default function ActivePatientsPage() {
   }
 
   const hasAppliedFilters = appliedFilters !== null;
+
+  useEffect(() => {
+    function refresh() {
+      setIndicatorsRefreshKey((k) => k + 1);
+    }
+    const onVisibility = () => {
+      if (!document.hidden) refresh();
+    };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -207,6 +426,7 @@ export default function ActivePatientsPage() {
       <ActivePatientsFilters
         onApply={handleApplyFilters}
         onClear={handleClearFilters}
+        initial={initialUI}
       />
 
       {/* Contenido principal */}
@@ -227,6 +447,29 @@ export default function ActivePatientsPage() {
               </button>
             </div>
           )}
+
+          {/* Leyenda de indicadores clínicos */}
+          <div className="flex items-center gap-5 px-5 py-2.5 border-b border-[#f1f5f9] bg-[#fafafa]">
+            <span className="text-xs font-bold uppercase tracking-[0.6px] text-[#94a3b8]">Indicadores:</span>
+            <span className="inline-flex items-center gap-1.5 text-xs text-[#64748b]">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="#64748b" className="size-4.5 flex-shrink-0">
+                <polyline strokeLinecap="round" strokeLinejoin="round" points="2,12 5,12 7,7 9,17 11,9 13,14 15,12 22,12" />
+              </svg>
+              Signos vitales
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-xs text-[#64748b]">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="#64748b" className="size-4.5 flex-shrink-0">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2M9 12h6M9 16h4" />
+              </svg>
+              Órdenes médicas
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-xs text-[#64748b]">
+              <svg width="17" height="17" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                <path d="M3.28125 10.5C2.36736 10.5 1.59201 10.1816 0.955208 9.54479C0.318403 8.90799 0 8.13264 0 7.21875C0 6.78125 0.0826389 6.36319 0.247917 5.96458C0.413194 5.56597 0.651389 5.21111 0.9625 4.9L4.9 0.9625C5.21111 0.651389 5.56597 0.413194 5.96458 0.247917C6.36319 0.0826389 6.78125 0 7.21875 0C8.13264 0 8.90799 0.318403 9.54479 0.955208C10.1816 1.59201 10.5 2.36736 10.5 3.28125C10.5 3.71875 10.4174 4.13681 10.2521 4.53542C10.0868 4.93403 9.84861 5.28889 9.5375 5.6L5.6 9.5375C5.28889 9.84861 4.93403 10.0868 4.53542 10.2521C4.13681 10.4174 3.71875 10.5 3.28125 10.5ZM7.16042 6.32917L8.72083 4.78333C8.91528 4.58889 9.06597 4.36042 9.17292 4.09792C9.27986 3.83542 9.33333 3.56319 9.33333 3.28125C9.33333 2.69792 9.12674 2.19965 8.71354 1.78646C8.30035 1.37326 7.80208 1.16667 7.21875 1.16667C6.93681 1.16667 6.66458 1.22014 6.40208 1.32708C6.13958 1.43403 5.91111 1.58472 5.71667 1.77917L4.17083 3.33958L7.16042 6.32917ZM3.28125 9.33333C3.56319 9.33333 3.83542 9.27986 4.09792 9.17292C4.36042 9.06597 4.58889 8.91528 4.78333 8.72083L6.32917 7.16042L3.33958 4.17083L1.77917 5.71667C1.58472 5.91111 1.43403 6.13958 1.32708 6.40208C1.22014 6.66458 1.16667 6.93681 1.16667 7.21875C1.16667 7.80208 1.37326 8.30035 1.78646 8.71354C2.19965 9.12674 2.69792 9.33333 3.28125 9.33333Z" fill="#64748b"/>
+              </svg>
+              Medicación
+            </span>
+          </div>
 
           <div className="overflow-x-auto">
             <table className="table table-zebra w-full [&_td]:py-3 [&_th]:py-2.5">
@@ -308,9 +551,12 @@ export default function ActivePatientsPage() {
                         <TriageBadge nivel={ep.nivelTriage} />
                       </td>
 
-                      {/* Indicadores clínicos (sin funcionalidad) */}
+                      {/* Indicadores clínicos */}
                       <td>
-                        <ClinicalIndicators />
+                        <ClinicalIndicatorsCell
+                          episodioId={ep.episodioId}
+                          refreshKey={indicatorsRefreshKey}
+                        />
                       </td>
 
                       {/* Acciones */}

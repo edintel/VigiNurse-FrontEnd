@@ -7,7 +7,6 @@ import {
 } from "@/features/patients/services/patientService";
 import { getEpisodioActivo } from "@/features/patients/services/episodioService";
 import { PatientInfoCard } from "@/features/patients/components/pacientes/PatientInfoCard";
-import { PatientContactCard } from "@/features/patients/components/pacientes/PatientContactCard";
 import { PatientAllergyCard } from "@/features/patients/components/pacientes/PatientAllergyCard";
 import { CreateEpisodioModal } from "@/features/patients/components/episodios/CreateEpisodioModal";
 import { EpisodioHistorialTab } from "@/features/patients/components/episodios/EpisodioHistorialTab";
@@ -148,74 +147,19 @@ export default function PatientRecordPage({ id }: PatientRecordPageProps) {
   const tabs = episodioActivo ? ACTIVE_EPISODE_TABS : NO_EPISODE_TABS;
 
   return (
-    <div>
-      {/* Sub-header */}
-      <div className="border-b border-[#e2e8f0] bg-white px-8 xl:px-12 py-4">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          {/* Left: back + patient name */}
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => router.push("/patients")}
-              className="btn btn-sm btn-ghost btn-circle text-[#64748b] hover:text-[#1A2B5E]"
-              title="Volver a gestión de pacientes"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="2.5"
-                stroke="currentColor"
-                className="size-4"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15.75 19.5 8.25 12l7.5-7.5"
-                />
-              </svg>
-            </button>
-            <div>
-              <h1 className="text-lg font-bold text-[#0f172a] leading-tight">
-                {paciente.apellidos}, {paciente.nombre}
-              </h1>
-              <div className="flex items-center gap-2 mt-1 flex-wrap">
-                <span className="text-[11px] font-medium text-[#64748b] bg-[#f1f5f9] rounded px-1.5 py-0.5 font-mono">
-                  {paciente.cedula}
-                </span>
-                <span className="text-[11px] font-medium text-[#64748b] bg-[#f1f5f9] rounded px-1.5 py-0.5">
-                  {edad} años
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: action buttons */}
-          <div className="flex items-center gap-2">
-            {episodioActivo ? (
-              <>
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline border-[#09268E] text-[#09268E] hover:bg-[#09268E] hover:text-white"
-                  onClick={() => router.push(`/patients/${id}/historial`)}
-                >
-                  Ver historial
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-sm text-white"
-                  style={{ backgroundColor: "#ff627d", borderColor: "#ff627d" }}
-                  onClick={() => setShowFinalizarModal(true)}
-                >
-                  Finalizar atención
-                </button>
-              </>
-            ) : (
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
+      {/* Static header + tab bar (solo scrollea el contenido) */}
+      <div className="shrink-0 sticky top-0 z-10 bg-white">
+        {/* Sub-header */}
+        <div className="border-b border-[#e2e8f0] px-8 xl:px-12 py-4">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            {/* Left: back + patient name */}
+            <div className="flex items-center gap-3">
               <button
                 type="button"
-                className="btn text-white"
-                style={{ backgroundColor: "#09268E", borderColor: "#09268E" }}
-                onClick={() => setShowEpisodioModal(true)}
+                onClick={() => router.push("/patients")}
+                className="btn btn-sm btn-ghost btn-circle text-[#64748b] hover:text-[#1A2B5E]"
+                title="Volver a gestión de pacientes"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -223,58 +167,122 @@ export default function PatientRecordPage({ id }: PatientRecordPageProps) {
                   viewBox="0 0 24 24"
                   strokeWidth="2.5"
                   stroke="currentColor"
-                  className="size-[1.2em]"
+                  className="size-4"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M12 4.5v15m7.5-7.5h-15"
+                    d="M15.75 19.5 8.25 12l7.5-7.5"
                   />
                 </svg>
-                Iniciar atención
               </button>
-            )}
+              <div>
+                <h1 className="text-lg font-bold text-[#0f172a] leading-tight">
+                  {paciente.apellidos}, {paciente.nombre}
+                </h1>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <span className="text-[11px] font-medium text-[#64748b] bg-[#f1f5f9] rounded px-1.5 py-0.5 font-mono">
+                    {paciente.cedula}
+                  </span>
+                  <span className="text-[11px] font-medium text-[#64748b] bg-[#f1f5f9] rounded px-1.5 py-0.5">
+                    {edad} años
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: action buttons */}
+            <div className="flex items-center gap-2">
+              {episodioActivo ? (
+                <>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline border-[#09268E] text-[#09268E] hover:bg-[#09268E] hover:text-white"
+                    onClick={() => router.push(`/patients/${id}/historial`)}
+                  >
+                    Ver historial
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-sm text-white"
+                    style={{ backgroundColor: "#ff627d", borderColor: "#ff627d" }}
+                    onClick={() => setShowFinalizarModal(true)}
+                  >
+                    Finalizar atención
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  className="btn text-white"
+                  style={{ backgroundColor: "#09268E", borderColor: "#09268E" }}
+                  onClick={() => setShowEpisodioModal(true)}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2.5"
+                    stroke="currentColor"
+                    className="size-[1.2em]"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 4.5v15m7.5-7.5h-15"
+                    />
+                  </svg>
+                  Iniciar atención
+                </button>
+              )}
+            </div>
           </div>
+        </div>
+
+        {/* Tab bar */}
+        <div className="flex gap-1 border-b border-[#D1D9E6] px-8 xl:px-12 overflow-x-auto">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={[
+                "px-5 py-3 text-sm font-semibold transition-colors -mb-px border-b-2 whitespace-nowrap",
+                activeTab === tab.id
+                  ? "text-[#09268E] border-[#09268E]"
+                  : "text-slate-500 border-transparent hover:text-[#1A2B5E] hover:border-slate-300",
+              ].join(" ")}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Tab bar */}
-      <div className="flex gap-1 border-b border-[#D1D9E6] bg-white px-8 xl:px-12 overflow-x-auto">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id)}
-            className={[
-              "px-5 py-3 text-sm font-semibold transition-colors -mb-px border-b-2 whitespace-nowrap",
-              activeTab === tab.id
-                ? "text-[#09268E] border-[#09268E]"
-                : "text-slate-500 border-transparent hover:text-[#1A2B5E] hover:border-slate-300",
-            ].join(" ")}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
       {/* Tab content */}
-      <div className="py-6 px-8 xl:px-12 space-y-4">
+      <div className="flex-1 min-h-0 overflow-y-auto py-6 px-8 xl:px-12 space-y-4">
         {activeTab === "informacion" && (
           <>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <PatientInfoCard paciente={paciente} onUpdated={setPaciente} />
-              <PatientContactCard
-                pacienteId={id}
+            <div className="space-y-4">
+              <PatientInfoCard
+                paciente={paciente}
+                onUpdated={setPaciente}
                 contacto={contacto}
-                onUpdated={setContacto}
+                onContactUpdated={setContacto}
               />
+              <PatientAllergyCard pacienteId={id} />
             </div>
-            <PatientAllergyCard pacienteId={id} />
           </>
         )}
 
         {activeTab === "resumen" && episodioActivo && (
-          <EpisodioResumenTab episodio={episodioActivo} />
+          <EpisodioResumenTab
+            episodio={episodioActivo}
+            onGoToSignos={() => setActiveTab("signos")}
+            onGoToMedicacion={() => setActiveTab("medicacion")}
+            onGoToDiagnosticos={() => setActiveTab("diagnosticos")}
+            onGoToOrdenes={() => setActiveTab("ordenes")}
+          />
         )}
 
         {activeTab === "historial" && !episodioActivo && (

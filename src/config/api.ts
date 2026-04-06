@@ -107,6 +107,8 @@ export const API_ENDPOINTS = {
       `${API_BASE_URL}/episodios/${episodioId}/medicacion/${prescripcionId}/estado`,
     administraciones: (episodioId: number, prescripcionId: number) =>
       `${API_BASE_URL}/episodios/${episodioId}/medicacion/${prescripcionId}/administraciones`,
+    recetaAlta: (episodioId: number) =>
+      `${API_BASE_URL}/episodios/${episodioId}/receta-alta`,
   },
   medicamentos: {
     list: `${API_BASE_URL}/medicamentos`,

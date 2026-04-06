@@ -15,24 +15,34 @@ interface SelectOption {
   label: string;
 }
 
+export interface FilterUIState {
+  nombre: string;
+  cedula: string;
+  nivelTriage: string;
+  areaId: number | null;
+  areaSearch: string;
+}
+
 interface ActivePatientsFiltersProps {
-  onApply: (filters: EpisodioFilters) => void;
+  onApply: (filters: EpisodioFilters, ui: FilterUIState) => void;
   onClear: () => void;
+  initial?: FilterUIState;
 }
 
 // Panel de filtros de pacientes en atención. Gestiona su propio estado interno.
 export function ActivePatientsFilters({
   onApply,
   onClear,
+  initial,
 }: ActivePatientsFiltersProps) {
-  const [filterNombre, setFilterNombre] = useState("");
-  const [filterCedula, setFilterCedula] = useState("");
-  const [filterNivelTriage, setFilterNivelTriage] = useState<string>("");
+  const [filterNombre, setFilterNombre] = useState(initial?.nombre ?? "");
+  const [filterCedula, setFilterCedula] = useState(initial?.cedula ?? "");
+  const [filterNivelTriage, setFilterNivelTriage] = useState<string>(initial?.nivelTriage ?? "");
 
   // Área SearchableSelect
   const [areaOptions, setAreaOptions] = useState<SelectOption[]>([]);
-  const [areaSearch, setAreaSearch] = useState("");
-  const [areaSelectedId, setAreaSelectedId] = useState<number | null>(null);
+  const [areaSearch, setAreaSearch] = useState(initial?.areaSearch ?? "");
+  const [areaSelectedId, setAreaSelectedId] = useState<number | null>(initial?.areaId ?? null);
   const [areaShowDropdown, setAreaShowDropdown] = useState(false);
 
   // Carga las áreas al montar el componente.
@@ -52,7 +62,13 @@ export function ActivePatientsFilters({
     if (areaSelectedId != null) filters.areaId = areaSelectedId;
     if (filterNivelTriage !== "")
       filters.nivelTriage = parseInt(filterNivelTriage, 10) as TriageNivel;
-    onApply(filters);
+    onApply(filters, {
+      nombre: filterNombre,
+      cedula: filterCedula,
+      nivelTriage: filterNivelTriage,
+      areaId: areaSelectedId,
+      areaSearch,
+    });
   }
 
   function handleClear() {

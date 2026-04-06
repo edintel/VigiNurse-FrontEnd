@@ -9,19 +9,10 @@ interface PatientContactCardProps {
   onUpdated: (contacto: ContactoPaciente) => void;
 }
 
-// Par etiqueta-valor reutilizable.
-function Field({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-[10px] font-bold uppercase tracking-[0.5px] text-[#94a3b8]">
-        {label}
-      </span>
-      <span className="text-sm font-semibold text-[#334155]">{value}</span>
-    </div>
-  );
+function getInitials(nombre: string, apellidos: string) {
+  return `${nombre.charAt(0)}${apellidos.charAt(0)}`.toUpperCase();
 }
 
-// Card con la información del contacto de emergencia del paciente.
 export function PatientContactCard({
   pacienteId,
   contacto,
@@ -31,7 +22,7 @@ export function PatientContactCard({
 
   return (
     <>
-      <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm overflow-hidden self-start">
         {/* Card header */}
         <div className="px-5 py-3.5 border-b border-[#f1f5f9] bg-[#F8FAFC]/50 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -80,29 +71,53 @@ export function PatientContactCard({
         </div>
 
         {/* Card body */}
-        <div className="p-5">
+        <div className="px-5 py-4">
           {contacto ? (
-            <div className="space-y-4">
-              <Field
-                label="Nombre completo"
-                value={`${contacto.nombre} ${contacto.apellidos}`}
-              />
-              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-                <Field label="Relación" value={contacto.relacion} />
-                <Field label="Teléfono" value={contacto.telefono} />
+            <div className="flex items-center gap-4">
+              {/* Avatar con iniciales */}
+              <div className="w-10 h-10 rounded-full bg-[#e8edf8] flex items-center justify-center flex-shrink-0">
+                <span className="text-sm font-bold text-[#09268E]">
+                  {getInitials(contacto.nombre, contacto.apellidos)}
+                </span>
+              </div>
+
+              {/* Info */}
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-[#0f172a] truncate">
+                  {contacto.nombre} {contacto.apellidos}
+                </p>
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  <span className="text-xs text-[#64748b]">{contacto.relacion}</span>
+                  <span className="text-[#cbd5e1] text-xs">·</span>
+                  <span className="inline-flex items-center gap-1 text-xs text-[#334155] font-medium">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 16 16"
+                      fill="currentColor"
+                      className="size-3 text-[#94a3b8]"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M3.5 2A1.5 1.5 0 0 0 2 3.5V5c0 5.523 4.477 10 10 10h1.5a1.5 1.5 0 0 0 1.5-1.5v-.957a1.5 1.5 0 0 0-1.136-1.457l-1.65-.413a1.5 1.5 0 0 0-1.502.478l-.375.501a7.046 7.046 0 0 1-3.99-3.99l.502-.375a1.5 1.5 0 0 0 .477-1.502l-.412-1.65A1.5 1.5 0 0 0 5.957 2H3.5Z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    {contacto.telefono}
+                  </span>
+                </div>
               </div>
             </div>
           ) : (
-            /* Estado vacío: sin contacto registrado */
-            <div className="flex flex-col items-center justify-center py-8 gap-3">
-              <div className="w-12 h-12 rounded-full bg-[#f1f5f9] flex items-center justify-center">
+            /* Estado vacío */
+            <div className="flex items-center gap-4 py-1">
+              <div className="w-10 h-10 rounded-full bg-[#f1f5f9] flex items-center justify-center flex-shrink-0">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth="1.4"
                   stroke="#94a3b8"
-                  className="size-6"
+                  className="size-5"
                 >
                   <path
                     strokeLinecap="round"
@@ -111,35 +126,17 @@ export function PatientContactCard({
                   />
                 </svg>
               </div>
-              <div className="text-center">
-                <p className="text-sm font-semibold text-[#334155]">
-                  Sin contacto registrado
-                </p>
-                <p className="text-xs text-[#64748b] mt-0.5">
-                  No hay un contacto de emergencia para este paciente.
-                </p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-[#334155]">Sin contacto registrado</p>
+                <p className="text-xs text-[#94a3b8] mt-0.5">No hay un contacto de emergencia asignado.</p>
               </div>
               <button
                 type="button"
-                className="btn btn-sm text-white gap-1.5 mt-1"
+                className="btn btn-xs text-white flex-shrink-0"
                 style={{ backgroundColor: "#09268E", borderColor: "#09268E" }}
                 onClick={() => setShowEdit(true)}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="2.5"
-                  stroke="currentColor"
-                  className="size-[1em]"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 4.5v15m7.5-7.5h-15"
-                  />
-                </svg>
-                Agregar contacto
+                Agregar
               </button>
             </div>
           )}

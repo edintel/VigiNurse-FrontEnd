@@ -69,7 +69,7 @@ export async function getContactosPaciente(
   return res.data;
 }
 
-// Actualiza los datos editables de un paciente (peso y altura).
+// Actualiza los datos editables de un paciente.
 export async function updatePaciente(
   id: number,
   dto: UpdatePacienteDTO,

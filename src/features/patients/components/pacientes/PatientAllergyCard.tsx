@@ -86,7 +86,7 @@ function AlergiaItem({
               {cfg.label}
             </span>
           </div>
-          <p className="text-[13px] text-[#475569] mt-0.5">
+          <p className="text-[13px] text-[#475569] mt-0.5 text-justify">
             <span className="text-[10px] font-bold uppercase tracking-[0.4px] text-[#94a3b8]">
               Reacción:{" "}
             </span>
@@ -296,28 +296,7 @@ export function PatientAllergyCard({ pacienteId }: PatientAllergyCardProps) {
                   No hay alergias documentadas para este paciente.
                 </p>
               </div>
-              <button
-                type="button"
-                className="btn btn-sm text-white gap-1.5 mt-1"
-                style={{ backgroundColor: "#09268E", borderColor: "#09268E" }}
-                onClick={handleNew}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="2.5"
-                  stroke="currentColor"
-                  className="size-[1em]"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 4.5v15m7.5-7.5h-15"
-                  />
-                </svg>
-                Registrar alergia
-              </button>
+              
             </div>
           ) : (
             /* Lista de alergias */

@@ -23,6 +23,7 @@ export function EditVitalsModal({
 
   const [peso, setPeso] = useState("");
   const [altura, setAltura] = useState("");
+  const [telefono, setTelefono] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -32,12 +33,13 @@ export function EditVitalsModal({
       dialogRef.current?.showModal();
       setPeso(String(paciente.peso));
       setAltura(String(paciente.altura));
+      setTelefono(paciente.telefono ?? "");
       setErrors({});
       setApiError(null);
     } else {
       dialogRef.current?.close();
     }
-  }, [open, paciente.peso, paciente.altura]);
+  }, [open, paciente.peso, paciente.altura, paciente.telefono]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,6 +67,7 @@ export function EditVitalsModal({
         tipoSangre: paciente.tipoSangre,
         peso: pesoNum,
         altura: alturaNum,
+        telefono: telefono.trim(),
       };
       const updated = await updatePaciente(paciente.id, dto);
       toast.success("Datos del paciente actualizados.");
@@ -97,7 +100,7 @@ export function EditVitalsModal({
         </button>
 
         <h3 className="text-lg font-bold text-[#1A2B5E] mb-4">
-          Editar datos vitales
+          Editar datos del paciente
         </h3>
 
         {apiError && (
@@ -139,6 +142,14 @@ export function EditVitalsModal({
               required
             />
           </div>
+          <InputField
+            id="edit-vitals-telefono"
+            label="Teléfono"
+            type="tel"
+            value={telefono}
+            onChange={(e) => setTelefono(e.target.value)}
+            placeholder="Ej. +506 8888-8888"
+          />
 
           <div className="modal-action mt-1">
             <button

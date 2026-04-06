@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-// TIpado de las etiquetas web de Cally para poder usarlas en JSX sin errores de TypeScript.
+// Tipado de las etiquetas web de Cally para poder usarlas en JSX sin errores de TypeScript.
 declare global {
   namespace React {
     namespace JSX {
@@ -35,7 +35,53 @@ interface CallyDatePickerProps {
   error?: string;
   placeholder?: string;
   min?: string;
+  max?: string;
   variant?: "modal" | "filter";
+}
+
+const MESES = [
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
+];
+
+// Genera un rango de años desde 120 años atrás hasta 10 años en el futuro.
+function buildYearRange(): number[] {
+  const current = new Date().getFullYear();
+  const years: number[] = [];
+  for (let y = current + 10; y >= current - 120; y--) {
+    years.push(y);
+  }
+  return years;
+}
+
+const YEAR_RANGE = buildYearRange();
+
+// Obtiene el año desde un valor YYYY-MM-DD, o el año actual como fallback.
+function yearFrom(val: string): number {
+  if (val) {
+    const y = parseInt(val.split("-")[0]);
+    if (!isNaN(y)) return y;
+  }
+  return new Date().getFullYear();
+}
+
+// Obtiene el mes (1-12) desde un valor YYYY-MM-DD, o el mes actual como fallback.
+function monthFrom(val: string): number {
+  if (val) {
+    const m = parseInt(val.split("-")[1]);
+    if (!isNaN(m)) return m;
+  }
+  return new Date().getMonth() + 1;
 }
 
 // Convierte YYYY-MM-DD a DD/MM/YYYY para mostrarlo en el botón.
@@ -47,7 +93,8 @@ function formatDisplay(val: string, placeholder: string): string {
   return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
-// Componente principal que renderiza un botón para abrir el calendario y el calendario en un dropdown posicionado. Maneja la lógica de apertura/cierre, sincronización del valor controlado y propagación de cambios al padre.
+// Componente principal que renderiza un botón para abrir el calendario y el calendario en un dropdown posicionado.
+// Incluye selectores de mes y año para navegar rápidamente sin ir mes a mes.
 export function CallyDatePicker({
   id,
   label,
@@ -57,6 +104,7 @@ export function CallyDatePicker({
   error,
   placeholder = "Seleccionar fecha",
   min,
+  max,
   variant = "modal",
 }: CallyDatePickerProps) {
   const [open, setOpen] = useState(false);
@@ -65,11 +113,94 @@ export function CallyDatePicker({
     left: number;
     width: number;
   } | null>(null);
+  const [dropMaxHeight, setDropMaxHeight] = useState<number | null>(null);
   const [portalTarget, setPortalTarget] = useState<Element | null>(null);
+
+  // Estado de navegación del calendario (mes/año mostrado)
+  const [viewYear, setViewYear] = useState<number>(() => yearFrom(value));
+  const [viewMonth, setViewMonth] = useState<number>(() => monthFrom(value));
+
+  // Valor que se sincroniza con el web component de cally.
+  // Puede ser la fecha seleccionada o una fecha de navegación (primer día del mes).
+  const [calValue, setCalValue] = useState<string>(value || "");
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
   const calRef = useRef<HTMLElement>(null);
+
+  // Evita que el dropdown se salga de la pantalla: clamp horizontal, flip vertical y max-height con scroll.
+  useLayoutEffect(() => {
+    if (!open) {
+      setDropMaxHeight(null);
+      return;
+    }
+
+    const MARGIN = 8;
+    const GAP = 4;
+    const MIN_WIDTH = 280;
+
+    function clamp(n: number, min: number, max: number) {
+      return Math.min(Math.max(n, min), max);
+    }
+
+    function updatePosition() {
+      const triggerEl = triggerRef.current;
+      const dropEl = dropRef.current;
+      if (!triggerEl || !dropEl) return;
+
+      const tRect = triggerEl.getBoundingClientRect();
+      const vw = window.innerWidth || document.documentElement.clientWidth;
+      const vh = window.innerHeight || document.documentElement.clientHeight;
+
+      const desiredWidth = Math.max(
+        MIN_WIDTH,
+        Math.min(tRect.width, vw - MARGIN * 2),
+      );
+
+      // El dropdown ya está renderizado: usamos su tamaño real.
+      const dRect = dropEl.getBoundingClientRect();
+
+      const maxLeft = Math.max(MARGIN, vw - desiredWidth - MARGIN);
+      const nextLeft = clamp(tRect.left, MARGIN, maxLeft);
+
+      const spaceBelow = vh - (tRect.bottom + GAP) - MARGIN;
+      const spaceAbove = tRect.top - GAP - MARGIN;
+      const shouldFlip = dRect.height > spaceBelow && spaceAbove > spaceBelow;
+
+      const nextTop = shouldFlip
+        ? Math.max(MARGIN, tRect.top - GAP - dRect.height)
+        : tRect.bottom + GAP;
+
+      const available = Math.max(0, shouldFlip ? spaceAbove : spaceBelow);
+      const nextMaxHeight = Math.max(80, available);
+
+      setDropCoords((prev) => {
+        const prevTop = prev?.top;
+        const prevLeft = prev?.left;
+        const prevWidth = prev?.width;
+        const changed =
+          prevTop == null ||
+          prevLeft == null ||
+          prevWidth == null ||
+          Math.abs(prevTop - nextTop) >= 1 ||
+          Math.abs(prevLeft - nextLeft) >= 1 ||
+          Math.abs(prevWidth - desiredWidth) >= 1;
+        if (!changed) return prev;
+        return { top: nextTop, left: nextLeft, width: desiredWidth };
+      });
+
+      setDropMaxHeight((prev) => (prev === nextMaxHeight ? prev : nextMaxHeight));
+    }
+
+    const raf = window.requestAnimationFrame(updatePosition);
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [open, viewMonth, viewYear]);
 
   // Carga dinámicamente la librería del web component solo en cliente.
   useEffect(() => {
@@ -85,6 +216,9 @@ export function CallyDatePicker({
       const target = e.target as HTMLElement & { value?: string };
       if (target.value) {
         onChange(target.value);
+        setCalValue(target.value);
+        setViewYear(yearFrom(target.value));
+        setViewMonth(monthFrom(target.value));
         setOpen(false);
       }
     }
@@ -104,10 +238,20 @@ export function CallyDatePicker({
     return () => document.removeEventListener("mousedown", handleOutside);
   }, [open]);
 
-  // Mantiene sincronizado el valor controlado externo con el web component interno.
+  // Sincroniza calValue con el web component interno.
   useEffect(() => {
     const el = calRef.current as (HTMLElement & { value?: string }) | null;
-    if (el && el.value !== value) el.value = value;
+    if (el && el.value !== calValue) el.value = calValue;
+  }, [calValue]);
+
+  // Cuando el valor externo cambia, actualiza calValue y la navegación.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    setCalValue(value || "");
+    if (value) {
+      setViewYear(yearFrom(value));
+      setViewMonth(monthFrom(value));
+    }
   }, [value]);
 
   // Abre/cierra el calendario y calcula posición fija para renderizar el dropdown.
@@ -122,8 +266,36 @@ export function CallyDatePicker({
       });
       const dialog = triggerRef.current.closest("dialog");
       setPortalTarget(dialog ?? document.body);
+
+      // Al abrir, posicionar la vista en la fecha seleccionada o en el mes actual.
+      if (value) {
+        setViewYear(yearFrom(value));
+        setViewMonth(monthFrom(value));
+        setCalValue(value);
+      } else {
+        const now = new Date();
+        setViewYear(now.getFullYear());
+        setViewMonth(now.getMonth() + 1);
+        setCalValue("");
+      }
     }
     setOpen((v) => !v);
+  }
+
+  // Navega a un año específico manteniendo el mes actual.
+  function handleYearChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const year = parseInt(e.target.value);
+    setViewYear(year);
+    const nav = `${year}-${String(viewMonth).padStart(2, "0")}-01`;
+    setCalValue(nav);
+  }
+
+  // Navega a un mes específico manteniendo el año actual.
+  function handleMonthChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const month = parseInt(e.target.value);
+    setViewMonth(month);
+    const nav = `${viewYear}-${String(month).padStart(2, "0")}-01`;
+    setCalValue(nav);
   }
 
   const isFilter = variant === "filter";
@@ -155,6 +327,9 @@ export function CallyDatePicker({
     : value
       ? "text-[#1A2B5E] text-sm"
       : "text-[#B0B0B0] text-sm";
+
+  const navSelectCls =
+    "text-xs font-semibold border border-[#e2e8f0] rounded px-2 py-1 bg-white text-[#1A2B5E] focus:outline-none focus:border-[#09268E] cursor-pointer";
 
   return (
     <div className={`flex flex-col w-full ${isFilter ? "gap-1" : "gap-2"}`}>
@@ -189,21 +364,55 @@ export function CallyDatePicker({
         dropCoords &&
         portalTarget &&
         createPortal(
-          <div
-            ref={dropRef}
-            style={{
-              position: "fixed",
-              top: dropCoords.top,
-              left: dropCoords.left,
-              zIndex: 9999,
-            }}
-            className="bg-base-100 rounded-box shadow-lg border border-[#E2E8F0]"
-          >
+	          <div
+	            ref={dropRef}
+	            style={{
+	              position: "fixed",
+	              top: dropCoords.top,
+	              left: dropCoords.left,
+	              width: dropCoords.width,
+	              zIndex: 9999,
+	              maxHeight: dropMaxHeight ?? undefined,
+	              overflowY: dropMaxHeight ? "auto" : undefined,
+	            }}
+	            className="bg-base-100 rounded-box shadow-lg border border-[#E2E8F0]"
+	          >
+            {/* Selectores de mes y año para navegación rápida */}
+            <div className="flex items-center gap-2 px-3 py-2 border-b border-[#f1f5f9]">
+              <select
+                className={navSelectCls}
+                value={viewMonth}
+                onChange={handleMonthChange}
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                {MESES.map((m, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+              <select
+                className={navSelectCls}
+                value={viewYear}
+                onChange={handleYearChange}
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                {YEAR_RANGE.filter((y) =>
+                  max ? y <= parseInt(max.split("-")[0]) : true,
+                ).map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <calendar-date
               ref={calRef}
               class="cally"
-              value={value || undefined}
+              value={calValue || undefined}
               min={min}
+              max={max}
             >
               <svg
                 aria-label="Previous"

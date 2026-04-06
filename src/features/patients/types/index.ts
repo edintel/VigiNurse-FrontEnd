@@ -32,6 +32,7 @@ export interface Paciente {
   tipoSangre: string;
   peso: number;
   altura: number;
+  telefono: string | null;
   fechaCreacion: string;
   activo: boolean;
 }
@@ -53,6 +54,7 @@ export interface CreatePacienteDTO {
   tipoSangre: string;
   peso: number;
   altura: number;
+  telefono: string;
 }
 
 export interface CreateContactoDTO {
@@ -211,7 +213,6 @@ export interface CreateEpisodioDTO {
   fechaAdmision: string;
   tipo: TipoEpisodio;
   nivelTriage: TriageNivel;
-  condicionClinica: string;
   razonVisita: string;
   areaId: number;
   hospitalId: number | null;
@@ -379,6 +380,7 @@ export interface UpdatePacienteDTO {
   tipoSangre: string;
   peso: number;
   altura: number;
+  telefono: string;
 }
 
 export interface UpdateContactoDTO {
@@ -519,9 +521,35 @@ export interface CambiarEstadoMedicacionDTO {
   justificacion: string;
 }
 
-export interface Medicamento {
+export interface RecetaAltaDetalle {
+  medicamentoId: number;
+  dosis: string;
+  frecuencia: string;
+  duracion: string;
+  instrucciones: string;
+}
+
+export interface CreateRecetaAltaDTO {
+  detalles: RecetaAltaDetalle[];
+}
+
+export interface RecetaAltaDetalleResponse {
   id: number;
-  nombre: string;
+  medicamentoId: number;
+  medicamentoNombre: string;
+  dosis: string;
+  frecuencia: string;
+  duracion: string;
+  instrucciones: string;
+}
+
+export interface RecetaAlta {
+  id: number;
+  episodioId: number;
+  doctorId: number;
+  doctorNombre: string;
+  fechaCreacion: string;
+  detalles: RecetaAltaDetalleResponse[];
 }
 
 // ─── Notas de enfermería ──────────────────────────────────────────────────────
@@ -589,9 +617,9 @@ export const ORDEN_ESTADO_CONFIG: Record<
   },
   [OrdenEstado.Cancelada]: {
     label: "Cancelada",
-    bgCls: "bg-[#f1f5f9]",
-    borderCls: "border-[#e2e8f0]",
-    textCls: "text-[#64748b]",
+    bgCls: "bg-[#ff627d1a]",
+    borderCls: "border-[#ff627d33]",
+    textCls: "text-[#ff627d]",
   },
 };
 
@@ -626,9 +654,9 @@ export const ORDEN_PRIORIDAD_CONFIG: Record<
 > = {
   [OrdenPrioridad.Baja]: {
     label: "Baja",
-    bgCls: "bg-[#eff6ff]",
-    borderCls: "border-[#dbeafe]",
-    textCls: "text-[#2563eb]",
+    bgCls: "bg-[#ecfdf5]",
+    borderCls: "border-[#a7f3d0]",
+    textCls: "text-[#059669]",
   },
   [OrdenPrioridad.Normal]: {
     label: "Normal",
@@ -638,15 +666,15 @@ export const ORDEN_PRIORIDAD_CONFIG: Record<
   },
   [OrdenPrioridad.Alta]: {
     label: "Alta",
-    bgCls: "bg-[rgba(255,98,125,0.1)]",
-    borderCls: "border-[rgba(255,98,125,0.2)]",
-    textCls: "text-[#ff627d]",
+    bgCls: "bg-[#fff7ed]",
+    borderCls: "border-[#FFC269]",
+    textCls: "text-[#EA580C]",
   },
   [OrdenPrioridad.Urgente]: {
     label: "Urgente",
-    bgCls: "bg-[#f3e8ff]",
-    borderCls: "border-[#e9d5ff]",
-    textCls: "text-[#7e22ce]",
+    bgCls: "bg-[#ff627d1a]",
+    borderCls: "border-[#ff627d33]",
+    textCls: "text-[#ff627d]",
   },
 };
 
@@ -702,6 +730,12 @@ export const CATEGORIAS_POR_TIPO: Record<TipoOrden, string[]> = {
   ],
   [TipoOrden.Otro]: ["Otro"],
 };
+
+export interface OrdenesFilters {
+  estado?: OrdenEstado;
+  tipo?: TipoOrden;
+  prioridad?: OrdenPrioridad;
+}
 
 export interface CreateOrdenDTO {
   descripcion: string;
