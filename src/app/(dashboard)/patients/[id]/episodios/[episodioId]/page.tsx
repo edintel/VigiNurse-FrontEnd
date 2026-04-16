@@ -1,11 +1,11 @@
 "use client";
 import { useParams } from "next/navigation";
-import EpisodioDetailPage from "@/features/patients/components/episodios/EpisodioDetailPage";
+import EpisodeDetailPage from "@/features/patients/components/episodes/EpisodeDetailPage";
 
 export default function Page() {
   const { id, episodioId } = useParams<{ id: string; episodioId: string }>();
   return (
-    <EpisodioDetailPage
+    <EpisodeDetailPage
       pacienteId={Number(id)}
       episodioId={Number(episodioId)}
     />

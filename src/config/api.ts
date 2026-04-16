@@ -74,6 +74,7 @@ export const API_ENDPOINTS = {
   pacientes: {
     list: `${API_BASE_URL}/pacientes`,
     byId: (id: number) => `${API_BASE_URL}/pacientes/${id}`,
+    cuenta: `${API_BASE_URL}/pacientes/cuenta`,
     contactos: (id: number) => `${API_BASE_URL}/pacientes/${id}/contactos`,
     contactoById: (pacienteId: number, contactoId: number) =>
       `${API_BASE_URL}/pacientes/${pacienteId}/contactos/${contactoId}`,
@@ -113,5 +114,34 @@ export const API_ENDPOINTS = {
   medicamentos: {
     list: `${API_BASE_URL}/medicamentos`,
     byId: (id: number) => `${API_BASE_URL}/medicamentos/${id}`,
+  },
+  imagenes: {
+    estudiosPaciente: (pacienteId: number) =>
+      `${API_BASE_URL}/pacientes/${pacienteId}/estudios/registros`,
+    estudioDetalle: (estudioId: number) =>
+      `${API_BASE_URL}/estudios/${estudioId}`,
+    instanciaImagen: (estudioId: number, orthancInstanceId: string) =>
+      `${API_BASE_URL}/estudios/${estudioId}/instancias/${orthancInstanceId}/imagen`,
+  },
+  ordenesGlobales: {
+    list: `${API_BASE_URL}/ordenes`,
+    archivos: (ordenId: number) =>
+      `${API_BASE_URL}/ordenes/${ordenId}/archivos`,
+    archivoDescargar: (archivoId: number) =>
+      `${API_BASE_URL}/ordenes/archivos/${archivoId}/descargar`,
+    archivoEliminar: (archivoId: number) =>
+      `${API_BASE_URL}/ordenes/archivos/${archivoId}`,
+    vincularEstudio: (ordenId: number) =>
+      `${API_BASE_URL}/ordenes/${ordenId}/estudio`,
+  },
+  pacs: {
+    paciente: (pacienteId: number) =>
+      `${API_BASE_URL}/pacientes/${pacienteId}/pacs`,
+    buscar: (pacienteId: number) =>
+      `${API_BASE_URL}/pacientes/${pacienteId}/pacs/buscar`,
+    coincidencias: (pacienteId: number) =>
+      `${API_BASE_URL}/pacientes/${pacienteId}/pacs/coincidencias`,
+    estudiosOrthanc: (pacienteId: number) =>
+      `${API_BASE_URL}/pacientes/${pacienteId}/estudios`,
   },
 } as const;

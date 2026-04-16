@@ -15,7 +15,7 @@ import type {
 } from "@/features/patients/types";
 
 // Obtiene pacientes paginados con filtros opcionales.
-export async function getPacientes(
+export async function getPatients(
   page = 1,
   pageSize = 10,
   filters: PacienteFilters = {},
@@ -31,7 +31,7 @@ export async function getPacientes(
 }
 
 // Obtiene un paciente por ID.
-export async function getPacienteById(id: number): Promise<Paciente> {
+export async function getPatientById(id: number): Promise<Paciente> {
   const res = await axiosInstance.get<Paciente>(
     API_ENDPOINTS.pacientes.byId(id),
   );
@@ -39,7 +39,7 @@ export async function getPacienteById(id: number): Promise<Paciente> {
 }
 
 // Crea un nuevo paciente.
-export async function createPaciente(dto: CreatePacienteDTO): Promise<Paciente> {
+export async function createPatient(dto: CreatePacienteDTO): Promise<Paciente> {
   const res = await axiosInstance.post<Paciente>(
     API_ENDPOINTS.pacientes.list,
     dto,
@@ -48,7 +48,7 @@ export async function createPaciente(dto: CreatePacienteDTO): Promise<Paciente> 
 }
 
 // Agrega un contacto a un paciente.
-export async function createContactoPaciente(
+export async function createPatientContact(
   id: number,
   dto: CreateContactoDTO,
 ): Promise<ContactoPaciente> {
@@ -60,7 +60,7 @@ export async function createContactoPaciente(
 }
 
 // Obtiene los contactos de un paciente.
-export async function getContactosPaciente(
+export async function getPatientContacts(
   id: number,
 ): Promise<ContactoPaciente[]> {
   const res = await axiosInstance.get<ContactoPaciente[]>(
@@ -70,7 +70,7 @@ export async function getContactosPaciente(
 }
 
 // Actualiza los datos editables de un paciente.
-export async function updatePaciente(
+export async function updatePatient(
   id: number,
   dto: UpdatePacienteDTO,
 ): Promise<Paciente> {
@@ -84,7 +84,7 @@ export async function updatePaciente(
 // ─── Alergias ─────────────────────────────────────────────────────────────────
 
 // Obtiene las alergias de un paciente.
-export async function getAlergiasPaciente(id: number): Promise<Alergia[]> {
+export async function getPatientAllergies(id: number): Promise<Alergia[]> {
   const res = await axiosInstance.get<Alergia[]>(
     API_ENDPOINTS.pacientes.alergias(id),
   );
@@ -92,7 +92,7 @@ export async function getAlergiasPaciente(id: number): Promise<Alergia[]> {
 }
 
 // Registra una nueva alergia para un paciente.
-export async function createAlergia(
+export async function createAllergy(
   pacienteId: number,
   dto: CreateAlergiaDTO,
 ): Promise<Alergia> {
@@ -104,7 +104,7 @@ export async function createAlergia(
 }
 
 // Actualiza una alergia existente de un paciente.
-export async function updateAlergia(
+export async function updateAllergy(
   pacienteId: number,
   alergiaId: number,
   dto: UpdateAlergiaDTO,
@@ -117,7 +117,7 @@ export async function updateAlergia(
 }
 
 // Elimina una alergia de un paciente.
-export async function deleteAlergia(
+export async function deleteAllergy(
   pacienteId: number,
   alergiaId: number,
 ): Promise<void> {
@@ -126,8 +126,13 @@ export async function deleteAlergia(
   );
 }
 
+// Crea una cuenta de usuario para un paciente (acceso al portal del paciente).
+export async function createPatientAccount(cedula: string, email: string): Promise<void> {
+  await axiosInstance.post(API_ENDPOINTS.pacientes.cuenta, { cedula, email });
+}
+
 // Actualiza el contacto de emergencia de un paciente.
-export async function updateContactoPaciente(
+export async function updatePatientContact(
   pacienteId: number,
   contactoId: number,
   dto: UpdateContactoDTO,

@@ -1,4 +1,4 @@
-import HistorialPage from "@/features/patients/components/episodios/HistorialPage";
+import HistoryPage from "@/features/patients/components/episodes/HistoryPage";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -6,5 +6,5 @@ interface Props {
 
 export default async function Page({ params }: Props) {
   const { id } = await params;
-  return <HistorialPage pacienteId={Number(id)} />;
+  return <HistoryPage pacienteId={Number(id)} />;
 }

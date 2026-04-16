@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import PatientsPage from "@/features/patients/components/pacientes/PatientsPage";
+import PatientsPage from "@/features/patients/components/patients/PatientsPage";
 
 export const metadata: Metadata = { title: "Gestión de Pacientes" };
 

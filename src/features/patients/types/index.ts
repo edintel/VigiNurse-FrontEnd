@@ -584,6 +584,70 @@ export interface CreateEvolucionClinicaDTO {
   fecha: string;
 }
 
+// ─── Imágenes médicas (DICOM / PACS) ─────────────────────────────────────────
+
+export enum EstadoEstudio {
+  Pendiente = 0,
+  Disponible = 1,
+}
+
+export const ESTADO_ESTUDIO_CONFIG: Record<
+  EstadoEstudio,
+  { label: string; bgCls: string; textCls: string; borderCls: string }
+> = {
+  [EstadoEstudio.Pendiente]: {
+    label: "Pendiente",
+    bgCls: "bg-amber-50",
+    textCls: "text-amber-600",
+    borderCls: "border-amber-200",
+  },
+  [EstadoEstudio.Disponible]: {
+    label: "Disponible",
+    bgCls: "bg-emerald-50",
+    textCls: "text-emerald-700",
+    borderCls: "border-emerald-200",
+  },
+};
+
+export interface EstudioImagen {
+  id: number;
+  ordenMedicaId: number | null;
+  pacienteId: number;
+  nombrePaciente: string;
+  hospitalId: number;
+  nombreHospital: string;
+  orthancStudyId: string | null;
+  tipoEstudio: string;
+  descripcion: string | null;
+  fechaEstudio: string | null;
+  estado: EstadoEstudio;
+}
+
+export interface OrthancStudyTags {
+  StudyInstanceUID?: string;
+  StudyDate?: string;
+  StudyDescription?: string;
+  [key: string]: unknown;
+}
+
+export interface OrthancStudyDetalle {
+  MainDicomTags?: OrthancStudyTags;
+  [key: string]: unknown;
+}
+
+export interface EstudioImagenDetalle extends EstudioImagen {
+  orthancDetalle: OrthancStudyDetalle | null;
+  orthancSeries: unknown | null;
+}
+
+export interface PaginatedEstudios {
+  datos: EstudioImagen[];
+  totalRegistros: number;
+  totalPaginas: number;
+  paginaActual: number;
+  tamanoPagina: number;
+}
+
 // Ordenes medicas
 
 export enum OrdenEstado {
@@ -777,4 +841,84 @@ export interface Dato {
   fechaCancelacion: string | null;
   justificacionCancelacion: string | null;
   costoTotal: number;
+}
+
+// ─── Órdenes globales (GET /api/ordenes) ─────────────────────────────────────
+
+export interface OrdenMedicaDto {
+  id: number;
+  episodioId: number;
+  usuarioSolicitanteId: number;
+  solicitanteNombre: string;
+  usuarioEjecutanteId: number | null;
+  ejecutanteNombre: string | null;
+  descripcion: string | null;
+  tipoOrden: 0 | 1 | 2 | 3 | 4 | 5;
+  categoria: string | null;
+  prioridad: 0 | 1 | 2 | 3;
+  estado: 0 | 1 | 2 | 3;
+  fechaEmision: string;
+  fechaEjecucion: string | null;
+  comentarioEjecucion: string | null;
+  fechaCancelacion: string | null;
+  justificacionCancelacion: string | null;
+  costoTotal: number | null;
+  pacienteNombre: string | null;
+  cedulaPaciente: string | null;
+  areaNombre: string | null;
+}
+
+export interface PaginatedOrdenesGlobales {
+  datos: OrdenMedicaDto[];
+  totalRegistros: number;
+  totalPaginas: number;
+  paginaActual: number;
+  tamanoPagina: number;
+}
+
+export interface ArchivoOrdenDto {
+  id: number;
+  ordenMedicaId: number;
+  usuarioId: number;
+  nombreUsuario: string;
+  nombreOriginal: string;
+  tipoContenido: string;
+  tamanioBytes: number;
+  fechaSubida: string;
+}
+
+// ─── PACS / Orthanc ───────────────────────────────────────────────────────────
+
+export interface EstudioOrthancDto {
+  orthancStudyId: string | null;
+  fecha: string | null;
+  hora: string | null;
+  descripcion: string | null;
+  modalidades: string[];
+  numeroDeSeries: number;
+}
+
+export interface PacientePACSDto {
+  id: number;
+  pacienteId: number;
+  orthancPatientId: string;
+  hospitalId: number;
+}
+
+export interface PacientePACSOrthancCoincidenciaDto {
+  orthancPatientId: string;
+  patientName: string | null;
+  patientId: string | null;
+  patientBirthDate: string | null;
+  patientSex: string | null;
+}
+
+export interface CrearEstudioImagenDto {
+  ordenId: number;
+  pacienteId: number;
+  hospitalId: number;
+  orthancStudyId: string;
+  tipoEstudio: string;
+  descripcion?: string | null;
+  fechaEstudio?: string | null;
 }
