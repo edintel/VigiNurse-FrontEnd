@@ -5,49 +5,61 @@ import AuditPage from "@/features/administration/audit/components/AuditPage";
 import HospitalsPage from "@/features/administration/hospitals/components/HospitalsPage";
 import EspecialidadesPage from "@/features/administration/especialidades/components/EspecialidadesPage";
 import AreasPage from "@/features/administration/areas/components/AreasPage";
+import MedicamentosPage from "@/features/administration/medicamentos/components/MedicamentosPage";
 import TiposActivosPage from "@/features/administration/assetTypes/components/AssetTypesPage";
 import ZonasPage from "@/features/administration/zones/components/ZonesPage";
+import SignosVitalesPage from "@/features/administration/signosVitales/components/SignosVitalesPage";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentRole } from "@/store/slices/authSlice";
-type ActiveTab = "usuarios" | "especialidades" | "auditoria" | "hospitales" | "areas" | "tiposActivos" | "zonas";
-const BASE_TABS: {
-    id: ActiveTab;
-    label: string;
-}[] = [
-    { id: "usuarios", label: "Gestión de Usuarios" },
-    { id: "especialidades", label: "Especialidades" },
-    { id: "areas", label: "Áreas" },
-    { id: "tiposActivos", label: "Tipos de Activos" },
-    { id: "zonas", label: "Zonas" },
-    { id: "hospitales", label: "Hospitales" },
-    { id: "auditoria", label: "Auditoría" },
+
+type ActiveTab =
+  | "usuarios"
+  | "especialidades"
+  | "auditoria"
+  | "hospitales"
+  | "areas"
+  | "medicamentos"
+  | "tiposActivos"
+  | "zonas"
+  | "signosVitales";
+
+const BASE_TABS: { id: ActiveTab; label: string }[] = [
+  { id: "usuarios", label: "Gestión de Usuarios" },
+  { id: "especialidades", label: "Especialidades" },
+  { id: "areas", label: "Áreas" },
+  { id: "medicamentos", label: "Medicamentos" },
+  { id: "tiposActivos", label: "Tipos de Activos" },
+  { id: "zonas", label: "Zonas" },
+  { id: "signosVitales", label: "Signos Vitales" },
+  { id: "hospitales", label: "Hospitales" },
+  { id: "auditoria", label: "Auditoría" },
 ];
+
 // Muestra la pagina de administracion.
 export default function AdministracionPage() {
-    const [activeTab, setActiveTab] = useState<ActiveTab>("usuarios");
-    const role = useAppSelector(selectCurrentRole);
-    const isSuperAdmin = role === "SUPER_ADMIN";
-    const isAdmin = role === "ADMIN";
-    const tabs = BASE_TABS.filter((t) => {
-        if (t.id === "hospitales")
-            return isSuperAdmin;
-        if (t.id === "especialidades")
-            return isAdmin;
-        if (t.id === "areas")
-            return isAdmin;
-        if (t.id === "tiposActivos")
-            return isAdmin;
-        if (t.id === "zonas")
-            return isAdmin;
-        return true;
-    });
-    return (<div className="py-6 px-8 xl:px-12 space-y-6">
-      
+  const [activeTab, setActiveTab] = useState<ActiveTab>("usuarios");
+  const role = useAppSelector(selectCurrentRole);
+  const isSuperAdmin = role === "SUPER_ADMIN";
+  const isAdmin = role === "ADMIN";
+
+  const tabs = BASE_TABS.filter((t) => {
+    if (t.id === "hospitales") return isSuperAdmin;
+    if (t.id === "especialidades") return isAdmin;
+    if (t.id === "areas") return isAdmin;
+    if (t.id === "medicamentos") return isAdmin;
+    if (t.id === "tiposActivos") return isAdmin;
+    if (t.id === "zonas") return isAdmin;
+    if (t.id === "signosVitales") return isAdmin;
+    return true;
+  });
+
+  return (
+    <div className="py-6 px-8 xl:px-12 space-y-6">
       <div className="pb-5">
         <div className="flex items-center gap-3 mb-1">
           <div className="w-9 h-9 rounded-lg bg-[#1A2B5E] flex items-center justify-center flex-shrink-0">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
           </div>
           <div>
@@ -62,25 +74,33 @@ export default function AdministracionPage() {
         </div>
       </div>
 
-      
-      <div className="flex gap-1 border-b border-[#D1D9E6]">
-        {tabs.map((tab) => (<button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={[
-                "px-5 py-3 text-base font-semibold transition-colors -mb-px border-b-2",
-                activeTab === tab.id
-                    ? "text-[#09268E] border-[#09268E]"
-                    : "text-slate-500 border-transparent hover:text-[#1A2B5E] hover:border-slate-300",
-            ].join(" ")}>
+      <div className="flex gap-1 border-b border-[#D1D9E6] overflow-x-auto">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={[
+              "px-5 py-3 text-base font-semibold transition-colors -mb-px border-b-2 whitespace-nowrap",
+              activeTab === tab.id
+                ? "text-[#09268E] border-[#09268E]"
+                : "text-slate-500 border-transparent hover:text-[#1A2B5E] hover:border-slate-300",
+            ].join(" ")}
+          >
             {tab.label}
-          </button>))}
+          </button>
+        ))}
       </div>
 
-      
       {activeTab === "usuarios" && <UsersPage />}
       {activeTab === "especialidades" && isAdmin && <EspecialidadesPage />}
       {activeTab === "areas" && isAdmin && <AreasPage />}
+      {activeTab === "medicamentos" && isAdmin && <MedicamentosPage />}
       {activeTab === "tiposActivos" && isAdmin && <TiposActivosPage />}
       {activeTab === "zonas" && isAdmin && <ZonasPage />}
+      {activeTab === "signosVitales" && isAdmin && <SignosVitalesPage />}
       {activeTab === "hospitales" && isSuperAdmin && <HospitalsPage />}
       {activeTab === "auditoria" && <AuditPage />}
-    </div>);
+    </div>
+  );
 }

@@ -60,6 +60,7 @@ export function SearchableSelect({
   variant = "modal",
 }: SearchableSelectProps) {
   const isFilter = variant === "filter";
+  const safeSearchValue = searchValue ?? "";
 
   if (isFilter) {
     return (
@@ -82,13 +83,14 @@ export function SearchableSelect({
           <input
             id={id}
             type="text"
-            value={searchValue}
+            value={safeSearchValue}
             onChange={onSearchChange}
             onFocus={onFocus}
             onBlur={onBlur}
             placeholder={loading ? loadingText : placeholder}
             className={`bg-white border border-[#e2e8f0] rounded py-1.5 px-3 text-sm text-slate-900 placeholder:text-gray-400 focus:outline-none focus:border-[#09268E] transition-colors w-full ${error ? "border-red-400" : ""} ${inputClassName ?? ""}`}
-            disabled={disabled || loading}
+            disabled={disabled}
+            aria-busy={loading}
             autoComplete="off"
           />
           {showDropdown && !loading && (
@@ -149,13 +151,14 @@ export function SearchableSelect({
         <input
           id={id}
           type="text"
-          value={searchValue}
+          value={safeSearchValue}
           onChange={onSearchChange}
           onFocus={onFocus}
           onBlur={onBlur}
           placeholder={loading ? loadingText : placeholder}
           className={`input input-bordered w-full bg-[#EEEEEE] border-[#B0B0B0] text-[#1A2B5E] placeholder:text-[#B0B0B0] focus:border-[#09268E] focus:outline-none ${error ? "input-error" : ""} ${inputClassName ?? ""}`}
-          disabled={disabled || loading}
+          disabled={disabled}
+          aria-busy={loading}
           autoComplete="off"
         />
 

@@ -64,7 +64,7 @@ function getEstadoLabel(m: Mantenimiento): string {
     case MantenimientoEstado.Cancelado:
       return "Cancelado";
     default:
-      return "Programado";
+      return "Programado"; 
   }
 }
 

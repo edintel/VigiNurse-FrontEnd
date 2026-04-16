@@ -9,6 +9,7 @@ export const ROUTES = {
         nurseCalls: "/nurse-calls",
         assetsManagement: "/assets-management",
         medicalImaging: "/medical-imaging",
+        medicalOrders: "/medical-orders",
         staffMonitoring: "/staff-monitoring",
         babyMonitoring: "/baby-monitoring",
         notifications: "/notifications",
