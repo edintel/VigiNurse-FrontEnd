@@ -144,4 +144,17 @@ export const API_ENDPOINTS = {
     estudiosOrthanc: (pacienteId: number) =>
       `${API_BASE_URL}/pacientes/${pacienteId}/estudios`,
   },
+  monitorPacientes: {
+    list: `${API_BASE_URL}/monitor-pacientes`,
+    byId: (id: number) => `${API_BASE_URL}/monitor-pacientes/${id}`,
+    ubicacion: (id: number) => `${API_BASE_URL}/monitor-pacientes/${id}/ubicacion`,
+    desasignar: (id: number) => `${API_BASE_URL}/monitor-pacientes/${id}/desasignar`,
+    byPaciente: (pacienteId: number) => `${API_BASE_URL}/pacientes/${pacienteId}/monitores`,
+    byActivo: (activoId: number) => `${API_BASE_URL}/activos/${activoId}/monitores`,
+  },
+  personalMedico: {
+    list: `${API_BASE_URL}/personal-medico`,
+  },
 } as const;
+
+export const SIGNALR_HUB_URL = `${API_BASE_URL.replace(/\/+$/g, "").replace(/\/api$/i, "")}/hubs/signos-vitales`;

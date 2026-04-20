@@ -306,7 +306,7 @@ export default function PatientRecordPage({ id }: PatientRecordPageProps) {
           />
         )}
         {activeTab === "signos" && episodioActivo && (
-          <VitalSignsTab episodioId={episodioActivo.id} />
+          <VitalSignsTab episodioId={episodioActivo.id} pacienteId={id} />
         )}
         {activeTab === "evolucion" && (
           <ClinicalEvolutionTab

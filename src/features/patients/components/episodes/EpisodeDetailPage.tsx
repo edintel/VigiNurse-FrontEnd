@@ -64,9 +64,10 @@ const DETAIL_TABS: {
   {
     id: "signos",
     label: "Signos Vitales",
-    render: ({ episodio }) => (
+    render: ({ episodio, pacienteId }) => (
       <VitalSignsTab
         episodioId={episodio.id}
+        pacienteId={pacienteId}
         canCreate={episodio.estado === EpisodioEstado.EnCurso}
       />
     ),
