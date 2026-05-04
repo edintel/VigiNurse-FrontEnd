@@ -199,6 +199,10 @@ export interface EpisodioActivo {
   estado: number;
   fechaAdmision: string;
   razonVisita: string;
+  medicoPrincipalId: number | null;
+  medicoPrincipalNombre: string | null;
+  medicoActualId: number | null;
+  medicoActualNombre: string | null;
 }
 
 export interface PaginatedEpisodiosActivos {
@@ -284,6 +288,10 @@ export interface EpisodioHistorial {
   admitidoPorNombre: string;
   finalizadoPor: number | null;
   finalizadoPorNombre: string | null;
+  medicoPrincipalId: number | null;
+  medicoPrincipalNombre: string | null;
+  medicoActualId: number | null;
+  medicoActualNombre: string | null;
 }
 
 export interface PaginatedEpisodiosHistorial {
@@ -299,6 +307,17 @@ export interface PaginatedEpisodiosHistorial {
 export interface FinalizarEpisodioDTO {
   razonFinalizacion: string;
   fechaSalida: string;
+}
+
+// ─── Médicos del episodio ─────────────────────────────────────────────────────
+
+export interface AsignarMedicoPrincipalDTO {
+  doctorId: number;
+}
+
+export interface CambiarMedicoActualDTO {
+  doctorId: number;
+  motivoCambio?: string | null;
 }
 
 // ─── Alergias ─────────────────────────────────────────────────────────────────

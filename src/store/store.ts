@@ -4,7 +4,6 @@ import uiReducer from "@/store/slices/uiSlice";
 import alertsReducer from "@/store/slices/alertsSlice";
 import nurseCallsReducer from "@/store/slices/nurseCallsSlice";
 import vitalSignsReducer from "@/store/slices/vitalSignsSlice";
-
 // Configuracion del store de Redux con los reducers de cada slice
 export const store = configureStore({
   reducer: {

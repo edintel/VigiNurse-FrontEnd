@@ -34,6 +34,7 @@ export interface UpdateUserDTO {
     email: string;
     especialidadId: number | null;
     rolesIds: number[];
+    areaId?: number | null;
 }
 export interface Role {
     id: number;

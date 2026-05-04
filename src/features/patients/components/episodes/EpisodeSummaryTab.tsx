@@ -12,6 +12,7 @@ interface EpisodeSummaryTabProps {
   onGoToMedication?: () => void;
   onGoToDiagnostics?: () => void;
   onGoToOrders?: () => void;
+  onAssignDoctor?: (mode: "principal" | "actual") => void;
 }
 
 export function EpisodeSummaryTab({
@@ -20,10 +21,11 @@ export function EpisodeSummaryTab({
   onGoToMedication,
   onGoToDiagnostics,
   onGoToOrders,
+  onAssignDoctor,
 }: EpisodeSummaryTabProps) {
   return (
     <div className="space-y-4">
-      <EpisodeInfoCard episodio={episodio} />
+      <EpisodeInfoCard episodio={episodio} onAssignDoctor={onAssignDoctor} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <VitalSignsSummaryCard episodioId={episodio.id} onGoToSignos={onGoToSignos} />

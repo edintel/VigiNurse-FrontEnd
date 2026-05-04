@@ -1,15 +1,15 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SearchableSelect } from "@/shared/ui/SearchableSelect";
-import { createEpisode } from "@/features/patients/services/episodeService";
+import { createEpisode, assignPrimaryDoctor } from "@/features/patients/services/episodeService";
 import { getPatients } from "@/features/patients/services/patientService";
 import { getAreas } from "@/features/administration/areas/services/areaService";
+import { getPersonalMedico } from "@/features/staff-monitoring/services/personalMedicoService";
 import {
   TriageNivel,
   TipoEpisodio,
   TIPO_EPISODIO_LABELS,
 } from "@/features/patients/types";
-import type { EpisodioActivo } from "@/features/patients/types";
 import { toast } from "@/lib/toast";
 
 interface SelectOption {
@@ -21,7 +21,7 @@ interface SelectOption {
 interface CreateEpisodeModalProps {
   open: boolean;
   onClose: () => void;
-  onCreated: (episodio: EpisodioActivo) => void;
+  onCreated: () => void;
   initialPacienteId?: number;
   initialPacienteName?: string;
 }
@@ -53,6 +53,13 @@ export function CreateEpisodeModal({
   const [areaSearch, setAreaSearch] = useState("");
   const [areaSelectedId, setAreaSelectedId] = useState<number | null>(null);
   const [areaShowDropdown, setAreaShowDropdown] = useState(false);
+
+  // Médico principal SearchableSelect
+  const [medicoOptions, setMedicoOptions] = useState<SelectOption[]>([]);
+  const [medicoSearch, setMedicoSearch] = useState("");
+  const [medicoSelectedId, setMedicoSelectedId] = useState<number | null>(null);
+  const [medicoShowDropdown, setMedicoShowDropdown] = useState(false);
+  const [medicoLoading, setMedicoLoading] = useState(false);
 
   // Estado UI
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -99,6 +106,20 @@ export function CreateEpisodeModal({
       .catch(() => {
         toast.error("No se pudieron cargar las áreas disponibles.");
       });
+
+    setMedicoLoading(true);
+    getPersonalMedico(1, 100, { rol: "Doctor" })
+      .then((res) =>
+        setMedicoOptions(
+          res.datos.map((d) => ({
+            id: d.id,
+            label: `${d.nombre} ${d.apellidos}`,
+            sublabel: [d.nombreEspecialidad, d.nombreArea].filter(Boolean).join(" · "),
+          })),
+        ),
+      )
+      .catch(() => {/* optional, no hard error */})
+      .finally(() => setMedicoLoading(false));
   }
 
   function resetForm() {
@@ -109,6 +130,8 @@ export function CreateEpisodeModal({
     setPacienteSelectedId(null);
     setAreaSearch("");
     setAreaSelectedId(null);
+    setMedicoSearch("");
+    setMedicoSelectedId(null);
     setErrors({});
     setApiError(null);
   }
@@ -129,6 +152,14 @@ export function CreateEpisodeModal({
         a.label.toLowerCase().includes(areaSearch.toLowerCase()),
       ),
     [areaOptions, areaSearch],
+  );
+
+  const filteredMedicos = useMemo(
+    () =>
+      medicoOptions.filter((m) =>
+        m.label.toLowerCase().includes(medicoSearch.toLowerCase()),
+      ),
+    [medicoOptions, medicoSearch],
   );
 
   async function handleSubmit(e: React.FormEvent) {
@@ -155,8 +186,17 @@ export function CreateEpisodeModal({
         areaId: areaSelectedId!,
         hospitalId: null,
       });
+
+      if (medicoSelectedId !== null) {
+        try {
+          await assignPrimaryDoctor(episodio.id, { doctorId: medicoSelectedId });
+        } catch {
+          toast.warning("Episodio creado, pero no se pudo asignar el médico principal.");
+        }
+      }
+
       toast.success("Episodio registrado exitosamente.");
-      onCreated(episodio);
+      onCreated();
       onClose();
     } catch (err: unknown) {
       const data = (
@@ -300,6 +340,33 @@ export function CreateEpisodeModal({
             onClear={() => {
               setAreaSelectedId(null);
               setAreaSearch("");
+            }}
+          />
+
+          {/* Médico principal */}
+          <SearchableSelect
+            id="create-episodio-medico"
+            label="Médico principal"
+            variant="modal"
+            options={filteredMedicos}
+            loading={medicoLoading}
+            selectedId={medicoSelectedId}
+            searchValue={medicoSearch}
+            onSearchChange={(e) => setMedicoSearch(e.target.value)}
+            onSelect={(opt) => {
+              setMedicoSelectedId(opt.id);
+              setMedicoSearch(opt.label);
+              setMedicoShowDropdown(false);
+            }}
+            showDropdown={medicoShowDropdown}
+            onFocus={() => setMedicoShowDropdown(true)}
+            onBlur={() => setMedicoShowDropdown(false)}
+            placeholder="Seleccionar médico (opcional)..."
+            loadingText="Cargando médicos..."
+            emptyText="No hay doctores disponibles."
+            onClear={() => {
+              setMedicoSelectedId(null);
+              setMedicoSearch("");
             }}
           />
 

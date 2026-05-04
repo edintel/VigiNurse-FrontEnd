@@ -4,7 +4,8 @@ import { StoreProvider } from "@/store/providers";
 import { store } from "@/store/store";
 import { restoreSession, markSessionRestored } from "@/store/slices/authSlice";
 import { loadSession, clearSession } from "@/lib/session";
-// Componente para restaurar la sesión del usuario al cargar la aplicación.
+import { NotificationsProvider } from "@/features/notifications/components/NotificationsProvider";
+
 function SessionRestorer() {
   useEffect(() => {
     const session = loadSession();
@@ -24,15 +25,16 @@ function SessionRestorer() {
   }, []);
   return null;
 }
+
 interface AppProvidersProps {
   children: React.ReactNode;
 }
-// Componente que envuelve la aplicación con los proveedores necesarios, como el StoreProvider para el estado global y el SessionRestorer para restaurar la sesión del usuario.
+
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <StoreProvider>
       <SessionRestorer />
-      {children}
+      <NotificationsProvider>{children}</NotificationsProvider>
     </StoreProvider>
   );
 }

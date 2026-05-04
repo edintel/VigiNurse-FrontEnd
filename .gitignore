@@ -45,3 +45,6 @@ next-env.d.ts
 .mcp.json
 
 .codex
+
+/scripts
+/screenshots

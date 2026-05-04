@@ -10,6 +10,9 @@ import type {
   FinalizarEpisodioDTO,
   CreateRecetaAltaDTO,
   RecetaAlta,
+  AsignarMedicoPrincipalDTO,
+  CambiarMedicoActualDTO,
+  EpisodioEstado,
 } from "@/features/patients/types";
 
 // Obtiene episodios activos paginados con filtros opcionales.
@@ -34,8 +37,8 @@ export async function getActiveEpisodes(
 export async function createEpisode(
   pacienteId: number,
   dto: CreateEpisodioDTO,
-): Promise<EpisodioActivo> {
-  const res = await axiosInstance.post<EpisodioActivo>(
+): Promise<EpisodioHistorial> {
+  const res = await axiosInstance.post<EpisodioHistorial>(
     API_ENDPOINTS.pacientes.episodios(pacienteId),
     dto,
   );
@@ -98,6 +101,46 @@ export async function createDischargeNote(
   dto: CreateRecetaAltaDTO,
 ): Promise<void> {
   await axiosInstance.post(API_ENDPOINTS.episodios.recetaAlta(episodioId), dto);
+}
+
+// Asigna el médico principal de un episodio.
+export async function assignPrimaryDoctor(
+  episodioId: number,
+  dto: AsignarMedicoPrincipalDTO,
+): Promise<EpisodioHistorial> {
+  const res = await axiosInstance.patch<EpisodioHistorial>(
+    API_ENDPOINTS.episodios.asignarMedicoPrincipal(episodioId),
+    dto,
+  );
+  return res.data;
+}
+
+// Cambia el médico actual en atención de un episodio.
+export async function changeCurrentDoctor(
+  episodioId: number,
+  dto: CambiarMedicoActualDTO,
+): Promise<EpisodioHistorial> {
+  const res = await axiosInstance.patch<EpisodioHistorial>(
+    API_ENDPOINTS.episodios.cambiarMedicoActual(episodioId),
+    dto,
+  );
+  return res.data;
+}
+
+// Obtiene los episodios en curso asignados a un médico.
+export async function getEpisodesByDoctor(
+  medicoId: number,
+  page = 1,
+  pageSize = 20,
+  filters: { estado?: EpisodioEstado } = {},
+): Promise<PaginatedEpisodiosHistorial> {
+  const params: Record<string, unknown> = { pagina: page, tamanio: pageSize };
+  if (filters.estado != null) params.estado = filters.estado;
+  const res = await axiosInstance.get<PaginatedEpisodiosHistorial>(
+    API_ENDPOINTS.episodios.medico(medicoId),
+    { params },
+  );
+  return res.data;
 }
 
 // Obtiene la receta de alta de un episodio. Retorna null si no existe.

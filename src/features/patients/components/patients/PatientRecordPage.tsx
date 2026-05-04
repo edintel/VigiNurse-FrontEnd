@@ -12,6 +12,7 @@ import { CreateEpisodeModal } from "@/features/patients/components/episodes/Crea
 import { EpisodeHistoryTab } from "@/features/patients/components/episodes/EpisodeHistoryTab";
 import { EpisodeSummaryTab } from "@/features/patients/components/episodes/EpisodeSummaryTab";
 import { FinalizeEpisodeModal } from "@/features/patients/components/episodes/FinalizeEpisodeModal";
+import { AssignEpisodeDoctorModal } from "@/features/patients/components/episodes/AssignEpisodeDoctorModal";
 import { DiagnosticsTab } from "@/features/patients/components/diagnostics/DiagnosticsTab";
 import { VitalSignsTab } from "@/features/patients/components/vitalSigns/VitalSignsTab";
 import { NursingNotesTab } from "@/features/patients/components/nursingNotes/NursingNotesTab";
@@ -97,6 +98,8 @@ export default function PatientRecordPage({ id }: PatientRecordPageProps) {
   );
   const [showEpisodeModal, setShowEpisodeModal] = useState(false);
   const [showFinalizeModal, setShowFinalizeModal] = useState(false);
+  const [doctorModalMode, setDoctorModalMode] = useState<"principal" | "actual">("principal");
+  const [showDoctorModal, setShowDoctorModal] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -286,6 +289,7 @@ export default function PatientRecordPage({ id }: PatientRecordPageProps) {
             onGoToMedication={() => setActiveTab("medicacion")}
             onGoToDiagnostics={() => setActiveTab("diagnosticos")}
             onGoToOrders={() => setActiveTab("ordenes")}
+            onAssignDoctor={(mode) => { setDoctorModalMode(mode); setShowDoctorModal(true); }}
           />
         )}
 
@@ -340,6 +344,18 @@ export default function PatientRecordPage({ id }: PatientRecordPageProps) {
         onClose={() => setShowFinalizeModal(false)}
         onFinalizado={() => void loadData()}
       />
+
+      {episodioActivo && (
+        <AssignEpisodeDoctorModal
+          open={showDoctorModal}
+          episodioId={episodioActivo.id}
+          mode={doctorModalMode}
+          currentDoctorId={doctorModalMode === "principal" ? episodioActivo.medicoPrincipalId : episodioActivo.medicoActualId}
+          currentDoctorName={doctorModalMode === "principal" ? episodioActivo.medicoPrincipalNombre : episodioActivo.medicoActualNombre}
+          onClose={() => setShowDoctorModal(false)}
+          onUpdated={(updated) => setEpisodioActivo(updated)}
+        />
+      )}
     </div>
   );
 }

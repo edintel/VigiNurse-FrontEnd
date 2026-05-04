@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import { useRouter } from "next/navigation";
 import { getEpisodeById } from "@/features/patients/services/episodeService";
+import { AssignEpisodeDoctorModal } from "@/features/patients/components/episodes/AssignEpisodeDoctorModal";
 import { DiagnosticsTab } from "@/features/patients/components/diagnostics/DiagnosticsTab";
 import { MedicationTab } from "@/features/patients/components/medication/MedicationTab";
 import { OrdersTab } from "@/features/patients/components/orders/OrdersTab";
@@ -157,6 +158,8 @@ export default function EpisodeDetailPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [episodio, setEpisodio] = useState<EpisodioHistorial | null>(null);
+  const [doctorModalMode, setDoctorModalMode] = useState<"principal" | "actual">("principal");
+  const [showDoctorModal, setShowDoctorModal] = useState(false);
 
 
   function handleBack() {
@@ -315,6 +318,54 @@ export default function EpisodeDetailPage({
               <Field label="Hospital" value={episodio.hospitalNombre} />
             </div>
 
+<div className="p-5">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.6px] text-[#09268E]">
+                  Equipo médico
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <Field
+                    label="Médico principal"
+                    value={
+                      <span className={episodio.medicoPrincipalNombre ? "" : "text-[#94a3b8] italic font-normal text-xs"}>
+                        {episodio.medicoPrincipalNombre ?? "Sin asignar"}
+                      </span>
+                    }
+                  />
+                  {episodio.estado === EpisodioEstado.EnCurso && (
+                    <button
+                      type="button"
+                      onClick={() => { setDoctorModalMode("principal"); setShowDoctorModal(true); }}
+                      className="btn btn-xs btn-outline border-[#09268E] text-[#09268E] hover:bg-[#09268E] hover:text-white shrink-0 mt-4"
+                    >
+                      {episodio.medicoPrincipalId ? "Cambiar" : "Asignar"}
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-start justify-between gap-3">
+                  <Field
+                    label="Médico en atención"
+                    value={
+                      <span className={episodio.medicoActualNombre ? "" : "text-[#94a3b8] italic font-normal text-xs"}>
+                        {episodio.medicoActualNombre ?? "Sin asignar"}
+                      </span>
+                    }
+                  />
+                  {episodio.estado === EpisodioEstado.EnCurso && (
+                    <button
+                      type="button"
+                      onClick={() => { setDoctorModalMode("actual"); setShowDoctorModal(true); }}
+                      className="btn btn-xs btn-outline border-[#09268E] text-[#09268E] hover:bg-[#09268E] hover:text-white shrink-0 mt-4"
+                    >
+                      {episodio.medicoActualId ? "Cambiar" : "Asignar"}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Grupo ingreso */}
             <div className="p-5">
               <p className="text-[10px] font-bold uppercase tracking-[0.6px] text-[#09268E] mb-3">
@@ -333,6 +384,8 @@ export default function EpisodeDetailPage({
               </div>
             </div>
 
+            {/* Equipo médico */}
+            
             {/* Grupo cierre — solo si el episodio está finalizado */}
             {(episodio.fechaSalida ??
               episodio.finalizadoPorNombre ??
@@ -359,6 +412,17 @@ export default function EpisodeDetailPage({
             )}
           </div>
         </div>
+
+        {/* Modal de asignación de médico */}
+        <AssignEpisodeDoctorModal
+          open={showDoctorModal}
+          episodioId={episodio.id}
+          mode={doctorModalMode}
+          currentDoctorId={doctorModalMode === "principal" ? episodio.medicoPrincipalId : episodio.medicoActualId}
+          currentDoctorName={doctorModalMode === "principal" ? episodio.medicoPrincipalNombre : episodio.medicoActualNombre}
+          onClose={() => setShowDoctorModal(false)}
+          onUpdated={(updated) => setEpisodio(updated)}
+        />
 
         {/* Barra de tabs del episodio */}
         <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm overflow-hidden">

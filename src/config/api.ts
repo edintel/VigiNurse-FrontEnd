@@ -110,6 +110,12 @@ export const API_ENDPOINTS = {
       `${API_BASE_URL}/episodios/${episodioId}/medicacion/${prescripcionId}/administraciones`,
     recetaAlta: (episodioId: number) =>
       `${API_BASE_URL}/episodios/${episodioId}/receta-alta`,
+    asignarMedicoPrincipal: (id: number) =>
+      `${API_BASE_URL}/episodios/${id}/asignar-medico-principal`,
+    cambiarMedicoActual: (id: number) =>
+      `${API_BASE_URL}/episodios/${id}/cambiar-medico-actual`,
+    medico: (medicoId: number) =>
+      `${API_BASE_URL}/episodios/medico/${medicoId}`,
   },
   medicamentos: {
     list: `${API_BASE_URL}/medicamentos`,
@@ -154,7 +160,47 @@ export const API_ENDPOINTS = {
   },
   personalMedico: {
     list: `${API_BASE_URL}/personal-medico`,
+    grupos: `${API_BASE_URL}/personal-medico/grupos`,
+    grupoById: (id: number) => `${API_BASE_URL}/personal-medico/grupos/${id}`,
+    grupoMiembros: (id: number) => `${API_BASE_URL}/personal-medico/grupos/${id}/miembros`,
+    grupoMiembroById: (grupoId: number, usuarioId: number) =>
+      `${API_BASE_URL}/personal-medico/grupos/${grupoId}/miembros/${usuarioId}`,
+    turnos: `${API_BASE_URL}/personal-medico/turnos`,
+    turnoById: (id: number) => `${API_BASE_URL}/personal-medico/turnos/${id}`,
+    turnosRango: `${API_BASE_URL}/personal-medico/turnos/rango`,
+    tareas: `${API_BASE_URL}/personal-medico/tareas`,
+    tareaById: (id: number) => `${API_BASE_URL}/personal-medico/tareas/${id}`,
+    tareaEstado: (id: number) => `${API_BASE_URL}/personal-medico/tareas/${id}/estado`,
+    asignacionesTareas: `${API_BASE_URL}/personal-medico/asignaciones`,
+    asignacionTareaById: (id: number) => `${API_BASE_URL}/personal-medico/asignaciones/${id}`,
+    tiposTarea: `${API_BASE_URL}/personal-medico/tipos-tarea`,
+    tipoTareaById: (id: number) => `${API_BASE_URL}/personal-medico/tipos-tarea/${id}`,
+    cargaTrabajo: `${API_BASE_URL}/personal-medico/carga-trabajo`,
+    cargaTrabajoUsuario: (usuarioId: number) => `${API_BASE_URL}/personal-medico/carga-trabajo/${usuarioId}`,
+    sugerenciasPersonal: `${API_BASE_URL}/personal-medico/carga-trabajo/sugerencias`,
+    estadoPersonal: (usuarioId: number) => `${API_BASE_URL}/personal-medico/${usuarioId}/estado`,
+    miEstado: `${API_BASE_URL}/personal-medico/mi-estado`,
+  },
+  turnosPlantillas: {
+    list: `${API_BASE_URL}/turnos/plantillas`,
+    byId: (id: number) => `${API_BASE_URL}/turnos/plantillas/${id}`,
+  },
+  turnosCiclos: {
+    list: `${API_BASE_URL}/turnos/ciclos`,
+    byId: (id: number) => `${API_BASE_URL}/turnos/ciclos/${id}`,
+    asignaciones: `${API_BASE_URL}/turnos/ciclos/asignaciones`,
+    asignacionById: (id: number) => `${API_BASE_URL}/turnos/ciclos/asignaciones/${id}`,
+    asignacionPreview: `${API_BASE_URL}/turnos/ciclos/asignaciones/preview`,
+    asignacionRenovar: (id: number) => `${API_BASE_URL}/turnos/ciclos/asignaciones/${id}/renovar`,
+  },
+  chat: {
+    conversations: `${API_BASE_URL}/chat/conversations`,
+    directConversation: `${API_BASE_URL}/chat/conversations/direct`,
+    groupConversation: `${API_BASE_URL}/chat/conversations/group`,
+    messages: (conversationId: number) =>
+      `${API_BASE_URL}/chat/conversations/${conversationId}/messages`,
   },
 } as const;
 
 export const SIGNALR_HUB_URL = `${API_BASE_URL.replace(/\/+$/g, "").replace(/\/api$/i, "")}/hubs/signos-vitales`;
+export const CHAT_HUB_URL = `${API_BASE_URL.replace(/\/+$/g, "").replace(/\/api$/i, "")}/hubs/chat`;

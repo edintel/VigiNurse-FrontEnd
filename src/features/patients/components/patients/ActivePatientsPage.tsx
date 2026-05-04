@@ -369,12 +369,10 @@ export default function ActivePatientsPage() {
     }
   }
 
-  function handleEpisodeCreated(episodio: EpisodioActivo) {
-    // Si hay filtros aplicados, refrescar la tabla; si no, no hay nada que mostrar
+  function handleEpisodeCreated() {
     if (appliedFilters !== null) {
       void fetchEpisodes(1, appliedFilters);
     }
-    void episodio; 
   }
 
   const hasAppliedFilters = appliedFilters !== null;
@@ -491,6 +489,9 @@ export default function ActivePatientsPage() {
                     Nivel triage
                   </th>
                   <th className="text-xs font-semibold uppercase tracking-wide">
+                    Médicos
+                  </th>
+                  <th className="text-xs font-semibold uppercase tracking-wide">
                     Indicadores clínicos
                   </th>
                   <th className="text-xs font-semibold uppercase tracking-wide text-right">
@@ -501,14 +502,14 @@ export default function ActivePatientsPage() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-12">
+                    <td colSpan={8} className="text-center py-12">
                       <span className="loading loading-spinner loading-md text-[#09268E]" />
                     </td>
                   </tr>
                 ) : !error && episodios.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="text-center py-12 text-base-content/40 text-sm"
                     >
                       No se encontraron pacientes con los filtros seleccionados.
@@ -549,6 +550,24 @@ export default function ActivePatientsPage() {
                       {/* Nivel triage */}
                       <td>
                         <TriageBadge nivel={ep.nivelTriage} />
+                      </td>
+
+                      {/* Médicos */}
+                      <td>
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[10px] font-semibold text-[#94a3b8] uppercase">Principal</span>
+                            <span className={`text-xs ${ep.medicoPrincipalNombre ? "text-[#0f172a] font-medium" : "text-[#94a3b8] italic"}`}>
+                              {ep.medicoPrincipalNombre ?? "Sin asignar"}
+                            </span>
+                          </div>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[10px] font-semibold text-[#94a3b8] uppercase">En atención</span>
+                            <span className={`text-xs ${ep.medicoActualNombre ? "text-[#0f172a] font-medium" : "text-[#94a3b8] italic"}`}>
+                              {ep.medicoActualNombre ?? "Sin asignar"}
+                            </span>
+                          </div>
+                        </div>
                       </td>
 
                       {/* Indicadores clínicos */}
@@ -616,6 +635,7 @@ export default function ActivePatientsPage() {
         onClose={() => setShowCreate(false)}
         onCreated={handleEpisodeCreated}
       />
+
     </div>
   );
 }

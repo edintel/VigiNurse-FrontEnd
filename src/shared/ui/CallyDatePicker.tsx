@@ -37,6 +37,8 @@ interface CallyDatePickerProps {
   min?: string;
   max?: string;
   variant?: "modal" | "filter";
+  inputClassName?: string;
+  labelClassName?: string;
 }
 
 const MESES = [
@@ -106,6 +108,8 @@ export function CallyDatePicker({
   min,
   max,
   variant = "modal",
+  inputClassName,
+  labelClassName,
 }: CallyDatePickerProps) {
   const [open, setOpen] = useState(false);
   const [dropCoords, setDropCoords] = useState<{
@@ -301,11 +305,11 @@ export function CallyDatePicker({
   const isFilter = variant === "filter";
 
   const labelEl = isFilter ? (
-    <span className="text-xs font-semibold text-slate-500 uppercase tracking-[0.5px] leading-none">
+    <span className={`text-xs font-semibold text-slate-500 uppercase tracking-[0.5px] leading-none ${labelClassName ?? ""}`}>
       {label}
     </span>
   ) : (
-    <span className="text-sm font-medium" style={{ color: "#1A2B5E" }}>
+    <span className={`text-sm font-medium ${labelClassName ?? ""}`} style={{ color: "#1A2B5E" }}>
       {label} {required && <span className="text-red-500">*</span>}
     </span>
   );
@@ -314,10 +318,12 @@ export function CallyDatePicker({
     ? [
         "bg-white border border-[#e2e8f0] rounded py-2 px-3 text-sm focus:outline-none focus:border-[#09268E] transition-colors w-full flex items-center justify-between gap-2",
         error ? "border-red-400" : "",
+        inputClassName ?? "",
       ].join(" ")
     : [
         "input input-bordered h-12 w-full bg-[#EEEEEE] border-[#B0B0B0] text-left flex items-center justify-between gap-2 focus:border-[#09268E] focus:outline-none",
         error ? "input-error" : "",
+        inputClassName ?? "",
       ].join(" ");
 
   const textCls = isFilter
@@ -332,7 +338,7 @@ export function CallyDatePicker({
     "text-xs font-semibold border border-[#e2e8f0] rounded px-2 py-1 bg-white text-[#1A2B5E] focus:outline-none focus:border-[#09268E] cursor-pointer";
 
   return (
-    <div className={`flex flex-col w-full ${isFilter ? "gap-1" : "gap-2"}`}>
+    <div className={`flex flex-col w-full ${isFilter ? "gap-1" : "gap-1.5"}`}>
       {labelEl}
 
       <button
