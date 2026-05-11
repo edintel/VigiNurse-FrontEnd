@@ -321,7 +321,7 @@ export function CallyDatePicker({
         inputClassName ?? "",
       ].join(" ")
     : [
-        "input input-bordered h-12 w-full bg-[#EEEEEE] border-[#B0B0B0] text-left flex items-center justify-between gap-2 focus:border-[#09268E] focus:outline-none",
+        "input input-bordered h-12 w-full border-[#B0B0B0] text-left flex items-center justify-between gap-2 focus:border-[#09268E] focus:outline-none",
         error ? "input-error" : "",
         inputClassName ?? "",
       ].join(" ");

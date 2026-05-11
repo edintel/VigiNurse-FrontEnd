@@ -46,6 +46,8 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
         "TECNICO",
         "GESTOR",
         "DOCTOR",
+        "RECEPCIONISTA",
+        "AUDITOR",
         "PACIENTE",
       ];
       const role: AuthRole = (VALID_ROLES as string[]).includes(rawUser.role)

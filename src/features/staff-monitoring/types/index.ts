@@ -32,6 +32,8 @@ export interface PersonalFilters {
   email?: string;
   especialidadId?: number;
   rol?: string;
+  estado?: EstadoDisponibilidadPersonal;
+  bloqueado?: boolean;
 }
 
 // ── Enums ─────────────────────────────────────────────────────────────────────
@@ -285,6 +287,7 @@ export enum EstadoDisponibilidadPersonal {
   Disponible = 0,
   Ocupado = 1,
   EnBreak = 2,
+  FueraDeServicio = 3
 }
 
 export interface Tarea {

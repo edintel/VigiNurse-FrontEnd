@@ -1,8 +1,10 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import PatientRecordPage from "@/features/patients/components/patients/PatientRecordPage";
 
 export default function Page() {
   const { id } = useParams<{ id: string }>();
-  return <PatientRecordPage id={Number(id)} />;
+  const searchParams = useSearchParams();
+  const bebeId = searchParams.get("bebeId");
+  return <PatientRecordPage id={Number(id)} bebeId={bebeId ? Number(bebeId) : undefined} />;
 }

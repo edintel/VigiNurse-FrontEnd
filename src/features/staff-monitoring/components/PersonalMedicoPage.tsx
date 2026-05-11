@@ -246,7 +246,8 @@ function PersonalTab() {
                           estado={p.estado}
                           descripcion={
                             p.estado === EstadoDisponibilidadPersonal.Disponible ? "Disponible"
-                            : p.estado === EstadoDisponibilidadPersonal.Ocupado  ? "Ocupado"
+                            : p.estado === EstadoDisponibilidadPersonal.Ocupado ? "Ocupado"
+                            : p.estado === EstadoDisponibilidadPersonal.FueraDeServicio ? "Fuera de servicio"
                             : "En break"
                           }
                         />
@@ -338,8 +339,8 @@ export default function PersonalMedicoPage() {
             </svg>
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-[#1A2B5E] leading-tight">Monitores de Personal</h1>
-            <p className="text-sm text-slate-500">Supervisión en tiempo real del personal médico.</p>
+            <h1 className="text-2xl font-bold text-[#1A2B5E] leading-tight">Gestión de Personal médico</h1>
+            
           </div>
         </div>
       </div>

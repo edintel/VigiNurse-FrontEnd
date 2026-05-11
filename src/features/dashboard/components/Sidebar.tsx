@@ -45,6 +45,7 @@ const NAV_ITEMS: {
   {
     label: "Gestión de Pacientes",
     href: "/patients",
+    permission: "patients.view",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -67,6 +68,7 @@ const NAV_ITEMS: {
   {
     label: "Órdenes Médicas",
     href: "/medical-orders",
+    permission: "patients.episodesView",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -88,6 +90,7 @@ const NAV_ITEMS: {
   {
     label: "Control de Activos",
     href: "/assets-management",
+    permission: "assetsManagement.view",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -107,8 +110,9 @@ const NAV_ITEMS: {
     ),
   },
   {
-    label: "Control de Bebés",
+    label: "Gestión de Neonatos",
     href: "/baby-monitoring",
+    permission: "babyMonitoring.view",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -131,6 +135,7 @@ const NAV_ITEMS: {
   {
     label: "Llamado de Enfermeras",
     href: "/nurse-calls",
+    permission: "nurseCalls.view",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -151,6 +156,7 @@ const NAV_ITEMS: {
   {
     label: "Monitores de Pacientes",
     href: "/vitals-monitoring",
+    permission: "vitalsMonitoring.view",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -168,8 +174,9 @@ const NAV_ITEMS: {
     ),
   },
   {
-    label: "Monitores de Personal",
+    label: "Gestión de Personal",
     href: "/staff-monitoring",
+    permission: "staffMonitoring.view",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -233,6 +240,7 @@ const NAV_ITEMS: {
   {
     label: "Configuración",
     href: "/settings",
+    permission: "settings.view",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"

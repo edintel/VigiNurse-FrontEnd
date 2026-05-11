@@ -10,6 +10,7 @@ import {
   filterInputCls,
 } from "@/shared/ui/FilterPanel";
 import { PaginationFooter } from "@/shared/ui/PaginationFooter";
+import { useHasPermission } from "@/lib/hasPermission";
 import { Sexo, SEXO_LABELS } from "@/features/patients/types";
 import type {
   Paciente,
@@ -52,6 +53,7 @@ function SexoBadge({ sexo }: { sexo: Sexo }) {
 // Pestaña de registro de pacientes con tabla, filtros y paginación.
 export default function PatientsListPage() {
   const router = useRouter();
+  const canCreatePatients = useHasPermission("patients.create");
 
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [totalRegistros, setTotalRegistros] = useState(0);
@@ -126,30 +128,32 @@ export default function PatientsListPage() {
   return (
     <div className="space-y-4">
       {/* Botón de acción */}
-      <div className="flex justify-end">
-        <button
-          type="button"
-          className="btn text-white"
-          style={{ backgroundColor: "#09268E", borderColor: "#09268E" }}
-          onClick={() => setShowCreate(true)}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="2.5"
-            stroke="currentColor"
-            className="size-[1.2em]"
+      {canCreatePatients && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            className="btn text-white"
+            style={{ backgroundColor: "#09268E", borderColor: "#09268E" }}
+            onClick={() => setShowCreate(true)}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4.5v15m7.5-7.5h-15"
-            />
-          </svg>
-          Registrar paciente
-        </button>
-      </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="2.5"
+              stroke="currentColor"
+              className="size-[1.2em]"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4.5v15m7.5-7.5h-15"
+              />
+            </svg>
+            Registrar paciente
+          </button>
+        </div>
+      )}
 
       {/* Panel de filtros */}
       <FilterPanel onApply={handleApplyFilters} onClear={handleClearFilters}>
@@ -298,17 +302,21 @@ export default function PatientsListPage() {
         />
       </div>
 
-      <CreatePatientModal
-        open={showCreate}
-        onClose={() => setShowCreate(false)}
-        onCreated={handlePacienteCreated}
-        onContactRequested={(id) => setContactoPacienteId(id)}
-      />
-      <CreateContactModal
-        open={contactoPacienteId !== null}
-        pacienteId={contactoPacienteId ?? 0}
-        onClose={() => setContactoPacienteId(null)}
-      />
+      {canCreatePatients && (
+        <>
+          <CreatePatientModal
+            open={showCreate}
+            onClose={() => setShowCreate(false)}
+            onCreated={handlePacienteCreated}
+            onContactRequested={(id) => setContactoPacienteId(id)}
+          />
+          <CreateContactModal
+            open={contactoPacienteId !== null}
+            pacienteId={contactoPacienteId ?? 0}
+            onClose={() => setContactoPacienteId(null)}
+          />
+        </>
+      )}
     </div>
   );
 }

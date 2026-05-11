@@ -26,6 +26,7 @@ interface OrderDetailModalProps {
   orden: Dato;
   episodioId: number;
   pacienteId: number;
+  canChangeState?: boolean;
   onClose: () => void;
   onCancelled: () => void;
 }
@@ -34,6 +35,7 @@ export function OrderDetailModal({
   orden,
   episodioId,
   pacienteId,
+  canChangeState = true,
   onClose,
   onCancelled,
 }: OrderDetailModalProps) {
@@ -415,7 +417,7 @@ export function OrderDetailModal({
           )}
 
           {/* Cancel section — only when Pendiente */}
-          {estado === OrdenEstado.Pendiente && (
+          {estado === OrdenEstado.Pendiente && canChangeState && (
             <div>
               {!showCancelForm ? (
                 <div className="flex justify-end">

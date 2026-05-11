@@ -9,7 +9,7 @@ export async function getPersonalMedico(
   tamanio = 20,
   filters?: PersonalFilters,
 ): Promise<PaginatedPersonal> {
-  const params: Record<string, string | number> = { pagina, tamanio };
+  const params: Record<string, string | number | boolean> = { pagina, tamanio };
   if (filters) {
     if (filters.nombre) params.nombre = filters.nombre;
     if (filters.apellidos) params.apellidos = filters.apellidos;
@@ -17,6 +17,8 @@ export async function getPersonalMedico(
     if (filters.email) params.email = filters.email;
     if (filters.especialidadId !== undefined) params.especialidadId = filters.especialidadId;
     if (filters.rol) params.rol = filters.rol;
+    if (filters.estado !== undefined) params.estado = filters.estado;
+    if (filters.bloqueado !== undefined) params.bloqueado = filters.bloqueado;
   }
   const response = await axiosInstance.get<unknown>(
     API_ENDPOINTS.personalMedico.list,

@@ -7,7 +7,6 @@ import EspecialidadesPage from "@/features/administration/especialidades/compone
 import AreasPage from "@/features/administration/areas/components/AreasPage";
 import MedicamentosPage from "@/features/administration/medicamentos/components/MedicamentosPage";
 import TiposActivosPage from "@/features/administration/assetTypes/components/AssetTypesPage";
-import ZonasPage from "@/features/administration/zones/components/ZonesPage";
 import SignosVitalesPage from "@/features/administration/signosVitales/components/SignosVitalesPage";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentRole } from "@/store/slices/authSlice";
@@ -20,7 +19,6 @@ type ActiveTab =
   | "areas"
   | "medicamentos"
   | "tiposActivos"
-  | "zonas"
   | "signosVitales";
 
 const BASE_TABS: { id: ActiveTab; label: string }[] = [
@@ -29,7 +27,6 @@ const BASE_TABS: { id: ActiveTab; label: string }[] = [
   { id: "areas", label: "Áreas" },
   { id: "medicamentos", label: "Medicamentos" },
   { id: "tiposActivos", label: "Tipos de Activos" },
-  { id: "zonas", label: "Zonas" },
   { id: "signosVitales", label: "Signos Vitales" },
   { id: "hospitales", label: "Hospitales" },
   { id: "auditoria", label: "Auditoría" },
@@ -48,7 +45,6 @@ export default function AdministracionPage() {
     if (t.id === "areas") return isAdmin;
     if (t.id === "medicamentos") return isAdmin;
     if (t.id === "tiposActivos") return isAdmin;
-    if (t.id === "zonas") return isAdmin;
     if (t.id === "signosVitales") return isAdmin;
     return true;
   });
@@ -97,7 +93,6 @@ export default function AdministracionPage() {
       {activeTab === "areas" && isAdmin && <AreasPage />}
       {activeTab === "medicamentos" && isAdmin && <MedicamentosPage />}
       {activeTab === "tiposActivos" && isAdmin && <TiposActivosPage />}
-      {activeTab === "zonas" && isAdmin && <ZonasPage />}
       {activeTab === "signosVitales" && isAdmin && <SignosVitalesPage />}
       {activeTab === "hospitales" && isSuperAdmin && <HospitalsPage />}
       {activeTab === "auditoria" && <AuditPage />}

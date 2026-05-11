@@ -56,11 +56,13 @@ function EstadoBadge({ estado }: { estado: EpisodioEstado }) {
 
 interface EpisodeHistoryTabProps {
   pacienteId: number;
+  bebeId?: number;
 }
 
 // Tab de historial de episodios dentro de la ficha del paciente.
 export function EpisodeHistoryTab({
   pacienteId,
+  bebeId,
 }: EpisodeHistoryTabProps) {
   const router = useRouter();
 
@@ -299,7 +301,7 @@ export function EpisodeHistoryTab({
                         title="Ver detalle del episodio"
                         onClick={() =>
                           router.push(
-                            `/patients/${pacienteId}/episodios/${ep.id}`,
+                            `/patients/${pacienteId}/episodios/${ep.id}${bebeId ? `?bebeId=${bebeId}` : ""}`,
                           )
                         }
                       >

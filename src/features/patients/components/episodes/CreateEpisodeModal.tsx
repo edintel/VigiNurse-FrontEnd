@@ -38,7 +38,7 @@ export function CreateEpisodeModal({
 
   // Campos del formulario
   const [tipo, setTipo] = useState<TipoEpisodio>(TipoEpisodio.Urgencia);
-  const [nivelTriage, setNivelTriage] = useState<TriageNivel>(TriageNivel.NoAplica);
+  const [nivelTriage, setNivelTriage] = useState<TriageNivel>(TriageNivel.NoUrgente);
   const [razonVisita, setRazonVisita] = useState("");
 
   // Paciente SearchableSelect
@@ -124,7 +124,7 @@ export function CreateEpisodeModal({
 
   function resetForm() {
     setTipo(TipoEpisodio.Urgencia);
-    setNivelTriage(TriageNivel.NoAplica);
+    setNivelTriage(TriageNivel.NoUrgente);
     setRazonVisita("");
     setPacienteSearch("");
     setPacienteSelectedId(null);
@@ -370,40 +370,43 @@ export function CreateEpisodeModal({
             }}
           />
 
-          {/* Fila: Tipo episodio · Nivel triage */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Fila: Tipo episodio · Nivel triage (solo si Urgencia) */}
+          <div className={tipo === TipoEpisodio.Urgencia ? "grid grid-cols-2 gap-4" : ""}>
             <div className="form-control w-full">
               <SelectLabel htmlFor="create-episodio-tipo" text="Tipo de episodio" required />
               <select
                 id="create-episodio-tipo"
                 className={"select select-bordered w-full bg-[#EEEEEE] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E] focus:outline-none"}
                 value={tipo}
-                onChange={(e) => setTipo(parseInt(e.target.value) as TipoEpisodio)}
+                onChange={(e) => {
+                  const newTipo = parseInt(e.target.value) as TipoEpisodio;
+                  setTipo(newTipo);
+                  if (newTipo !== TipoEpisodio.Urgencia) setNivelTriage(TriageNivel.NoAplica);
+                }}
               >
-                {Object.entries(TIPO_EPISODIO_LABELS).map(([val, label]) => (
-                  <option key={val} value={val}>
-                    {label}
-                  </option>
-                ))}
+                <option value={TipoEpisodio.Consulta}>{TIPO_EPISODIO_LABELS[TipoEpisodio.Consulta]}</option>
+                <option value={TipoEpisodio.Urgencia}>{TIPO_EPISODIO_LABELS[TipoEpisodio.Urgencia]}</option>
+                <option value={TipoEpisodio.Hospitalizacion}>{TIPO_EPISODIO_LABELS[TipoEpisodio.Hospitalizacion]}</option>
               </select>
             </div>
 
-            <div className="form-control w-full">
-              <SelectLabel htmlFor="create-episodio-triage" text="Nivel de triage" required />
-              <select
-                id="create-episodio-triage"
-                className={"select select-bordered w-full bg-[#EEEEEE] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E] focus:outline-none"}
-                value={nivelTriage}
-                onChange={(e) => setNivelTriage(parseInt(e.target.value) as TriageNivel)}
-              >
-                <option value={TriageNivel.NoAplica}>0 — No aplica</option>
-                <option value={TriageNivel.NoUrgente}>5 — No urgente</option>
-                <option value={TriageNivel.Prioritario}>4 — Prioritario</option>
-                <option value={TriageNivel.Urgencia}>3 — Urgencia</option>
-                <option value={TriageNivel.Emergencia}>2 — Emergencia</option>
-                <option value={TriageNivel.Reanimacion}>1 — Reanimación</option>
-              </select>
-            </div>
+            {tipo === TipoEpisodio.Urgencia && (
+              <div className="form-control w-full">
+                <SelectLabel htmlFor="create-episodio-triage" text="Nivel de triage" required />
+                <select
+                  id="create-episodio-triage"
+                  className={"select select-bordered w-full bg-[#EEEEEE] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E] focus:outline-none"}
+                  value={nivelTriage}
+                  onChange={(e) => setNivelTriage(parseInt(e.target.value) as TriageNivel)}
+                >
+                  <option value={TriageNivel.NoUrgente}>5 — No urgente</option>
+                  <option value={TriageNivel.Prioritario}>4 — Prioritario</option>
+                  <option value={TriageNivel.Urgencia}>3 — Urgencia</option>
+                  <option value={TriageNivel.Emergencia}>2 — Emergencia</option>
+                  <option value={TriageNivel.Reanimacion}>1 — Reanimación</option>
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Razón de visita */}

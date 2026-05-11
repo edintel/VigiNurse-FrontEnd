@@ -2,7 +2,9 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import { useRouter } from "next/navigation";
+import { useHasPermission } from "@/lib/hasPermission";
 import { getEpisodeById } from "@/features/patients/services/episodeService";
+import { getBabyById } from "@/features/baby-monitoring/services/babyService";
 import { AssignEpisodeDoctorModal } from "@/features/patients/components/episodes/AssignEpisodeDoctorModal";
 import { DiagnosticsTab } from "@/features/patients/components/diagnostics/DiagnosticsTab";
 import { MedicationTab } from "@/features/patients/components/medication/MedicationTab";
@@ -11,6 +13,9 @@ import { VitalSignsTab } from "@/features/patients/components/vitalSigns/VitalSi
 import { ClinicalEvolutionTab } from "@/features/patients/components/clinicalEvolution/ClinicalEvolutionTab";
 import { NursingNotesTab } from "@/features/patients/components/nursingNotes/NursingNotesTab";
 import { DischargeTab } from "@/features/patients/components/episodes/DischargeTab";
+import { BabyFeedingTab } from "@/features/baby-monitoring/components/BabyFeedingTab";
+import { BabyCareTab } from "@/features/baby-monitoring/components/BabyCareTab";
+import { BabyLocationTab } from "@/features/baby-monitoring/components/BabyLocationTab";
 import { toast } from "@/lib/toast";
 import {
   EpisodioEstado,
@@ -19,9 +24,12 @@ import {
   TIPO_EPISODIO_LABELS,
 } from "@/features/patients/types";
 import type { EpisodioHistorial } from "@/features/patients/types";
+import type { Bebe } from "@/features/baby-monitoring/types";
 
-// Definición de las tabs disponibles en el detalle del episodio, con su respectiva función de renderizado.
 type DetailTab =
+  | "alimentacion"
+  | "cuidados"
+  | "ubicacion"
   | "diagnosticos"
   | "medicacion"
   | "ordenes"
@@ -30,9 +38,21 @@ type DetailTab =
   | "notas"
   | "receta";
 
-type TabProps = { pacienteId: number; episodio: EpisodioHistorial };
+type TabProps = {
+  pacienteId: number;
+  episodio: EpisodioHistorial;
+  canCreateDiagnostics: boolean;
+  canCreateMedication: boolean;
+  canAdministerMedication: boolean;
+  canChangeMedicationState: boolean;
+  canCreateOrders: boolean;
+  canChangeOrderState: boolean;
+  canCreateVitalSigns: boolean;
+  canCreateClinicalEvolution: boolean;
+  canCreateNursingNotes: boolean;
+};
 
-const DETAIL_TABS: {
+const CLINICAL_DETAIL_TABS: {
   id: DetailTab;
   label: string;
   render: (ctx: TabProps) => ReactElement;
@@ -40,51 +60,69 @@ const DETAIL_TABS: {
   {
     id: "diagnosticos",
     label: "Diagnósticos",
-    render: ({ episodio }) => <DiagnosticsTab episodio={episodio} />,
+    render: ({ episodio, canCreateDiagnostics }) => (
+      <DiagnosticsTab episodio={episodio} canCreate={canCreateDiagnostics} />
+    ),
   },
   {
     id: "medicacion",
     label: "Medicación",
-    render: ({ episodio }) => (
+    render: ({
+      episodio,
+      canCreateMedication,
+      canAdministerMedication,
+      canChangeMedicationState,
+    }) => (
       <MedicationTab
         episodioId={episodio.id}
-        canCreate={episodio.estado === EpisodioEstado.EnCurso}
+        canCreate={canCreateMedication && episodio.estado === EpisodioEstado.EnCurso}
+        canAdminister={canAdministerMedication}
+        canChangeState={canChangeMedicationState}
       />
     ),
   },
   {
     id: "ordenes",
     label: "Órdenes",
-    render: ({ episodio }) => (
+    render: ({ episodio, canCreateOrders, canChangeOrderState }) => (
       <OrdersTab
         episodio={episodio}
-        canCreate={episodio.estado === EpisodioEstado.EnCurso}
+        canCreate={canCreateOrders && episodio.estado === EpisodioEstado.EnCurso}
+        canChangeState={canChangeOrderState}
       />
     ),
   },
   {
     id: "signos",
     label: "Signos Vitales",
-    render: ({ episodio, pacienteId }) => (
+    render: ({ episodio, pacienteId, canCreateVitalSigns }) => (
       <VitalSignsTab
         episodioId={episodio.id}
         pacienteId={pacienteId}
-        canCreate={episodio.estado === EpisodioEstado.EnCurso}
+        canCreate={canCreateVitalSigns && episodio.estado === EpisodioEstado.EnCurso}
       />
     ),
   },
   {
     id: "evoluciones",
     label: "Evoluciones",
-    render: ({ episodio }) => (
-      <ClinicalEvolutionTab episodioId={episodio.id} episodio={episodio} />
+    render: ({ episodio, canCreateClinicalEvolution }) => (
+      <ClinicalEvolutionTab
+        episodioId={episodio.id}
+        episodio={episodio}
+        canCreate={canCreateClinicalEvolution}
+      />
     ),
   },
   {
     id: "notas",
     label: "Notas de enfermería",
-    render: ({ episodio }) => (
-      <NursingNotesTab episodioId={episodio.id} episodio={episodio} />
+    render: ({ episodio, canCreateNursingNotes }) => (
+      <NursingNotesTab
+        episodioId={episodio.id}
+        episodio={episodio}
+        canCreate={canCreateNursingNotes}
+      />
     ),
   },
   {
@@ -146,18 +184,31 @@ function EstadoBadge({ estado }: { estado: EpisodioEstado }) {
 interface EpisodeDetailPageProps {
   pacienteId: number;
   episodioId: number;
+  bebeId?: number;
 }
 
 // Página de detalle de un episodio específico.
 export default function EpisodeDetailPage({
   pacienteId,
   episodioId,
+  bebeId,
 }: EpisodeDetailPageProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<DetailTab>("diagnosticos");
+  const canAssignEpisodeDoctor = useHasPermission("patients.episodesAssignDoctor");
+  const canCreateDiagnostics = useHasPermission("patients.diagnosticsCreate");
+  const canCreateMedication = useHasPermission("patients.medicationCreate");
+  const canAdministerMedication = useHasPermission("patients.medicationAdminister");
+  const canChangeMedicationState = useHasPermission("patients.medicationChangeState");
+  const canCreateOrders = useHasPermission("patients.ordersCreate");
+  const canChangeOrderState = useHasPermission("patients.ordersChangeState");
+  const canCreateVitalSigns = useHasPermission("patients.vitalSignsCreate");
+  const canCreateClinicalEvolution = useHasPermission("patients.clinicalEvolutionCreate");
+  const canCreateNursingNotes = useHasPermission("patients.nursingNotesCreate");
+  const [activeTab, setActiveTab] = useState<DetailTab>(bebeId ? "alimentacion" : "diagnosticos");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [episodio, setEpisodio] = useState<EpisodioHistorial | null>(null);
+  const [bebe, setBebe] = useState<Bebe | null>(null);
   const [doctorModalMode, setDoctorModalMode] = useState<"principal" | "actual">("principal");
   const [showDoctorModal, setShowDoctorModal] = useState(false);
 
@@ -195,6 +246,22 @@ export default function EpisodeDetailPage({
     void loadData();
   }, [loadData]);
 
+  useEffect(() => {
+    if (bebeId) {
+      getBabyById(bebeId).then(setBebe).catch(() => setBebe(null));
+    }
+  }, [bebeId]);
+
+  // Tabs dinámicas: si hay baby, prepend Alimentación y Cuidados
+  const allTabs = bebe
+    ? [
+        { id: "alimentacion" as DetailTab, label: "Alimentación" },
+        { id: "cuidados" as DetailTab, label: "Cuidados" },
+        { id: "ubicacion" as DetailTab, label: "Ubicación" },
+        ...CLINICAL_DETAIL_TABS,
+      ]
+    : CLINICAL_DETAIL_TABS;
+
   // Estado de carga
   if (loading) {
     return (
@@ -222,8 +289,6 @@ export default function EpisodeDetailPage({
   }
 
   const triageCfg = TRIAGE_CONFIG[episodio.nivelTriage];
-  const activeTabDef =
-    DETAIL_TABS.find((t) => t.id === activeTab) ?? DETAIL_TABS[0];
 
   return (
     <div>
@@ -334,7 +399,7 @@ export default function EpisodeDetailPage({
                       </span>
                     }
                   />
-                  {episodio.estado === EpisodioEstado.EnCurso && (
+                  {episodio.estado === EpisodioEstado.EnCurso && canAssignEpisodeDoctor && (
                     <button
                       type="button"
                       onClick={() => { setDoctorModalMode("principal"); setShowDoctorModal(true); }}
@@ -353,7 +418,7 @@ export default function EpisodeDetailPage({
                       </span>
                     }
                   />
-                  {episodio.estado === EpisodioEstado.EnCurso && (
+                  {episodio.estado === EpisodioEstado.EnCurso && canAssignEpisodeDoctor && (
                     <button
                       type="button"
                       onClick={() => { setDoctorModalMode("actual"); setShowDoctorModal(true); }}
@@ -414,20 +479,22 @@ export default function EpisodeDetailPage({
         </div>
 
         {/* Modal de asignación de médico */}
-        <AssignEpisodeDoctorModal
-          open={showDoctorModal}
-          episodioId={episodio.id}
-          mode={doctorModalMode}
-          currentDoctorId={doctorModalMode === "principal" ? episodio.medicoPrincipalId : episodio.medicoActualId}
-          currentDoctorName={doctorModalMode === "principal" ? episodio.medicoPrincipalNombre : episodio.medicoActualNombre}
-          onClose={() => setShowDoctorModal(false)}
-          onUpdated={(updated) => setEpisodio(updated)}
-        />
+        {canAssignEpisodeDoctor && (
+          <AssignEpisodeDoctorModal
+            open={showDoctorModal}
+            episodioId={episodio.id}
+            mode={doctorModalMode}
+            currentDoctorId={doctorModalMode === "principal" ? episodio.medicoPrincipalId : episodio.medicoActualId}
+            currentDoctorName={doctorModalMode === "principal" ? episodio.medicoPrincipalNombre : episodio.medicoActualNombre}
+            onClose={() => setShowDoctorModal(false)}
+            onUpdated={(updated) => setEpisodio(updated)}
+          />
+        )}
 
         {/* Barra de tabs del episodio */}
         <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm overflow-hidden">
           <div className="flex gap-1 border-b border-[#D1D9E6] px-4 overflow-x-auto">
-            {DETAIL_TABS.map((tab) => (
+            {allTabs.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
@@ -445,7 +512,40 @@ export default function EpisodeDetailPage({
           </div>
 
           <div className="p-5">
-            {activeTabDef.render({ pacienteId, episodio })}
+            {activeTab === "alimentacion" && bebe ? (
+              <BabyFeedingTab episodioId={episodio.id} readOnly={true} />
+            ) : activeTab === "cuidados" && bebe ? (
+              <BabyCareTab episodioId={episodio.id} readOnly={true} />
+            ) : activeTab === "ubicacion" && bebe ? (
+              <BabyLocationTab bebe={bebe} readOnly={true} />
+            ) : (
+              CLINICAL_DETAIL_TABS.find((t) => t.id === activeTab)?.render({
+                pacienteId,
+                episodio,
+                canCreateDiagnostics,
+                canCreateMedication,
+                canAdministerMedication,
+                canChangeMedicationState,
+                canCreateOrders,
+                canChangeOrderState,
+                canCreateVitalSigns,
+                canCreateClinicalEvolution,
+                canCreateNursingNotes,
+              })
+              ?? CLINICAL_DETAIL_TABS[0].render({
+                pacienteId,
+                episodio,
+                canCreateDiagnostics,
+                canCreateMedication,
+                canAdministerMedication,
+                canChangeMedicationState,
+                canCreateOrders,
+                canChangeOrderState,
+                canCreateVitalSigns,
+                canCreateClinicalEvolution,
+                canCreateNursingNotes,
+              })
+            )}
           </div>
         </div>
       </div>

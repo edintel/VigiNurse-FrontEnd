@@ -31,12 +31,14 @@ function formatDate(dateStr: string): string {
 interface NursingNotesTabProps {
   episodioId: number;
   episodio: EpisodioHistorial;
+  canCreate?: boolean;
 }
 
 // Componente principal para mostrar las notas de enfermería en un episodio
 export function NursingNotesTab({
   episodioId,
   episodio,
+  canCreate: canCreatePermission = true,
 }: NursingNotesTabProps) {
   const [notas, setNotas] = useState<NotaEnfermeria[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +46,7 @@ export function NursingNotesTab({
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [selectedNota, setSelectedNota] = useState<NotaEnfermeria | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const canCreate = episodio.estado === EpisodioEstado.EnCurso;
+  const canCreate = canCreatePermission && episodio.estado === EpisodioEstado.EnCurso;
 
   const loadNotes = useCallback(async (showSuccess = false) => {
     setLoading(true);

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-export const metadata: Metadata = { title: "Monitoreo de Bebés" };
-// Muestra la pagina de baby monitoring.
+import BabiesPage from "@/features/baby-monitoring/components/BabiesPage";
+
+export const metadata: Metadata = { title: "Control de Bebés" };
+
 export default function BabyMonitoringPage() {
-    return <h1 className="text-2xl font-semibold">Monitoreo de Bebés</h1>;
+  return <BabiesPage />;
 }

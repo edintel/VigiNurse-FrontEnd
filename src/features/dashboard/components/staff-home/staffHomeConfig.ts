@@ -38,17 +38,25 @@ export const ESTADO_CONFIG: Record<
   },
   [EstadoDisponibilidadPersonal.EnBreak]: {
     label: "En break",
-    dot: "bg-slate-400",
-    bg: "bg-slate-100",
-    border: "border-slate-200",
-    text: "text-slate-600",
+    dot: "bg-blue-400",
+    bg: "bg-blue-100",
+    border: "border-blue-200",
+    text: "text-blue-600",
   },
+  [EstadoDisponibilidadPersonal.FueraDeServicio]: {
+    label: "Fuera de servicio",
+    dot: "bg-gray-400",
+    bg: "bg-gray-100",
+    border: "border-gray-200",
+    text: "text-gray-600",
+  }
 };
 
 export const ESTADO_OPTIONS = [
   EstadoDisponibilidadPersonal.Disponible,
   EstadoDisponibilidadPersonal.Ocupado,
   EstadoDisponibilidadPersonal.EnBreak,
+  EstadoDisponibilidadPersonal.FueraDeServicio,
 ] as const;
 
 export const TRIAGE_MINI: Record<number, { label: string; bg: string; color: string }> = {

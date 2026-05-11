@@ -9,6 +9,7 @@ import type { Diagnostico, EpisodioHistorial } from "@/features/patients/types";
 
 interface DiagnosticsTabProps {
   episodio: EpisodioHistorial;
+  canCreate?: boolean;
 }
 
 function formatDate(dateStr: string): string {
@@ -31,7 +32,7 @@ function formatDate(dateStr: string): string {
 }
 
 // Componente principal para la pestaña de Diagnósticos en el historial del paciente
-export function DiagnosticsTab({ episodio }: DiagnosticsTabProps) {
+export function DiagnosticsTab({ episodio, canCreate: canCreatePermission = true }: DiagnosticsTabProps) {
   const [diagnosticos, setDiagnosticos] = useState<Diagnostico[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +40,7 @@ export function DiagnosticsTab({ episodio }: DiagnosticsTabProps) {
   const [detailOpen, setDetailOpen] = useState(false);
   const [selected, setSelected] = useState<Diagnostico | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const canCreate = episodio.estado === EpisodioEstado.EnCurso;
+  const canCreate = canCreatePermission && episodio.estado === EpisodioEstado.EnCurso;
 
   const load = useCallback(async () => {
     setLoading(true);

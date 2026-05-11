@@ -60,6 +60,8 @@ interface Props {
   episodioId: number;
   onClose: () => void;
   onUpdated: (m: Medicacion) => void;
+  canAdminister?: boolean;
+  canChangeState?: boolean;
 }
 
 // Modal para mostrar los detalles de una medicación, su historial de administraciones y acciones relacionadas 
@@ -70,6 +72,8 @@ export function MedicationDetailModal({
   episodioId,
   onClose,
   onUpdated,
+  canAdminister = true,
+  canChangeState = true,
 }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [admins, setAdmins] = useState<Administracion[]>([]);
@@ -352,9 +356,9 @@ export function MedicationDetailModal({
           </div>
 
           {/* Footer actions */}
-          {!isEnded && (
+          {!isEnded && (canAdminister || canChangeState) && (
             <div className="px-6 py-4 bg-[#F8FAFC] border-t border-[#f1f5f9] flex-shrink-0 flex items-center gap-2 flex-wrap justify-end">
-              {isActive && (
+              {isActive && canAdminister && (
                 <button
                   type="button"
                   className="btn btn-sm text-white shadow-sm"
@@ -378,7 +382,7 @@ export function MedicationDetailModal({
                   Registrar suministración
                 </button>
               )}
-              {isActive && (
+              {isActive && canChangeState && (
                 <button
                   type="button"
                   className="btn btn-sm text-[#4d3a00] border-[#fcbc13]"
@@ -388,7 +392,7 @@ export function MedicationDetailModal({
                   Suspender
                 </button>
               )}
-              {isSuspended && (
+              {isSuspended && canChangeState && (
                 <button
                   type="button"
                   className="btn btn-sm text-white shadow-sm"
@@ -398,14 +402,16 @@ export function MedicationDetailModal({
                   Reanudar
                 </button>
               )}
-              <button
-                type="button"
-                className="btn btn-sm text-white"
-                style={{ backgroundColor: "#ff627d", borderColor: "#ff627d" }}
-                onClick={() => setFinalizarOpen(true)}
-              >
-                Finalizar
-              </button>
+              {canChangeState && (
+                <button
+                  type="button"
+                  className="btn btn-sm text-white"
+                  style={{ backgroundColor: "#ff627d", borderColor: "#ff627d" }}
+                  onClick={() => setFinalizarOpen(true)}
+                >
+                  Finalizar
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -414,34 +420,40 @@ export function MedicationDetailModal({
         </form>
       </dialog>
 
-      <RegisterAdministrationModal
-        open={adminOpen}
-        medicacion={medicacion}
-        episodioId={episodioId}
-        onClose={() => setAdminOpen(false)}
-        onCreated={handleAdminCreated}
-      />
-      <SuspendMedicationModal
-        open={suspenderOpen}
-        medicacion={medicacion}
-        episodioId={episodioId}
-        onClose={() => setSuspenderOpen(false)}
-        onUpdated={handleUpdated}
-      />
-      <ResumeMedicationModal
-        open={reanudarOpen}
-        medicacion={medicacion}
-        episodioId={episodioId}
-        onClose={() => setReanudarOpen(false)}
-        onUpdated={handleUpdated}
-      />
-      <FinalizeMedicationModal
-        open={finalizarOpen}
-        medicacion={medicacion}
-        episodioId={episodioId}
-        onClose={() => setFinalizarOpen(false)}
-        onUpdated={handleUpdated}
-      />
+      {canAdminister && (
+        <RegisterAdministrationModal
+          open={adminOpen}
+          medicacion={medicacion}
+          episodioId={episodioId}
+          onClose={() => setAdminOpen(false)}
+          onCreated={handleAdminCreated}
+        />
+      )}
+      {canChangeState && (
+        <>
+          <SuspendMedicationModal
+            open={suspenderOpen}
+            medicacion={medicacion}
+            episodioId={episodioId}
+            onClose={() => setSuspenderOpen(false)}
+            onUpdated={handleUpdated}
+          />
+          <ResumeMedicationModal
+            open={reanudarOpen}
+            medicacion={medicacion}
+            episodioId={episodioId}
+            onClose={() => setReanudarOpen(false)}
+            onUpdated={handleUpdated}
+          />
+          <FinalizeMedicationModal
+            open={finalizarOpen}
+            medicacion={medicacion}
+            episodioId={episodioId}
+            onClose={() => setFinalizarOpen(false)}
+            onUpdated={handleUpdated}
+          />
+        </>
+      )}
     </>
   );
 }

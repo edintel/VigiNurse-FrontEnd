@@ -7,5 +7,7 @@ export const ROLES: Record<AuthRole, string> = {
     TECNICO: "Técnico",
     GESTOR: "Gestor",
     DOCTOR: "Doctor",
+    RECEPCIONISTA: "Recepcionista",
+    AUDITOR: "Auditor",
     PACIENTE: "Paciente",
 } as const;

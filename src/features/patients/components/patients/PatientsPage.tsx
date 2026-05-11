@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useHasPermission } from "@/lib/hasPermission";
 import ActivePatientsPage from "@/features/patients/components/patients/ActivePatientsPage";
 import PatientsListPage from "@/features/patients/components/patients/PatientsListPage";
 
@@ -12,7 +13,14 @@ const TABS: { id: ActiveTab; label: string }[] = [
 
 // Página principal de gestión de pacientes con pestañas.
 export default function PatientsPage() {
+  const canViewEpisodes = useHasPermission("patients.episodesView");
+  const tabs = useMemo(
+    () => TABS.filter((tab) => tab.id !== "atencion" || canViewEpisodes),
+    [canViewEpisodes],
+  );
   const [activeTab, setActiveTab] = useState<ActiveTab>("atencion");
+  const effectiveTab: ActiveTab =
+    !canViewEpisodes && activeTab === "atencion" ? "registro" : activeTab;
 
   return (
     <div className="py-6 px-8 xl:px-12 space-y-6">
@@ -49,14 +57,14 @@ export default function PatientsPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-[#D1D9E6]">
-        {TABS.map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
             className={[
               "px-5 py-3 text-base font-semibold transition-colors -mb-px border-b-2",
-              activeTab === tab.id
+              effectiveTab === tab.id
                 ? "text-[#09268E] border-[#09268E]"
                 : "text-slate-500 border-transparent hover:text-[#1A2B5E] hover:border-slate-300",
             ].join(" ")}
@@ -67,8 +75,8 @@ export default function PatientsPage() {
       </div>
 
       {/* Contenido de la tab activa */}
-      {activeTab === "atencion" && <ActivePatientsPage />}
-      {activeTab === "registro" && <PatientsListPage />}
+      {effectiveTab === "atencion" && canViewEpisodes && <ActivePatientsPage />}
+      {effectiveTab === "registro" && <PatientsListPage />}
     </div>
   );
 }

@@ -41,12 +41,16 @@ function EstadoBadge({ estado }: { estado: MedicacionEstado }) {
 interface MedicationTabProps {
   episodioId: number;
   canCreate?: boolean;
+  canAdminister?: boolean;
+  canChangeState?: boolean;
 }
 
 // Funcion principal del componente de medicación, que muestra la lista de medicaciones, filtros y modales para detalle y creación.
 export function MedicationTab({
   episodioId,
   canCreate = true,
+  canAdminister = true,
+  canChangeState = true,
 }: MedicationTabProps) {
   const [medicaciones, setMedicaciones] = useState<Medicacion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -130,16 +134,16 @@ export function MedicationTab({
     <>
       <div className="space-y-4">
         {/* Section header */}
-        {canCreate && (
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-2.5">
-              <h2 className="text-lg font-bold text-[#0f172a]">Medicación</h2>
-              {!loading && (
-                <span className="text-xs font-bold bg-[#f1f5f9] text-[#64748b] rounded-full px-2 py-0.5">
-                  {medicaciones.length}
-                </span>
-              )}
-            </div>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-lg font-bold text-[#0f172a]">Medicación</h2>
+            {!loading && (
+              <span className="text-xs font-bold bg-[#f1f5f9] text-[#64748b] rounded-full px-2 py-0.5">
+                {medicaciones.length}
+              </span>
+            )}
+          </div>
+          {canCreate && (
             <button
               type="button"
               className="btn text-white"
@@ -162,8 +166,8 @@ export function MedicationTab({
               </svg>
               Nueva medicación
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Loading */}
         {loading && (
@@ -339,6 +343,8 @@ export function MedicationTab({
         open={detalleOpen}
         medicacion={selected}
         episodioId={episodioId}
+        canAdminister={canAdminister}
+        canChangeState={canChangeState}
         onClose={() => setDetalleOpen(false)}
         onUpdated={handleUpdated}
       />
