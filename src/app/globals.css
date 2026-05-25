@@ -35,6 +35,15 @@ body {
   animation: slide-in-right 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Inputs: sin borde ni outline al hacer foco */
+.input:focus,
+.input:focus-within,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  box-shadow: none;
+}
+
 /* Cally date picker — día seleccionado en azul */
 .cally button[aria-pressed="true"] {
   background-color: #09268E !important;

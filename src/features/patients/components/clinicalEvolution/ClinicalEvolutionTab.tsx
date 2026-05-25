@@ -31,12 +31,14 @@ function formatDate(dateStr: string): string {
 interface ClinicalEvolutionTabProps {
   episodioId: number;
   episodio: EpisodioHistorial;
+  canCreate?: boolean;
 }
 
 // Componente principal para la pestaña de Evolución Clínica en los episodios de los pacientes 
 export function ClinicalEvolutionTab({
   episodioId,
   episodio,
+  canCreate: canCreatePermission = true,
 }: ClinicalEvolutionTabProps) {
   const [evolucion, setEvolucion] = useState<EvolucionClinica[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +47,7 @@ export function ClinicalEvolutionTab({
   const [selectedEvolucion, setSelectedEvolucion] =
     useState<EvolucionClinica | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const canCreate = episodio.estado === EpisodioEstado.EnCurso;
+  const canCreate = canCreatePermission && episodio.estado === EpisodioEstado.EnCurso;
 
   const loadEvolution = useCallback(async () => {
     setLoading(true);

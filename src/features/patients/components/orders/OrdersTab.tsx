@@ -24,9 +24,10 @@ const PAGE_SIZE = 20;
 interface OrdersTabProps {
   episodio: EpisodioHistorial;
   canCreate: boolean;
+  canChangeState?: boolean;
 }
 
-export function OrdersTab({ episodio, canCreate }: OrdersTabProps) {
+export function OrdersTab({ episodio, canCreate, canChangeState = true }: OrdersTabProps) {
   const [ordenes, setOrdenes] = useState<Dato[]>([]);
   const [totalRegistros, setTotalRegistros] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(1);
@@ -93,16 +94,16 @@ export function OrdersTab({ episodio, canCreate }: OrdersTabProps) {
   return (
     <div className="space-y-4">
       {/* Encabezado */}
-      {canCreate && (
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-2.5">
-              <h2 className="text-lg font-bold text-[#0f172a]">Órdenes Médicas</h2>
-              {!loading && (
-                <span className="text-xs font-bold bg-[#f1f5f9] text-[#64748b] rounded-full px-2 py-0.5">
-                  {ordenes.length}
-                </span>
-              )}
-            </div>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-2.5">
+          <h2 className="text-lg font-bold text-[#0f172a]">Órdenes Médicas</h2>
+          {!loading && (
+            <span className="text-xs font-bold bg-[#f1f5f9] text-[#64748b] rounded-full px-2 py-0.5">
+              {ordenes.length}
+            </span>
+          )}
+        </div>
+        {canCreate && (
             <button
               type="button"
               className="btn text-white"
@@ -125,8 +126,8 @@ export function OrdersTab({ episodio, canCreate }: OrdersTabProps) {
               </svg>
               Nueva Ordén Médica
             </button>
-          </div>
         )}
+      </div>
       {/* Filtros */}
       <FilterPanel
         onApply={(e) => void handleApplyFilters(e)}
@@ -347,7 +348,7 @@ export function OrdersTab({ episodio, canCreate }: OrdersTabProps) {
 
       {/* Modal de creación */}
       <CreateOrderModal
-        open={showCreateModal}
+        open={canCreate ? showCreateModal : false}
         episodio={episodio}
         onClose={() => setShowCreateModal(false)}
         onCreated={() => {
@@ -362,6 +363,7 @@ export function OrdersTab({ episodio, canCreate }: OrdersTabProps) {
           orden={selectedOrden}
           episodioId={episodio.id}
           pacienteId={episodio.pacienteId}
+          canChangeState={canChangeState}
           onClose={() => setSelectedOrden(null)}
           onCancelled={() => {
             setSelectedOrden(null);

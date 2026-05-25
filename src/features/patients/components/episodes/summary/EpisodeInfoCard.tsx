@@ -6,8 +6,13 @@ import {
   type EpisodioHistorial,
 } from "@/features/patients/types";
 
+interface EpisodeInfoCardProps {
+  episodio: EpisodioHistorial;
+  onAssignDoctor?: (mode: "principal" | "actual") => void;
+}
+
 // Componente para mostrar la información principal de un episodio en formato tarjeta
-export function EpisodeInfoCard({ episodio }: { episodio: EpisodioHistorial }) {
+export function EpisodeInfoCard({ episodio, onAssignDoctor }: EpisodeInfoCardProps) {
   const triageCfg = TRIAGE_CONFIG[episodio.nivelTriage];
 
   const fechaAdmision = new Date(episodio.fechaAdmision).toLocaleString("es-ES", {
@@ -111,6 +116,51 @@ export function EpisodeInfoCard({ episodio }: { episodio: EpisodioHistorial }) {
               Fecha/Hora de ingreso
             </p>
             <p className="text-sm font-semibold text-[#1e293b]">{fechaAdmision}</p>
+          </div>
+        </div>
+
+        {/* Fila 3: Equipo médico */}
+        <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+          {/* Médico principal */}
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.4px] text-[#94a3b8] mb-1">
+                Médico principal
+              </p>
+              <p className={`text-sm font-semibold ${episodio.medicoPrincipalNombre ? "text-[#1e293b]" : "text-[#94a3b8] italic"}`}>
+                {episodio.medicoPrincipalNombre ?? "Sin asignar"}
+              </p>
+            </div>
+            {onAssignDoctor && episodio.estado === EpisodioEstado.EnCurso && (
+              <button
+                type="button"
+                onClick={() => onAssignDoctor("principal")}
+                className="btn btn-xs btn-outline border-[#09268E] text-[#09268E] hover:bg-[#09268E] hover:text-white shrink-0 mt-0.5"
+              >
+                {episodio.medicoPrincipalId ? "Cambiar" : "Asignar"}
+              </button>
+            )}
+          </div>
+
+          {/* Médico actual */}
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.4px] text-[#94a3b8] mb-1">
+                Médico en atención
+              </p>
+              <p className={`text-sm font-semibold ${episodio.medicoActualNombre ? "text-[#1e293b]" : "text-[#94a3b8] italic"}`}>
+                {episodio.medicoActualNombre ?? "Sin asignar"}
+              </p>
+            </div>
+            {onAssignDoctor && episodio.estado === EpisodioEstado.EnCurso && (
+              <button
+                type="button"
+                onClick={() => onAssignDoctor("actual")}
+                className="btn btn-xs btn-outline border-[#09268E] text-[#09268E] hover:bg-[#09268E] hover:text-white shrink-0 mt-0.5"
+              >
+                {episodio.medicoActualId ? "Cambiar" : "Asignar"}
+              </button>
+            )}
           </div>
         </div>
       </div>

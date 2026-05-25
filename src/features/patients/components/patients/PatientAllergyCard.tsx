@@ -14,6 +14,7 @@ import type { Alergia } from "@/features/patients/types";
 
 interface PatientAllergyCardProps {
   pacienteId: number;
+  canManage?: boolean;
 }
 
 // Icono de advertencia para alergias.
@@ -41,10 +42,12 @@ function AllergyItem({
   alergia,
   onEdit,
   onDeleted,
+  canManage,
 }: {
   alergia: Alergia;
   onEdit: (a: Alergia) => void;
   onDeleted: (id: number) => void;
+  canManage: boolean;
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -96,8 +99,9 @@ function AllergyItem({
       </div>
 
       {/* Acciones */}
-      <div className="flex items-center gap-1 flex-shrink-0">
-        {confirmDelete ? (
+      {canManage && (
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {confirmDelete ? (
           <>
             <span className="text-xs text-[#64748b] mr-1 whitespace-nowrap">
               ¿Eliminar?
@@ -124,7 +128,7 @@ function AllergyItem({
               No
             </button>
           </>
-        ) : (
+          ) : (
           <>
             <button
               type="button"
@@ -169,14 +173,15 @@ function AllergyItem({
               </svg>
             </button>
           </>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
 // Card con el listado de alergias del paciente y controles CRUD.
-export function PatientAllergyCard({ pacienteId }: PatientAllergyCardProps) {
+export function PatientAllergyCard({ pacienteId, canManage = true }: PatientAllergyCardProps) {
   const [alergias, setAlergias] = useState<Alergia[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -242,28 +247,30 @@ export function PatientAllergyCard({ pacienteId }: PatientAllergyCardProps) {
               </span>
             )}
           </div>
-          <button
-            type="button"
-            className="btn btn-xs text-white gap-1.5"
-            style={{ backgroundColor: "#09268E", borderColor: "#09268E" }}
-            onClick={handleNew}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2.5"
-              stroke="currentColor"
-              className="size-[0.85em]"
+          {canManage && (
+            <button
+              type="button"
+              className="btn btn-xs text-white gap-1.5"
+              style={{ backgroundColor: "#09268E", borderColor: "#09268E" }}
+              onClick={handleNew}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4.5v15m7.5-7.5h-15"
-              />
-            </svg>
-            Agregar
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="2.5"
+                stroke="currentColor"
+                className="size-[0.85em]"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4.5v15m7.5-7.5h-15"
+                />
+              </svg>
+              Agregar
+            </button>
+          )}
         </div>
 
         {/* Card body */}
@@ -307,6 +314,7 @@ export function PatientAllergyCard({ pacienteId }: PatientAllergyCardProps) {
                   alergia={a}
                   onEdit={handleEdit}
                   onDeleted={handleDeleted}
+                  canManage={canManage}
                 />
               ))}
             </div>
@@ -314,13 +322,15 @@ export function PatientAllergyCard({ pacienteId }: PatientAllergyCardProps) {
         </div>
       </div>
 
-      <AllergyModal
-        open={modalOpen}
-        pacienteId={pacienteId}
-        alergia={editingAlergia}
-        onClose={() => setModalOpen(false)}
-        onSaved={handleSaved}
-      />
+      {canManage && (
+        <AllergyModal
+          open={modalOpen}
+          pacienteId={pacienteId}
+          alergia={editingAlergia}
+          onClose={() => setModalOpen(false)}
+          onSaved={handleSaved}
+        />
+      )}
     </>
   );
 }

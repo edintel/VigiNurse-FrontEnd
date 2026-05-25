@@ -11,9 +11,16 @@ import {
 import { clearSession } from "@/lib/session";
 import { toast } from "@/lib/toast";
 import { ROLES } from "@/constants/roles";
+import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 
 // Define los elementos de navegación para la barra lateral.
-const NAV_ITEMS = [
+const NAV_ITEMS: {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+  permission?: string;
+  hideForRoles?: string[];
+}[] = [
   {
     label: "Inicio",
     href: "/dashboard",
@@ -38,6 +45,7 @@ const NAV_ITEMS = [
   {
     label: "Gestión de Pacientes",
     href: "/patients",
+    permission: "patients.view",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -60,6 +68,7 @@ const NAV_ITEMS = [
   {
     label: "Órdenes Médicas",
     href: "/medical-orders",
+    permission: "patients.episodesView",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -81,6 +90,7 @@ const NAV_ITEMS = [
   {
     label: "Control de Activos",
     href: "/assets-management",
+    permission: "assetsManagement.view",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -100,8 +110,9 @@ const NAV_ITEMS = [
     ),
   },
   {
-    label: "Control de Bebés",
+    label: "Gestión de Neonatos",
     href: "/baby-monitoring",
+    permission: "babyMonitoring.view",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -124,6 +135,7 @@ const NAV_ITEMS = [
   {
     label: "Llamado de Enfermeras",
     href: "/nurse-calls",
+    permission: "nurseCalls.view",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -144,6 +156,7 @@ const NAV_ITEMS = [
   {
     label: "Monitores de Pacientes",
     href: "/vitals-monitoring",
+    permission: "vitalsMonitoring.view",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -161,8 +174,9 @@ const NAV_ITEMS = [
     ),
   },
   {
-    label: "Monitores de Personal",
+    label: "Gestión de Personal",
     href: "/staff-monitoring",
+    permission: "staffMonitoring.view",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -203,8 +217,30 @@ const NAV_ITEMS = [
     ),
   },
   {
+    label: "VigiChat",
+    href: "/chat",
+    hideForRoles: ["PACIENTE"],
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        <path d="M8 10h8M8 14h5" />
+      </svg>
+    ),
+  },
+  {
     label: "Configuración",
     href: "/settings",
+    permission: "settings.view",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -325,12 +361,7 @@ export function Sidebar() {
           ].join(" ")}
         >
           <div className="flex items-center justify-between gap-2">
-            <div
-              className={[
-                "flex items-center gap-3",
-                collapsed ? "justify-center w-full" : "min-w-0",
-              ].join(" ")}
-            >
+            <div className="flex items-center gap-3 min-w-0">
               <div className="bg-[#092168] rounded-lg p-1.5 flex-shrink-0 flex items-center justify-center">
                 <svg
                   width="20"
@@ -351,62 +382,63 @@ export function Sidebar() {
               )}
             </div>
 
-            <button
-              aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
-              className={[
-                "hidden md:flex items-center justify-center w-7 h-7 rounded-md text-[#092168] hover:bg-blue-50 hover:text-[#061447] transition-colors",
-                collapsed ? "mt-1" : "",
-              ].join(" ")}
-              onClick={() => setCollapsed(!collapsed)}
-            >
-              {collapsed ? (
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              ) : (
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-              )}
-            </button>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {!collapsed && <NotificationBell />}
 
-            <button
-              aria-label="Cerrar menú"
-              className="md:hidden flex items-center justify-center w-7 h-7 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors flex-shrink-0"
-              onClick={() => setMobileOpen(false)}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+              <button
+                aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
+                className="hidden md:flex items-center justify-center w-7 h-7 rounded-md text-[#092168] hover:bg-blue-50 hover:text-[#061447] transition-colors"
+                onClick={() => setCollapsed(!collapsed)}
               >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
+                {collapsed ? (
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                ) : (
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                )}
+              </button>
+
+              <button
+                aria-label="Cerrar menú"
+                className="md:hidden flex items-center justify-center w-7 h-7 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                onClick={() => setMobileOpen(false)}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {!collapsed && (
@@ -435,7 +467,11 @@ export function Sidebar() {
         <nav className="flex-1 py-6 flex flex-col gap-1 overflow-y-auto">
           {NAV_ITEMS.filter(
             (item) =>
-              !item.permission || userPermissions.includes(item.permission),
+              (!item.permission || userPermissions.includes(item.permission)) &&
+              (!item.hideForRoles ||
+                !item.hideForRoles.includes(
+                  sessionUser?.role?.trim().toUpperCase() ?? "",
+                )),
           ).map((item) => {
             const isActive =
               pathname === item.href || pathname.startsWith(item.href + "/");

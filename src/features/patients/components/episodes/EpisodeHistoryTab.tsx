@@ -56,11 +56,13 @@ function EstadoBadge({ estado }: { estado: EpisodioEstado }) {
 
 interface EpisodeHistoryTabProps {
   pacienteId: number;
+  bebeId?: number;
 }
 
 // Tab de historial de episodios dentro de la ficha del paciente.
 export function EpisodeHistoryTab({
   pacienteId,
+  bebeId,
 }: EpisodeHistoryTabProps) {
   const router = useRouter();
 
@@ -199,6 +201,9 @@ export function EpisodeHistoryTab({
                   Área
                 </th>
                 <th className="text-xs font-semibold uppercase tracking-wide">
+                  Médicos
+                </th>
+                <th className="text-xs font-semibold uppercase tracking-wide">
                   Admisión
                 </th>
                 <th className="text-xs font-semibold uppercase tracking-wide">
@@ -257,6 +262,20 @@ export function EpisodeHistoryTab({
                         {ep.areaNombre}
                       </td>
 
+                      {/* Médicos */}
+                      <td>
+                        <div className="flex flex-col gap-0.5 text-xs">
+                          <span className="text-[#475569]">
+                            <span className="font-semibold text-[#94a3b8]">Prin:</span>{" "}
+                            {ep.medicoPrincipalNombre ?? <span className="italic text-[#94a3b8]">Sin asignar</span>}
+                          </span>
+                          <span className="text-[#475569]">
+                            <span className="font-semibold text-[#94a3b8]">Act:</span>{" "}
+                            {ep.medicoActualNombre ?? <span className="italic text-[#94a3b8]">Sin asignar</span>}
+                          </span>
+                        </div>
+                      </td>
+
                       {/* Admisión */}
                       <td className="text-sm text-[#475569] whitespace-nowrap">
                         {formatDate(ep.fechaAdmision)}
@@ -282,7 +301,7 @@ export function EpisodeHistoryTab({
                         title="Ver detalle del episodio"
                         onClick={() =>
                           router.push(
-                            `/patients/${pacienteId}/episodios/${ep.id}`,
+                            `/patients/${pacienteId}/episodios/${ep.id}${bebeId ? `?bebeId=${bebeId}` : ""}`,
                           )
                         }
                       >

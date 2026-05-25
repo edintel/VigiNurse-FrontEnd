@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useHasPermission } from "@/lib/hasPermission";
 import { getActiveEpisodes } from "@/features/patients/services/episodeService";
 import { getEpisodeVitalSigns } from "@/features/patients/services/vitalSignService";
 import { getMedications } from "@/features/patients/services/medicationService";
@@ -298,6 +299,7 @@ function EmptyFiltersState() {
 // Pestaña de pacientes en atención: requiere filtros para cargar datos.
 export default function ActivePatientsPage() {
   const router = useRouter();
+  const canCreateEpisode = useHasPermission("patients.episodesCreate");
   const [episodios, setEpisodios] = useState<EpisodioActivo[]>([]);
   const [totalRegistros, setTotalRegistros] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(1);
@@ -369,12 +371,10 @@ export default function ActivePatientsPage() {
     }
   }
 
-  function handleEpisodeCreated(episodio: EpisodioActivo) {
-    // Si hay filtros aplicados, refrescar la tabla; si no, no hay nada que mostrar
+  function handleEpisodeCreated() {
     if (appliedFilters !== null) {
       void fetchEpisodes(1, appliedFilters);
     }
-    void episodio; 
   }
 
   const hasAppliedFilters = appliedFilters !== null;
@@ -397,30 +397,32 @@ export default function ActivePatientsPage() {
   return (
     <div className="space-y-4">
       {/* Botón de acción */}
-      <div className="flex justify-end">
-        <button
-          type="button"
-          className="btn text-white"
-          style={{ backgroundColor: "#09268E", borderColor: "#09268E" }}
-          onClick={() => setShowCreate(true)}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="2.5"
-            stroke="currentColor"
-            className="size-[1.2em]"
+      {canCreateEpisode && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            className="btn text-white"
+            style={{ backgroundColor: "#09268E", borderColor: "#09268E" }}
+            onClick={() => setShowCreate(true)}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4.5v15m7.5-7.5h-15"
-            />
-          </svg>
-          Nuevo episodio
-        </button>
-      </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="2.5"
+              stroke="currentColor"
+              className="size-[1.2em]"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4.5v15m7.5-7.5h-15"
+              />
+            </svg>
+            Nuevo episodio
+          </button>
+        </div>
+      )}
 
       {/* Panel de filtros */}
       <ActivePatientsFilters
@@ -491,6 +493,9 @@ export default function ActivePatientsPage() {
                     Nivel triage
                   </th>
                   <th className="text-xs font-semibold uppercase tracking-wide">
+                    Médicos
+                  </th>
+                  <th className="text-xs font-semibold uppercase tracking-wide">
                     Indicadores clínicos
                   </th>
                   <th className="text-xs font-semibold uppercase tracking-wide text-right">
@@ -501,14 +506,14 @@ export default function ActivePatientsPage() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-12">
+                    <td colSpan={8} className="text-center py-12">
                       <span className="loading loading-spinner loading-md text-[#09268E]" />
                     </td>
                   </tr>
                 ) : !error && episodios.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="text-center py-12 text-base-content/40 text-sm"
                     >
                       No se encontraron pacientes con los filtros seleccionados.
@@ -549,6 +554,24 @@ export default function ActivePatientsPage() {
                       {/* Nivel triage */}
                       <td>
                         <TriageBadge nivel={ep.nivelTriage} />
+                      </td>
+
+                      {/* Médicos */}
+                      <td>
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[10px] font-semibold text-[#94a3b8] uppercase">Principal</span>
+                            <span className={`text-xs ${ep.medicoPrincipalNombre ? "text-[#0f172a] font-medium" : "text-[#94a3b8] italic"}`}>
+                              {ep.medicoPrincipalNombre ?? "Sin asignar"}
+                            </span>
+                          </div>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[10px] font-semibold text-[#94a3b8] uppercase">En atención</span>
+                            <span className={`text-xs ${ep.medicoActualNombre ? "text-[#0f172a] font-medium" : "text-[#94a3b8] italic"}`}>
+                              {ep.medicoActualNombre ?? "Sin asignar"}
+                            </span>
+                          </div>
+                        </div>
                       </td>
 
                       {/* Indicadores clínicos */}
@@ -611,11 +634,14 @@ export default function ActivePatientsPage() {
         </div>
       )}
 
-      <CreateEpisodeModal
-        open={showCreate}
-        onClose={() => setShowCreate(false)}
-        onCreated={handleEpisodeCreated}
-      />
+      {canCreateEpisode && (
+        <CreateEpisodeModal
+          open={showCreate}
+          onClose={() => setShowCreate(false)}
+          onCreated={handleEpisodeCreated}
+        />
+      )}
+
     </div>
   );
 }

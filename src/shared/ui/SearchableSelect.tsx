@@ -156,7 +156,7 @@ export function SearchableSelect({
           onFocus={onFocus}
           onBlur={onBlur}
           placeholder={loading ? loadingText : placeholder}
-          className={`input input-bordered w-full bg-[#EEEEEE] border-[#B0B0B0] text-[#1A2B5E] placeholder:text-[#B0B0B0] focus:border-[#09268E] focus:outline-none ${error ? "input-error" : ""} ${inputClassName ?? ""}`}
+          className={`input input-bordered w-full bg-[#FFFFFF] border-[#B0B0B0] text-[#1A2B5E] placeholder:text-[#B0B0B0] focus:border-[#09268E] focus:outline-none ${error ? "input-error" : ""} ${inputClassName ?? ""}`}
           disabled={disabled}
           aria-busy={loading}
           autoComplete="off"

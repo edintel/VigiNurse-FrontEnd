@@ -12,6 +12,9 @@ interface PatientInfoCardProps {
   contacto: ContactoPaciente | null;
   onContactUpdated: (contacto: ContactoPaciente) => void;
   onAccountCreated?: () => void;
+  canEditPatient?: boolean;
+  canManageContact?: boolean;
+  canCreatePatientAccount?: boolean;
 }
 
 // Formatea una fecha ISO a DD/MM/AAAA.
@@ -60,6 +63,9 @@ export function PatientInfoCard({
   contacto,
   onContactUpdated,
   onAccountCreated,
+  canEditPatient = true,
+  canManageContact = true,
+  canCreatePatientAccount = true,
 }: PatientInfoCardProps) {
   const [showEdit, setShowEdit] = useState(false);
   const [showEditContact, setShowEditContact] = useState(false);
@@ -98,7 +104,7 @@ export function PatientInfoCard({
                 </svg>
                 Tiene cuenta
               </span>
-            ) : (
+            ) : canCreatePatientAccount ? (
               <button
                 type="button"
                 className="btn btn-xs gap-1.5 text-white"
@@ -113,29 +119,31 @@ export function PatientInfoCard({
                 </svg>
                 Crear cuenta
               </button>
-            )}
-            <button
-              type="button"
-              className="btn btn-xs btn-ghost gap-1.5 text-[#09268E]"
-              onClick={() => setShowEdit(true)}
-              title="Editar datos vitales"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="2"
-                stroke="currentColor"
-                className="size-3.5"
+            ) : null}
+            {canEditPatient && (
+              <button
+                type="button"
+                className="btn btn-xs btn-ghost gap-1.5 text-[#09268E]"
+                onClick={() => setShowEdit(true)}
+                title="Editar datos vitales"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"
-                />
-              </svg>
-              Editar
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2"
+                  stroke="currentColor"
+                  className="size-3.5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"
+                  />
+                </svg>
+                Editar
+              </button>
+            )}
           </div>
         </div>
 
@@ -222,43 +230,45 @@ export function PatientInfoCard({
                 </span>
               </div>
 
-              <button
-                type="button"
-                className={
-                  contacto
-                    ? "btn btn-xs btn-ghost gap-1.5 text-[#09268E]"
-                    : "btn btn-xs text-white"
-                }
-                style={
-                  contacto
-                    ? undefined
-                    : { backgroundColor: "#09268E", borderColor: "#09268E" }
-                }
-                onClick={() => setShowEditContact(true)}
-                title={contacto ? "Editar contacto" : "Agregar contacto"}
-              >
-                {contacto ? (
-                  <>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="2"
-                      stroke="currentColor"
-                      className="size-3.5"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"
-                      />
-                    </svg>
-                    Editar
-                  </>
-                ) : (
-                  "Agregar"
-                )}
-              </button>
+              {canManageContact && (
+                <button
+                  type="button"
+                  className={
+                    contacto
+                      ? "btn btn-xs btn-ghost gap-1.5 text-[#09268E]"
+                      : "btn btn-xs text-white"
+                  }
+                  style={
+                    contacto
+                      ? undefined
+                      : { backgroundColor: "#09268E", borderColor: "#09268E" }
+                  }
+                  onClick={() => setShowEditContact(true)}
+                  title={contacto ? "Editar contacto" : "Agregar contacto"}
+                >
+                  {contacto ? (
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="2"
+                        stroke="currentColor"
+                        className="size-3.5"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"
+                        />
+                      </svg>
+                      Editar
+                    </>
+                  ) : (
+                    "Agregar"
+                  )}
+                </button>
+              )}
             </div>
 
             {contacto ? (
@@ -309,36 +319,42 @@ export function PatientInfoCard({
         </div>
       </div>
 
-      <CreatePatientAccountModal
-        open={showCreateAccount}
-        paciente={paciente}
-        onClose={() => setShowCreateAccount(false)}
-        onCreated={() => {
-          setShowCreateAccount(false);
-          onAccountCreated?.();
-        }}
-      />
+      {canCreatePatientAccount && (
+        <CreatePatientAccountModal
+          open={showCreateAccount}
+          paciente={paciente}
+          onClose={() => setShowCreateAccount(false)}
+          onCreated={() => {
+            setShowCreateAccount(false);
+            onAccountCreated?.();
+          }}
+        />
+      )}
 
-      <EditVitalsModal
-        open={showEdit}
-        paciente={paciente}
-        onClose={() => setShowEdit(false)}
-        onUpdated={(updated) => {
-          onUpdated(updated);
-          setShowEdit(false);
-        }}
-      />
+      {canEditPatient && (
+        <EditVitalsModal
+          open={showEdit}
+          paciente={paciente}
+          onClose={() => setShowEdit(false)}
+          onUpdated={(updated) => {
+            onUpdated(updated);
+            setShowEdit(false);
+          }}
+        />
+      )}
 
-      <EditContactModal
-        open={showEditContact}
-        pacienteId={paciente.id}
-        contacto={contacto}
-        onClose={() => setShowEditContact(false)}
-        onSaved={(saved) => {
-          onContactUpdated(saved);
-          setShowEditContact(false);
-        }}
-      />
+      {canManageContact && (
+        <EditContactModal
+          open={showEditContact}
+          pacienteId={paciente.id}
+          contacto={contacto}
+          onClose={() => setShowEditContact(false)}
+          onSaved={(saved) => {
+            onContactUpdated(saved);
+            setShowEditContact(false);
+          }}
+        />
+      )}
     </>
   );
 }

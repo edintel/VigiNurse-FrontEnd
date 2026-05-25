@@ -33,6 +33,8 @@ function normalizeRole(raw: unknown): string {
   if (role === "ENFERMERO" || role === "ENFERMERA") return "ENFERMERO";
   if (role === "TECNICO" || role === "TECNICA") return "TECNICO";
   if (role === "GESTOR" || role === "GESTORA") return "GESTOR";
+  if (role === "RECEPCIONISTA") return "RECEPCIONISTA";
+  if (role === "AUDITOR" || role === "AUDITORA") return "AUDITOR";
   if (
     role === "MEDICO" ||
     role === "MEDICA" ||

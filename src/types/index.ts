@@ -1,4 +1,4 @@
-export type AuthRole = "SUPER_ADMIN" | "ADMIN" | "SUPERVISOR" | "ENFERMERO" | "TECNICO" | "GESTOR" | "DOCTOR" | "PACIENTE";
+export type AuthRole = "SUPER_ADMIN" | "ADMIN" | "SUPERVISOR" | "ENFERMERO" | "TECNICO" | "GESTOR" | "DOCTOR" | "RECEPCIONISTA" | "AUDITOR" | "PACIENTE";
 export interface AuthUser {
     id: string;
     email: string;

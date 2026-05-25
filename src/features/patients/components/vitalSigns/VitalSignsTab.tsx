@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import { getEpisodeVitalSigns } from "@/features/patients/services/vitalSignService";
 import { getTiposSignoVital } from "@/features/administration/signosVitales/services/signosVitalesService";
 import { VitalSignFormModal } from "@/features/patients/components/vitalSigns/VitalSignFormModal";
+import { useSignosVitales } from "@/features/vitals-monitoring/hooks/useSignosVitales";
+import { getMonitoresPorPaciente } from "@/features/vitals-monitoring/services/monitorService";
 import {
   FilterPanel,
   FilterLabel,
@@ -11,6 +13,7 @@ import {
 import { CallyDatePicker } from "@/shared/ui/CallyDatePicker";
 import type { SignoVital } from "@/features/patients/types";
 import type { TipoSignoVital } from "@/features/administration/signosVitales/types";
+import type { MonitorPacienteDto } from "@/features/vitals-monitoring/types";
 import { toast } from "@/lib/toast";
 
 
@@ -44,6 +47,134 @@ function formatDate(dateStr: string): string {
   } catch {
     return dateStr;
   }
+}
+
+const LIVE_RANGES: Record<string, [number, number]> = {
+  frecuenciaCardiaca: [60, 100],
+  spO2: [95, 100],
+  temperatura: [36.0, 37.5],
+  presionSistolica: [90, 140],
+  presionDiastolica: [60, 90],
+  frecuenciaRespiratoria: [12, 20],
+};
+
+function isLiveOutOfRange(key: string, value: number | null): boolean {
+  if (value === null) return false;
+  const [min, max] = LIVE_RANGES[key] ?? [Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY];
+  return value < min || value > max;
+}
+
+const LIVE_CONN_BADGE = {
+  connected: {
+    text: "En vivo",
+    cls: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    dot: "bg-emerald-500",
+  },
+  connecting: {
+    text: "Conectando…",
+    cls: "bg-amber-50 text-amber-700 border-amber-200",
+    dot: "bg-amber-500",
+  },
+  disconnected: {
+    text: "Desconectado",
+    cls: "bg-slate-100 text-slate-600 border-slate-200",
+    dot: "bg-slate-400",
+  },
+  error: {
+    text: "Error",
+    cls: "bg-red-50 text-red-700 border-red-200",
+    dot: "bg-red-500",
+  },
+} as const;
+
+function LiveVitalCard({
+  label,
+  value,
+  unit,
+  rangeKey,
+}: {
+  label: string;
+  value: number | null;
+  unit: string;
+  rangeKey: keyof typeof LIVE_RANGES;
+}) {
+  const outOfRange = isLiveOutOfRange(rangeKey, value);
+  return (
+    <div
+      className={`rounded-xl border p-4 ${
+        outOfRange ? "border-red-200 bg-red-50/70" : "border-[#E2E8F0] bg-white"
+      }`}
+    >
+      <p className="text-[10px] font-bold uppercase tracking-[0.5px] text-[#64748b]">
+        {label}
+      </p>
+      <div className="mt-2 flex items-end gap-1.5">
+        <span className={`text-3xl font-bold leading-none ${outOfRange ? "text-red-600" : "text-[#0f172a]"}`}>
+          {value ?? "—"}
+        </span>
+        <span className="text-xs font-medium text-[#64748b] mb-0.5">{unit}</span>
+      </div>
+    </div>
+  );
+}
+
+function MonitorRealtimePanel({
+  pacienteId,
+  monitor,
+  onRefreshMonitor,
+}: {
+  pacienteId: number;
+  monitor: MonitorPacienteDto;
+  onRefreshMonitor: () => void;
+}) {
+  const { lectura, estado } = useSignosVitales(pacienteId);
+  const cfg = LIVE_CONN_BADGE[estado];
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm p-5">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div className="space-y-1">
+            <h2 className="text-lg font-bold text-[#0f172a]">Signos vitales en tiempo real</h2>
+            <p className="text-sm text-[#475569]">
+              {monitor.tipoActivo} · {monitor.marcaActivo} {monitor.modeloActivo}
+            </p>
+            <p className="text-xs text-[#64748b]">Serie: {monitor.numeroSerieActivo}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-xs font-semibold ${cfg.cls}`}>
+              <span className={`h-2 w-2 rounded-full ${cfg.dot}`} />
+              {cfg.text}
+            </span>
+            <button
+              type="button"
+              className="btn btn-xs btn-ghost text-[#09268E]"
+              onClick={onRefreshMonitor}
+            >
+              Actualizar conexión
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        <LiveVitalCard label="Frec. cardiaca" value={lectura?.frecuenciaCardiaca ?? null} unit="lpm" rangeKey="frecuenciaCardiaca" />
+        <LiveVitalCard label="SpO₂" value={lectura?.spO2 ?? null} unit="%" rangeKey="spO2" />
+        <LiveVitalCard label="Temperatura" value={lectura ? Number(lectura.temperatura.toFixed(1)) : null} unit="°C" rangeKey="temperatura" />
+        <LiveVitalCard label="Presión sistólica" value={lectura?.presionSistolica ?? null} unit="mmHg" rangeKey="presionSistolica" />
+        <LiveVitalCard label="Presión diastólica" value={lectura?.presionDiastolica ?? null} unit="mmHg" rangeKey="presionDiastolica" />
+        <LiveVitalCard label="Frec. respiratoria" value={lectura?.frecuenciaRespiratoria ?? null} unit="rpm" rangeKey="frecuenciaRespiratoria" />
+      </div>
+
+      <div className="text-xs text-[#64748b]">
+        {lectura ? (
+          <>Última lectura: {formatDate(lectura.registradoEn)}</>
+        ) : (
+          <>Esperando lecturas del monitor…</>
+        )}
+      </div>
+    </div>
+  );
 }
 
 
@@ -140,10 +271,11 @@ function buildCards(signos: SignoVital[]): {
 
 interface VitalSignsTabProps {
   episodioId: number;
+  pacienteId: number;
   canCreate?: boolean;
 }
 
-export function VitalSignsTab({ episodioId, canCreate = true }: VitalSignsTabProps) {
+export function VitalSignsTab({ episodioId, pacienteId, canCreate = true }: VitalSignsTabProps) {
   const [allSignos, setAllSignos] = useState<SignoVital[]>([]);
   const [tableSignos, setTableSignos] = useState<SignoVital[]>([]);
   const [loading, setLoading] = useState(true);
@@ -157,10 +289,50 @@ export function VitalSignsTab({ episodioId, canCreate = true }: VitalSignsTabPro
   const [filterHasta, setFilterHasta] = useState("");
 
   const [formOpen, setFormOpen] = useState(false);
+  const [monitorLookupLoading, setMonitorLookupLoading] = useState(true);
+  const [monitorActivo, setMonitorActivo] = useState<MonitorPacienteDto | null>(null);
 
   useEffect(() => {
     if (!canCreate) setFormOpen(false);
   }, [canCreate]);
+
+  const loadMonitorActivo = useCallback(async () => {
+    setMonitorLookupLoading(true);
+    try {
+      let pagina = 1;
+      let totalPaginas = 1;
+      let encontrado: MonitorPacienteDto | null = null;
+
+      do {
+        const response = await getMonitoresPorPaciente(pacienteId, pagina, 50);
+        const activos = response.datos
+          .filter((m) => m.fechaDesasignacion === null)
+          .sort(
+            (a, b) =>
+              new Date(b.fechaAsignacion).getTime() -
+              new Date(a.fechaAsignacion).getTime(),
+          );
+
+        if (activos.length > 0) {
+          [encontrado] = activos;
+          break;
+        }
+
+        totalPaginas = response.totalPaginas;
+        pagina += 1;
+      } while (pagina <= totalPaginas);
+
+      setMonitorActivo(encontrado);
+    } catch {
+      setMonitorActivo(null);
+    } finally {
+      setMonitorLookupLoading(false);
+    }
+  }, [pacienteId]);
+
+  useEffect(() => {
+    void loadMonitorActivo();
+  }, [loadMonitorActivo]);
 
   const loadAll = useCallback(async (showSuccess = false) => {
     setLoading(true);
@@ -185,8 +357,9 @@ export function VitalSignsTab({ episodioId, canCreate = true }: VitalSignsTabPro
   }, [episodioId]);
 
   useEffect(() => {
+    if (monitorLookupLoading || monitorActivo) return;
     void loadAll();
-  }, [loadAll]);
+  }, [loadAll, monitorActivo, monitorLookupLoading]);
 
   async function handleApplyFilters(e: React.FormEvent) {
     e.preventDefault();
@@ -220,6 +393,24 @@ export function VitalSignsTab({ episodioId, canCreate = true }: VitalSignsTabPro
 
   const { bpPair, regular } = buildCards(allSignos);
   const hasCards = bpPair !== null || regular.length > 0;
+
+  if (monitorLookupLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <span className="loading loading-spinner loading-lg text-[#09268E]" />
+      </div>
+    );
+  }
+
+  if (monitorActivo) {
+    return (
+      <MonitorRealtimePanel
+        pacienteId={pacienteId}
+        monitor={monitorActivo}
+        onRefreshMonitor={() => void loadMonitorActivo()}
+      />
+    );
+  }
 
   return (
     <>

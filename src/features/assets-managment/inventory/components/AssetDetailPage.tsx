@@ -8,6 +8,7 @@ import {
 import { EditAssetModal } from "@/features/assets-managment/inventory/components/EditAssetModal";
 import { RetireAssetModal } from "@/features/assets-managment/inventory/components/RetireAssetModal";
 import MaintenanceAssetsPage from "@/features/assets-managment/maintenance/components/AssetsPage";
+import { UbicacionBleCard } from "@/features/assets-managment/tracking/components/UbicacionBleCard";
 import { ActivoEstado } from "@/features/assets-managment/inventory/types";
 import type { Activo } from "@/features/assets-managment/inventory/types";
 
@@ -85,9 +86,7 @@ function SectionIcon({ children }: { children: React.ReactNode }) {
 
 const TABS = [
   { id: "info", label: "Información General", active: true },
-  { id: "ubicacion", label: "Ubicación", active: false },
   { id: "mantenimientos", label: "Mantenimientos", active: true },
-  { id: "historial", label: "Historial de ubicaciones", active: false },
 ];
 
 // Página de detalles de un activo específico. Muestra información detallada, código QR, historial de mantenimientos y permite editar o retirar el activo.
@@ -283,11 +282,9 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
           <MaintenanceAssetsPage activoId={id} />
         )}
 
-        {/* Contenido: grid 3 columnas (tab Información General) */}
+        {/* Contenido tab Información General */}
         {activeTab === "info" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            {/* Columna izquierda (2/3) */}
-            <div className="lg:col-span-2 flex flex-col gap-6">
+          <div className="flex flex-col gap-6">
               {/* Fila superior: Especificaciones + Identificación Digital */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Card: Especificaciones */}
@@ -331,6 +328,16 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
                     <InfoField label="Criticidad">
                       {activo.esCritico ? "Alta" : "Normal"}
                     </InfoField>
+                    {activo.esCritico && (
+                      <>
+                        <InfoField label="Registrado por">
+                          {activo.nombreCreador ?? "—"}
+                        </InfoField>
+                        <InfoField label="Fecha de Creación">
+                          {formatDate(activo.fechaCreacion)}
+                        </InfoField>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -390,64 +397,58 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
                       )}
                     </div>
 
-                    {/* RFID Code */}
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.5px] text-slate-500">
-                        RFID Code
-                      </span>
-                      <div className="bg-[#F8FAFC] border border-[#F1F5F9] rounded px-3 py-1">
-                        <span className="font-mono text-sm font-bold text-[#0f172a]">
-                          {activo.rfidCodigo ?? "Sin asignar"}
-                        </span>
-                      </div>
-                    </div>
+                  
                   </div>
                 </div>
               </div>
 
-              {/* Card: Ubicación y Origen */}
-              <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6 flex flex-col gap-6">
-                <div className="flex items-center gap-2">
-                  <SectionIcon>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="1.5"
-                      stroke="currentColor"
-                      className="size-5"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
-                      />
-                    </svg>
-                  </SectionIcon>
-                  <h3 className="text-xs font-bold uppercase tracking-[0.7px] text-[#09268E]">
-                    Ubicación y Origen
-                  </h3>
+              {/* Card: Localización — BLE para activos críticos, clásica para el resto */}
+              {activo.esCritico ? (
+                <UbicacionBleCard activoId={activo.id} />
+              ) : (
+                <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6 flex flex-col gap-6">
+                  <div className="flex items-center gap-2">
+                    <SectionIcon>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="1.5"
+                        stroke="currentColor"
+                        className="size-5"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+                        />
+                      </svg>
+                    </SectionIcon>
+                    <h3 className="text-xs font-bold uppercase tracking-[0.7px] text-[#09268E]">
+                      Ubicación y Origen
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-3 gap-6">
+                    <InfoField label="Área Actual">
+                      <div className="flex items-center gap-2">
+                        <span className="size-2 rounded-full bg-blue-500 shrink-0" />
+                        {activo.areaNombre}
+                      </div>
+                    </InfoField>
+                    <InfoField label="Ingresado por">
+                      {activo.nombreCreador}
+                    </InfoField>
+                    <InfoField label="Fecha de Creación">
+                      {formatDate(activo.fechaCreacion)}
+                    </InfoField>
+                  </div>
                 </div>
-                <div className="grid grid-cols-3 gap-6">
-                  <InfoField label="Área Actual">
-                    <div className="flex items-center gap-2">
-                      <span className="size-2 rounded-full bg-blue-500 shrink-0" />
-                      {activo.areaNombre}
-                    </div>
-                  </InfoField>
-                  <InfoField label="Ingresado por">
-                    {activo.nombreCreador}
-                  </InfoField>
-                  <InfoField label="Fecha de Creación">
-                    {formatDate(activo.fechaCreacion)}
-                  </InfoField>
-                </div>
-              </div>
+              )}
 
               {/* Card: Retiro de Activo */}
               <div className="bg-[rgba(254,242,242,0.5)] border-2 border-[#fecaca] rounded-xl p-6 flex flex-col gap-6">
@@ -516,57 +517,6 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* Columna derecha (1/3): Movimientos y Ubicaciones */}
-            <div className="lg:col-span-1">
-              <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6 flex flex-col gap-6">
-                <div className="flex items-center gap-2">
-                  <SectionIcon>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="1.5"
-                      stroke="currentColor"
-                      className="size-5"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
-                      />
-                    </svg>
-                  </SectionIcon>
-                  <h3 className="text-xs font-bold uppercase tracking-[0.7px] text-[#09268E]">
-                    Movimientos y Ubicaciones
-                  </h3>
-                </div>
-
-                {/* Placeholder — pendiente de implementar */}
-                <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.2"
-                    stroke="currentColor"
-                    className="size-10 text-slate-200"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
-                    />
-                  </svg>
-                  <p className="text-xs text-slate-400 font-medium">
-                    Historial de movimientos
-                    <br />
-                    próximamente disponible.
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         )}
       </div>

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import PersonalMedicoPage from "@/features/staff-monitoring/components/PersonalMedicoPage";
+
 export const metadata: Metadata = { title: "Monitoreo de Personal" };
-// Muestra la pagina de staff monitoring.
+
 export default function StaffMonitoringPage() {
-    return <h1 className="text-2xl font-semibold">Monitoreo de Personal</h1>;
+  return <PersonalMedicoPage />;
 }
