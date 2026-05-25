@@ -127,15 +127,12 @@ export const ESTADO_BRAZALETE_LABELS: Record<EstadoBrazalete, string> = {
 export interface Brazalete {
   id: number;
   codigo: string;
-  numeroSerie: string | null;
   direccionMac: string;
   descripcion: string | null;
   estado: EstadoBrazalete;
   nivelBateria: number | null;
   ultimaSenal: string | null;
-  fechaAdquisicion: string;
   fechaCreacion: string;
-  ultimaActualizacion: string;
 }
 
 export interface PaginatedBrazaletes {
@@ -254,19 +251,14 @@ export interface PaginatedEventosRastreo {
 // Payload: POST /api/ble/brazaletes
 export interface CrearBrazaleteDTO {
   codigo: string;
-  numeroSerie?: string | null;
   direccionMac: string;
   descripcion?: string | null;
-  nivelBateria?: number | null;
-  fechaAdquisicion: string;
 }
 
 // Payload: PUT /api/ble/brazaletes/{id}
-// NO actualiza: codigo, direccionMac, estado, fechaAdquisicion
+// NO actualiza: codigo, direccionMac, estado
 export interface ActualizarBrazaleteDTO {
-  numeroSerie?: string | null;
   descripcion?: string | null;
-  nivelBateria?: number | null;
 }
 
 // Payload: PATCH /api/ble/brazaletes/{id}/status
@@ -336,7 +328,7 @@ export interface AlertaBrazalete {
   pacienteId: number | null;
   pacienteNombre: string | null;
   episodioId: number | null;
-  sensorId: number | null;
+  gatewayBleId: number | null;
   eventoRastreoId: number | null;
   zonaId: number | null;
   zonaNombre: string | null;
@@ -359,7 +351,7 @@ export interface PaginatedAlertas {
 }
 
 export interface CloseAlertDTO {
-  closeReason?: string | null;
+  notasCierre?: string | null;
 }
 
 // ─── Autorizaciones de movimiento ──────────────────────────────────────────────

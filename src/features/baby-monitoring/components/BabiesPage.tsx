@@ -3,19 +3,17 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import BabiesListPage from "@/features/baby-monitoring/components/BabiesListPage";
 import BraceletsPage from "@/features/baby-monitoring/components/BraceletsPage";
-import ZonesAndSensorsTab from "@/features/baby-monitoring/components/zones/ZonesAndSensorsTab";
 
 const GlobalBleAlertsTab = dynamic(
   () => import("@/features/baby-monitoring/components/alerts/GlobalBleAlertsTab"),
   { ssr: false }
 );
 
-type Tab = "neonatos" | "brazaletes" | "zonas" | "alertas";
+type Tab = "neonatos" | "brazaletes" | "alertas";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "neonatos", label: "Neonatos" },
   { id: "brazaletes", label: "Brazaletes" },
-  { id: "zonas", label: "Zonas y Sensores" },
   { id: "alertas", label: "Alertas" },
 ];
 
@@ -79,7 +77,6 @@ export default function BabiesPage() {
       {/* Contenido */}
       {activeTab === "neonatos" && <BabiesListPage />}
       {activeTab === "brazaletes" && <BraceletsPage />}
-      {activeTab === "zonas" && <ZonesAndSensorsTab />}
       {activeTab === "alertas" && <GlobalBleAlertsTab />}
     </div>
   );

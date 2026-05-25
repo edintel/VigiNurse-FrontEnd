@@ -4,7 +4,7 @@ import UsersPage from "@/features/administration/users/components/UsersPage";
 import AuditPage from "@/features/administration/audit/components/AuditPage";
 import HospitalsPage from "@/features/administration/hospitals/components/HospitalsPage";
 import EspecialidadesPage from "@/features/administration/especialidades/components/EspecialidadesPage";
-import AreasPage from "@/features/administration/areas/components/AreasPage";
+import AreasYZonasPage from "@/features/administration/areasYZonas/components/AreasYZonasPage";
 import MedicamentosPage from "@/features/administration/medicamentos/components/MedicamentosPage";
 import TiposActivosPage from "@/features/administration/assetTypes/components/AssetTypesPage";
 import SignosVitalesPage from "@/features/administration/signosVitales/components/SignosVitalesPage";
@@ -16,7 +16,7 @@ type ActiveTab =
   | "especialidades"
   | "auditoria"
   | "hospitales"
-  | "areas"
+  | "areasYZonas"
   | "medicamentos"
   | "tiposActivos"
   | "signosVitales";
@@ -24,7 +24,7 @@ type ActiveTab =
 const BASE_TABS: { id: ActiveTab; label: string }[] = [
   { id: "usuarios", label: "Gestión de Usuarios" },
   { id: "especialidades", label: "Especialidades" },
-  { id: "areas", label: "Áreas" },
+  { id: "areasYZonas", label: "Áreas y Zonas" },
   { id: "medicamentos", label: "Medicamentos" },
   { id: "tiposActivos", label: "Tipos de Activos" },
   { id: "signosVitales", label: "Signos Vitales" },
@@ -42,7 +42,7 @@ export default function AdministracionPage() {
   const tabs = BASE_TABS.filter((t) => {
     if (t.id === "hospitales") return isSuperAdmin;
     if (t.id === "especialidades") return isAdmin;
-    if (t.id === "areas") return isAdmin;
+    if (t.id === "areasYZonas") return isAdmin;
     if (t.id === "medicamentos") return isAdmin;
     if (t.id === "tiposActivos") return isAdmin;
     if (t.id === "signosVitales") return isAdmin;
@@ -90,7 +90,7 @@ export default function AdministracionPage() {
 
       {activeTab === "usuarios" && <UsersPage />}
       {activeTab === "especialidades" && isAdmin && <EspecialidadesPage />}
-      {activeTab === "areas" && isAdmin && <AreasPage />}
+      {activeTab === "areasYZonas" && isAdmin && <AreasYZonasPage />}
       {activeTab === "medicamentos" && isAdmin && <MedicamentosPage />}
       {activeTab === "tiposActivos" && isAdmin && <TiposActivosPage />}
       {activeTab === "signosVitales" && isAdmin && <SignosVitalesPage />}

@@ -18,7 +18,7 @@ interface CreateBabyModalProps {
 }
 
 const selectCls =
-  "select select-bordered w-full bg-[#EEEEEE] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E] focus:outline-none";
+  "select select-bordered w-full bg-[#FFFFFF] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E] focus:outline-none";
 
 // Componente modal para registrar un nuevo bebé. Incluye validación, búsqueda de madre y selección de área.
 export function CreateBabyModal({ open, onClose, onCreated }: CreateBabyModalProps) {
@@ -214,7 +214,7 @@ export function CreateBabyModal({ open, onClose, onCreated }: CreateBabyModalPro
 
   return (
     <dialog ref={dialogRef} className="modal" onClose={onClose}>
-      <div className="modal-box bg-[#EEEEEE] w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="modal-box bg-[#FFFFFF] w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <button
           type="button"
           className="absolute right-3 top-3 text-gray-500 hover:text-[#1A2B5E] transition-colors"
@@ -280,7 +280,7 @@ export function CreateBabyModal({ open, onClose, onCreated }: CreateBabyModalPro
               <input
                 id="bebe-hora"
                 type="time"
-                className={`input input-bordered w-full bg-[#EEEEEE] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E] focus:outline-none ${err("horaNacimiento") ? "input-error" : ""}`}
+                className={`input input-bordered w-full bg-[#FFFFFF] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E] focus:outline-none ${err("horaNacimiento") ? "input-error" : ""}`}
                 value={horaNacimiento}
                 onChange={(e) => { setHoraNacimiento(e.target.value); clearErr("horaNacimiento"); }}
                 required
@@ -434,7 +434,7 @@ export function CreateBabyModal({ open, onClose, onCreated }: CreateBabyModalPro
               <input
                 id="bebe-madre"
                 type="text"
-                className="input input-bordered w-full bg-[#EEEEEE] border-[#B0B0B0] text-[#1A2B5E] placeholder:text-[#B0B0B0] focus:border-[#09268E] focus:outline-none pr-8"
+                className="input input-bordered w-full bg-[#FFFFFF] border-[#B0B0B0] text-[#1A2B5E] placeholder:text-[#B0B0B0] focus:border-[#09268E] focus:outline-none pr-8"
                 placeholder="Buscar por nombre..."
                 value={madreQuery}
                 onChange={(e) => handleMadreQueryChange(e.target.value)}

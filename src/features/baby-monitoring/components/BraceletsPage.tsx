@@ -68,19 +68,19 @@ function EstadoBadge({ estado }: { estado: EstadoBrazalete }) {
   );
 }
 
-function BatteryBadge({ nivel }: { nivel: number | null }) {
+function mVToPercent(mv: number): number {
+  return Math.min(100, Math.max(0, Math.round((mv - 2000) / 1000 * 100)));
+}
+
+function BatteryIcon({ nivel }: { nivel: number | null }) {
   if (nivel === null) return <span className="text-slate-400 text-xs">—</span>;
-  const cls =
-    nivel >= 50 ? "text-emerald-700 bg-emerald-50 border-emerald-200"
-    : nivel >= 20 ? "text-amber-700 bg-amber-50 border-amber-200"
-    : "text-red-700 bg-red-50 border-red-200";
+  const pct = mVToPercent(nivel);
+  const color = pct > 60 ? "text-emerald-500" : pct > 20 ? "text-yellow-500" : "text-red-500";
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${cls}`}>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-3">
-        <path d="M3.75 7.5A2.25 2.25 0 0 1 6 5.25h10.5A2.25 2.25 0 0 1 18.75 7.5v.75h.375A2.625 2.625 0 0 1 21.75 10.875v2.25a2.625 2.625 0 0 1-2.625 2.625H18.75v.75A2.25 2.25 0 0 1 16.5 18.75H6A2.25 2.25 0 0 1 3.75 16.5V7.5Z" />
-      </svg>
-      {nivel}%
-    </span>
+    <div className="flex flex-col leading-tight">
+      <span className={`text-sm font-bold ${color}`}>{pct}%</span>
+      <span className="text-[10px] text-slate-400">{nivel} mV</span>
+    </div>
   );
 }
 
@@ -95,31 +95,20 @@ interface CreateBraceletModalProps {
 function CreateBraceletModal({ open, onClose, onCreated }: CreateBraceletModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [codigo, setCodigo] = useState("");
-  const [numeroSerie, setNumeroSerie] = useState("");
   const [direccionMac, setDireccionMac] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [nivelBateria, setNivelBateria] = useState("100");
-  const [fechaAdquisicion, setFechaAdquisicion] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (open) {
       dialogRef.current?.showModal();
-      setCodigo(""); setNumeroSerie(""); setDireccionMac("");
-      setDescripcion(""); setNivelBateria("100");
-      setFechaAdquisicion(new Date().toISOString().slice(0, 10));
+      setCodigo(""); setDireccionMac(""); setDescripcion("");
     } else {
       dialogRef.current?.close();
     }
   }, [open]);
 
-  const nivelNum = nivelBateria === "" ? null : parseInt(nivelBateria, 10);
-  const nivelValido = nivelNum === null || (!isNaN(nivelNum) && nivelNum >= 0 && nivelNum <= 100);
-  const isValid =
-    codigo.trim().length > 0 &&
-    direccionMac.trim().length > 0 &&
-    fechaAdquisicion.length > 0 &&
-    nivelValido;
+  const isValid = codigo.trim().length > 0 && direccionMac.trim().length > 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -129,10 +118,7 @@ function CreateBraceletModal({ open, onClose, onCreated }: CreateBraceletModalPr
       const dto: CrearBrazaleteDTO = {
         codigo: codigo.trim(),
         direccionMac: direccionMac.trim(),
-        numeroSerie: numeroSerie.trim() || null,
         descripcion: descripcion.trim() || null,
-        nivelBateria: nivelNum,
-        fechaAdquisicion: new Date(fechaAdquisicion).toISOString(),
       };
       const saved = await createBracelet(dto);
       toast.success("Brazalete registrado correctamente.");
@@ -153,23 +139,13 @@ function CreateBraceletModal({ open, onClose, onCreated }: CreateBraceletModalPr
           <h3 className="text-base font-bold text-[#0f172a]">Registrar brazalete</h3>
         </div>
         <form onSubmit={(e) => void handleSubmit(e)} className="px-6 py-5 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-[#334155] mb-1.5">
-                Código <span className="text-red-500">*</span>
-              </label>
-              <input type="text" className="input input-bordered w-full text-sm font-mono"
-                placeholder="Ej. BRZ-001" value={codigo}
-                onChange={(e) => setCodigo(e.target.value)} disabled={submitting} autoFocus />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-[#334155] mb-1.5">
-                Número de serie <span className="text-xs font-normal text-slate-400">(opcional)</span>
-              </label>
-              <input type="text" className="input input-bordered w-full text-sm font-mono"
-                placeholder="Ej. SN-001" value={numeroSerie}
-                onChange={(e) => setNumeroSerie(e.target.value)} disabled={submitting} />
-            </div>
+          <div>
+            <label className="block text-sm font-semibold text-[#334155] mb-1.5">
+              Código <span className="text-red-500">*</span>
+            </label>
+            <input type="text" className="input input-bordered w-full text-sm font-mono"
+              placeholder="Ej. BRZ-001" value={codigo}
+              onChange={(e) => setCodigo(e.target.value)} disabled={submitting} autoFocus />
           </div>
 
           <div>
@@ -188,27 +164,6 @@ function CreateBraceletModal({ open, onClose, onCreated }: CreateBraceletModalPr
             <input type="text" className="input input-bordered w-full text-sm"
               placeholder="Ej. Brazalete sala neonatos A" value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)} disabled={submitting} />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-[#334155] mb-1.5">
-                Nivel de batería (%) <span className="text-xs font-normal text-slate-400">(opcional)</span>
-              </label>
-              <input type="number" className="input input-bordered w-full text-sm"
-                placeholder="100" min={0} max={100}
-                value={nivelBateria} onChange={(e) => setNivelBateria(e.target.value)} disabled={submitting} />
-              {nivelBateria !== "" && !nivelValido && (
-                <p className="text-xs text-red-500 mt-1">Debe ser entre 0 y 100.</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-[#334155] mb-1.5">
-                Fecha de adquisición <span className="text-red-500">*</span>
-              </label>
-              <input type="date" className="input input-bordered w-full text-sm"
-                value={fechaAdquisicion} onChange={(e) => setFechaAdquisicion(e.target.value)} disabled={submitting} />
-            </div>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
@@ -242,34 +197,25 @@ interface EditarBrazaleteModalProps {
 
 function EditarBrazaleteModal({ open, brazalete, onClose, onUpdated }: EditarBrazaleteModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [numeroSerie, setNumeroSerie] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [nivelBateria, setNivelBateria] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (open && brazalete) {
       dialogRef.current?.showModal();
-      setNumeroSerie(brazalete.numeroSerie ?? "");
       setDescripcion(brazalete.descripcion ?? "");
-      setNivelBateria(brazalete.nivelBateria !== null ? String(brazalete.nivelBateria) : "");
     } else {
       dialogRef.current?.close();
     }
   }, [open, brazalete]);
 
-  const nivelNum = nivelBateria === "" ? null : parseInt(nivelBateria, 10);
-  const nivelValido = nivelNum === null || (!isNaN(nivelNum) && nivelNum >= 0 && nivelNum <= 100);
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!brazalete || !nivelValido) return;
+    if (!brazalete) return;
     setSubmitting(true);
     try {
       const dto: ActualizarBrazaleteDTO = {
-        numeroSerie: numeroSerie.trim() || null,
         descripcion: descripcion.trim() || null,
-        nivelBateria: nivelNum,
       };
       const updated = await updateBracelet(brazalete.id, dto);
       toast.success("Brazalete actualizado.");
@@ -295,38 +241,19 @@ function EditarBrazaleteModal({ open, brazalete, onClose, onUpdated }: EditarBra
         <form onSubmit={(e) => void handleSubmit(e)} className="px-6 py-5 space-y-4">
           <div>
             <label className="block text-sm font-semibold text-[#334155] mb-1.5">
-              Número de serie
-            </label>
-            <input type="text" className="input input-bordered w-full text-sm font-mono"
-              placeholder="Ej. SN-001" value={numeroSerie}
-              onChange={(e) => setNumeroSerie(e.target.value)} disabled={submitting} />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-[#334155] mb-1.5">
               Descripción
             </label>
             <input type="text" className="input input-bordered w-full text-sm"
               placeholder="Descripción del brazalete" value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)} disabled={submitting} />
           </div>
-          <div>
-            <label className="block text-sm font-semibold text-[#334155] mb-1.5">
-              Nivel de batería (%)
-            </label>
-            <input type="number" className="input input-bordered w-full text-sm"
-              placeholder="Ej. 85" min={0} max={100}
-              value={nivelBateria} onChange={(e) => setNivelBateria(e.target.value)} disabled={submitting} />
-            {nivelBateria !== "" && !nivelValido && (
-              <p className="text-xs text-red-500 mt-1">Debe ser entre 0 y 100.</p>
-            )}
-          </div>
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" className="btn btn-sm btn-ghost" onClick={onClose} disabled={submitting}>Cancelar</button>
             <button type="submit" className="btn btn-sm text-white"
-              style={!nivelValido || submitting
+              style={submitting
                 ? { backgroundColor: "#cbd5e1", borderColor: "#cbd5e1", color: "#94a3b8", cursor: "not-allowed" }
                 : { backgroundColor: "#09268E", borderColor: "#09268E" }}
-              disabled={!nivelValido || submitting}>
+              disabled={submitting}>
               {submitting && <span className="loading loading-spinner loading-xs" />}
               Guardar
             </button>
@@ -535,12 +462,12 @@ export default function BraceletsPage() {
           <table className="table table-zebra w-full [&_td]:py-2.5 [&_th]:py-2.5">
             <thead>
               <tr className="bg-[#F8FAFC] text-[#1A2B5E]">
-                <th className="text-xs font-semibold uppercase tracking-wide whitespace-nowrap">Código / N° Serie</th>
+                <th className="text-xs font-semibold uppercase tracking-wide whitespace-nowrap">Código</th>
                 <th className="text-xs font-semibold uppercase tracking-wide whitespace-nowrap">Dirección MAC</th>
                 <th className="text-xs font-semibold uppercase tracking-wide">Descripción</th>
                 <th className="text-xs font-semibold uppercase tracking-wide whitespace-nowrap">Batería</th>
                 <th className="text-xs font-semibold uppercase tracking-wide whitespace-nowrap">Última señal</th>
-                <th className="text-xs font-semibold uppercase tracking-wide whitespace-nowrap">F. Adquisición</th>
+                <th className="text-xs font-semibold uppercase tracking-wide whitespace-nowrap">F. Creación</th>
                 <th className="text-xs font-semibold uppercase tracking-wide">Estado</th>
                 <th className="text-xs font-semibold uppercase tracking-wide text-right">Acciones</th>
               </tr>
@@ -562,16 +489,15 @@ export default function BraceletsPage() {
                 brazaletes.map((b) => (
                   <tr key={b.id} className="hover:bg-base-200">
                     <td>
-                      <span className="font-mono font-semibold text-sm text-[#0f172a] block">{b.codigo}</span>
-                      {b.numeroSerie && <span className="font-mono text-xs text-slate-400">{b.numeroSerie}</span>}
+                      <span className="font-mono font-semibold text-sm text-[#0f172a]">{b.codigo}</span>
                     </td>
                     <td className="text-sm text-[#475569] font-mono whitespace-nowrap">{b.direccionMac}</td>
                     <td className="text-sm text-[#475569]">
                       {b.descripcion ?? <span className="text-slate-400 text-xs">—</span>}
                     </td>
-                    <td><BatteryBadge nivel={b.nivelBateria} /></td>
+                    <td><BatteryIcon nivel={b.nivelBateria} /></td>
                     <td className="text-sm text-[#475569] whitespace-nowrap">{formatDateTime(b.ultimaSenal)}</td>
-                    <td className="text-sm text-[#475569] whitespace-nowrap">{formatDate(b.fechaAdquisicion)}</td>
+                    <td className="text-sm text-[#475569] whitespace-nowrap">{formatDate(b.fechaCreacion)}</td>
                     <td><EstadoBadge estado={b.estado} /></td>
                     <td>
                       <div className="flex items-center justify-end gap-1">

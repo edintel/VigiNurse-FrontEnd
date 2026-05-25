@@ -25,7 +25,7 @@ export function CloseAlertModal({ open, alertId, onClose, onClosed }: CloseAlert
     e.preventDefault();
     setSubmitting(true);
     try {
-      const dto: CloseAlertDTO = { closeReason: closeReason.trim() || null };
+      const dto: CloseAlertDTO = { notasCierre: closeReason.trim() || null };
       const updated = await closeAlert(alertId, dto);
       toast.success("Alerta cerrada correctamente.");
       onClosed(updated);

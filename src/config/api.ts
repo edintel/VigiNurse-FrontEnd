@@ -219,10 +219,10 @@ export const API_ENDPOINTS = {
     revocar: (id: number) => `${API_BASE_URL}/ble/zonas-permitidas/${id}/revocar`,
   },
   alerts: {
-    base: `${API_BASE_URL}/alerts`,
-    byId: (id: number) => `${API_BASE_URL}/alerts/${id}`,
-    acknowledge: (id: number) => `${API_BASE_URL}/alerts/${id}/acknowledge`,
-    close: (id: number) => `${API_BASE_URL}/alerts/${id}/close`,
+    base: `${API_BASE_URL}/ble/alertas`,
+    byId: (id: number) => `${API_BASE_URL}/ble/alertas/${id}`,
+    acknowledge: (id: number) => `${API_BASE_URL}/ble/alertas/${id}/reconocer`,
+    close: (id: number) => `${API_BASE_URL}/ble/alertas/${id}/cerrar`,
   },
   turnosCiclos: {
     list: `${API_BASE_URL}/turnos/ciclos`,
@@ -238,6 +238,34 @@ export const API_ENDPOINTS = {
     groupConversation: `${API_BASE_URL}/chat/conversations/group`,
     messages: (conversationId: number) =>
       `${API_BASE_URL}/chat/conversations/${conversationId}/messages`,
+  },
+  tagsBle: {
+    list: `${API_BASE_URL}/tags-ble`,
+    byId: (id: number) => `${API_BASE_URL}/tags-ble/${id}`,
+  },
+  gatewaysBle: {
+    list: `${API_BASE_URL}/gateways-ble`,
+    byId: (id: number) => `${API_BASE_URL}/gateways-ble/${id}`,
+  },
+  asignacionesTagActivo: {
+    list: `${API_BASE_URL}/asignaciones-tag-activo`,
+    desasignar: (id: number) =>
+      `${API_BASE_URL}/asignaciones-tag-activo/${id}/desasignar`,
+  },
+  asignacionesGatewayArea: {
+    list: `${API_BASE_URL}/asignaciones-gateway-area`,
+    desasignar: (id: number) =>
+      `${API_BASE_URL}/asignaciones-gateway-area/${id}/desasignar`,
+  },
+  asignacionesGatewayZona: {
+    list: `${API_BASE_URL}/ble/asignaciones-gateway-zona`,
+    desasignar: (id: number) =>
+      `${API_BASE_URL}/ble/asignaciones-gateway-zona/${id}/desasignar`,
+  },
+  ubicacionesActivos: {
+    list: `${API_BASE_URL}/ubicaciones-activos`,
+    byTag: (tagBleId: number) =>
+      `${API_BASE_URL}/ubicaciones-activos/tag/${tagBleId}`,
   },
 } as const;
 

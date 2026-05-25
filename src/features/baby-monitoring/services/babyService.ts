@@ -150,7 +150,7 @@ export async function createBracelet(dto: CrearBrazaleteDTO): Promise<Brazalete>
   return res.data;
 }
 
-// PUT /api/ble/brazaletes/{id} — actualiza numeroSerie, descripcion, nivelBateria
+// PUT /api/ble/brazaletes/{id} — actualiza descripcion, nivelBateria
 export async function updateBracelet(id: number, dto: ActualizarBrazaleteDTO): Promise<Brazalete> {
   const res = await axiosInstance.put<Brazalete>(API_ENDPOINTS.ble.brazaleteById(id), dto);
   return res.data;
@@ -276,15 +276,11 @@ export async function getAlerts(params?: {
 }): Promise<PaginatedAlertas> {
   const res = await axiosInstance.get<PaginatedAlertas>(API_ENDPOINTS.alerts.base, {
     params: {
-      page: params?.page,
-      pageSize: params?.pageSize,
-      status: params?.status,
-      severity: params?.severity,
-      babyId: params?.babyId,
-      braceletId: params?.braceletId,
-      type: params?.type,
-      dateFrom: params?.dateFrom ?? undefined,
-      dateTo: params?.dateTo ?? undefined,
+      pagina: params?.page,
+      tamanio: params?.pageSize,
+      estado: params?.status,
+      pacienteId: params?.babyId,
+      brazaleteId: params?.braceletId,
     },
   });
   return res.data;

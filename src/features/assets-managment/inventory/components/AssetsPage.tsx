@@ -3,12 +3,14 @@ import { useState } from "react";
 import InventoryPage from "@/features/assets-managment/inventory/components/InventoryPage";
 import MaintenanceCalendarPage from "@/features/assets-managment/maintenance/components/MaintenanceCalendarPage";
 import AlertsPage from "@/features/alerts/maintenance/components/AlertsPage";
+import TagsBleTab from "@/features/assets-managment/tracking/components/TagsBleTab";
 
-type ActiveTab = "inventario" | "calendario" | "alertas";
+type ActiveTab = "inventario" | "calendario" | "alertas" | "sensores";
 
 const TABS: { id: ActiveTab; label: string }[] = [
   { id: "inventario", label: "Inventario" },
   { id: "calendario", label: "Calendario" },
+  { id: "sensores", label: "Tags" },
   { id: "alertas", label: "Alertas" },
 ];
 
@@ -71,6 +73,7 @@ export default function AssetsPage() {
       {activeTab === "inventario" && <InventoryPage />}
       {activeTab === "calendario" && <MaintenanceCalendarPage />}
       {activeTab === "alertas" && <AlertsPage />}
+      {activeTab === "sensores" && <TagsBleTab />}
     </div>
   );
 }
