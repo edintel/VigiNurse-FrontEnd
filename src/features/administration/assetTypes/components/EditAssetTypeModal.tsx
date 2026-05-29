@@ -1,11 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { InputField } from "@/shared/ui/InputField";
-import { updateTipoActivo } from "@/features/administration/assetTypes/services/assetTypeService";
+import { updateAssetType } from "@/features/administration/assetTypes/services/assetTypeService";
 import type { TipoActivo } from "@/features/administration/assetTypes/types";
 import { toast } from "@/lib/toast";
 
-interface EditTipoActivoModalProps {
+interface EditAssetTypeModalProps {
   open: boolean;
   tipoActivo: TipoActivo | null;
   onClose: () => void;
@@ -13,12 +13,12 @@ interface EditTipoActivoModalProps {
 }
 
 // Modal para editar un tipo de activo existente.
-export function EditTipoActivoModal({
+export function EditAssetTypeModal({
   open,
   tipoActivo,
   onClose,
   onUpdated,
-}: EditTipoActivoModalProps) {
+}: EditAssetTypeModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
@@ -56,7 +56,7 @@ export function EditTipoActivoModal({
     setLoading(true);
     setApiError(null);
     try {
-      const updated = await updateTipoActivo(tipoActivo.id, {
+      const updated = await updateAssetType(tipoActivo.id, {
         nombre: nombre.trim(),
         descripcion: descripcion.trim(),
       });

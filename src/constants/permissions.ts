@@ -1,6 +1,6 @@
 import type { AuthRole } from "@/types";
 export const PERMISSIONS = {
-    especialidades: {
+    specialties: {
         view: ["ADMIN"] as AuthRole[],
         create: ["ADMIN"] as AuthRole[],
         edit: ["ADMIN"] as AuthRole[],

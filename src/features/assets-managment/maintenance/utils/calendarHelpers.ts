@@ -37,7 +37,7 @@ export function isVencido(m: Mantenimiento): boolean {
 }
 
 // Devuelve el color correspondiente al estado del mantenimiento (vencido, en proceso, finalizado, cancelado)
-export function getEstadoColor(m: Mantenimiento): string {
+export function getStatusColor(m: Mantenimiento): string {
   if (isVencido(m)) return "#ff627d";
   switch (m.estado) {
     case MantenimientoEstado.EnProceso:

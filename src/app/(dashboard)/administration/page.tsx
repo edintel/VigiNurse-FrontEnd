@@ -3,31 +3,34 @@ import { useState } from "react";
 import UsersPage from "@/features/administration/users/components/UsersPage";
 import AuditPage from "@/features/administration/audit/components/AuditPage";
 import HospitalsPage from "@/features/administration/hospitals/components/HospitalsPage";
-import EspecialidadesPage from "@/features/administration/especialidades/components/EspecialidadesPage";
-import AreasYZonasPage from "@/features/administration/areasYZonas/components/AreasYZonasPage";
-import MedicamentosPage from "@/features/administration/medicamentos/components/MedicamentosPage";
-import TiposActivosPage from "@/features/administration/assetTypes/components/AssetTypesPage";
-import SignosVitalesPage from "@/features/administration/signosVitales/components/SignosVitalesPage";
+import SpecialtiesPage from "@/features/administration/specialties/components/SpecialtiesPage";
+import AreasAndZonesPage from "@/features/administration/areasAndZones/components/AreasAndZonesPage";
+import MedicationsPage from "@/features/administration/medications/components/MedicationsPage";
+import AssetTypesPage from "@/features/administration/assetTypes/components/AssetTypesPage";
+import VitalSignsPage from "@/features/administration/vitalSigns/components/VitalSignsPage";
+import HospitalFloorPlansAdminTab from "@/features/administration/hospitalFloorPlans/components/HospitalFloorPlansAdminTab";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentRole } from "@/store/slices/authSlice";
 
 type ActiveTab =
   | "usuarios"
-  | "especialidades"
+  | "specialties"
   | "auditoria"
   | "hospitales"
-  | "areasYZonas"
-  | "medicamentos"
+  | "areasAndZones"
+  | "medications"
   | "tiposActivos"
-  | "signosVitales";
+  | "vitalSigns"
+  | "hospitalFloorPlans";
 
 const BASE_TABS: { id: ActiveTab; label: string }[] = [
   { id: "usuarios", label: "Gestión de Usuarios" },
-  { id: "especialidades", label: "Especialidades" },
-  { id: "areasYZonas", label: "Áreas y Zonas" },
-  { id: "medicamentos", label: "Medicamentos" },
+  { id: "specialties", label: "Especialidades" },
+  { id: "areasAndZones", label: "Áreas y Zonas" },
+  { id: "hospitalFloorPlans", label: "Planos del Hospital" },
+  { id: "medications", label: "Medicamentos" },
   { id: "tiposActivos", label: "Tipos de Activos" },
-  { id: "signosVitales", label: "Signos Vitales" },
+  { id: "vitalSigns", label: "Signos Vitales" },
   { id: "hospitales", label: "Hospitales" },
   { id: "auditoria", label: "Auditoría" },
 ];
@@ -41,11 +44,12 @@ export default function AdministracionPage() {
 
   const tabs = BASE_TABS.filter((t) => {
     if (t.id === "hospitales") return isSuperAdmin;
-    if (t.id === "especialidades") return isAdmin;
-    if (t.id === "areasYZonas") return isAdmin;
-    if (t.id === "medicamentos") return isAdmin;
+    if (t.id === "specialties") return isAdmin;
+    if (t.id === "areasAndZones") return isAdmin;
+    if (t.id === "medications") return isAdmin;
     if (t.id === "tiposActivos") return isAdmin;
-    if (t.id === "signosVitales") return isAdmin;
+    if (t.id === "vitalSigns") return isAdmin;
+    if (t.id === "hospitalFloorPlans") return isAdmin || isSuperAdmin;
     return true;
   });
 
@@ -89,11 +93,12 @@ export default function AdministracionPage() {
       </div>
 
       {activeTab === "usuarios" && <UsersPage />}
-      {activeTab === "especialidades" && isAdmin && <EspecialidadesPage />}
-      {activeTab === "areasYZonas" && isAdmin && <AreasYZonasPage />}
-      {activeTab === "medicamentos" && isAdmin && <MedicamentosPage />}
-      {activeTab === "tiposActivos" && isAdmin && <TiposActivosPage />}
-      {activeTab === "signosVitales" && isAdmin && <SignosVitalesPage />}
+      {activeTab === "specialties" && isAdmin && <SpecialtiesPage />}
+      {activeTab === "areasAndZones" && isAdmin && <AreasAndZonesPage />}
+      {activeTab === "medications" && isAdmin && <MedicationsPage />}
+      {activeTab === "tiposActivos" && isAdmin && <AssetTypesPage />}
+      {activeTab === "vitalSigns" && isAdmin && <VitalSignsPage />}
+      {activeTab === "hospitalFloorPlans" && (isAdmin || isSuperAdmin) && <HospitalFloorPlansAdminTab />}
       {activeTab === "hospitales" && isSuperAdmin && <HospitalsPage />}
       {activeTab === "auditoria" && <AuditPage />}
     </div>

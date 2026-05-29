@@ -8,7 +8,7 @@ import type {
 } from "@/features/administration/zones/types";
 
 // Obtiene zonas paginadas.
-export async function getZonas(
+export async function getZones(
   page = 1,
   pageSize = 10,
 ): Promise<PaginatedZonas> {
@@ -20,19 +20,19 @@ export async function getZonas(
 }
 
 // Obtiene una zona por su ID.
-export async function getZonaById(id: number): Promise<Zona> {
+export async function getZoneById(id: number): Promise<Zona> {
   const res = await axiosInstance.get<Zona>(API_ENDPOINTS.zonas.byId(id));
   return res.data;
 }
 
 // Crea una zona.
-export async function createZona(dto: CreateZonaDTO): Promise<Zona> {
+export async function createZone(dto: CreateZonaDTO): Promise<Zona> {
   const res = await axiosInstance.post<Zona>(API_ENDPOINTS.zonas.list, dto);
   return res.data;
 }
 
 // Actualiza una zona.
-export async function updateZona(
+export async function updateZone(
   id: number,
   dto: UpdateZonaDTO,
 ): Promise<Zona> {
@@ -44,6 +44,6 @@ export async function updateZona(
 }
 
 // Elimina una zona.
-export async function deleteZona(id: number): Promise<void> {
+export async function deleteZone(id: number): Promise<void> {
   await axiosInstance.delete(API_ENDPOINTS.zonas.byId(id));
 }

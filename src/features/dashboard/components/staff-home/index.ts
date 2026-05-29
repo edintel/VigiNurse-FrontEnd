@@ -4,7 +4,7 @@ export { EmptyState, LoadingSkeleton } from "./StaffHomeFeedback";
 export { PatientEpisodeCard } from "./PatientEpisodeCard";
 export { PriorityStatCard } from "./PriorityStatCard";
 export { TaskCard } from "./TaskCard";
-export { TurnoCardFull, TurnoInfoCard } from "./TurnoCards";
+export { FullShiftCard, ShiftInfoCard } from "./ShiftCards";
 export { ESTADO_CONFIG } from "./staffHomeConfig";
 export {
   getStaffHomeTabs,

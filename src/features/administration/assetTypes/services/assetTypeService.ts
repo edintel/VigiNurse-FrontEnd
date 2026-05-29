@@ -8,7 +8,7 @@ import type {
 } from "@/features/administration/assetTypes/types";
 
 // Obtiene tipos de activo paginados.
-export async function getTiposActivos(
+export async function getAssetTypes(
   page = 1,
   pageSize = 10,
 ): Promise<PaginatedTiposActivos> {
@@ -20,7 +20,7 @@ export async function getTiposActivos(
 }
 
 // Obtiene un tipo de activo por su ID.
-export async function getTipoActivoById(id: number): Promise<TipoActivo> {
+export async function getAssetTypeById(id: number): Promise<TipoActivo> {
   const res = await axiosInstance.get<TipoActivo>(
     API_ENDPOINTS.tiposActivos.byId(id),
   );
@@ -28,7 +28,7 @@ export async function getTipoActivoById(id: number): Promise<TipoActivo> {
 }
 
 // Crea un tipo de activo.
-export async function createTipoActivo(
+export async function createAssetType(
   dto: CreateTipoActivoDTO,
 ): Promise<TipoActivo> {
   const res = await axiosInstance.post<TipoActivo>(
@@ -39,7 +39,7 @@ export async function createTipoActivo(
 }
 
 // Actualiza un tipo de activo.
-export async function updateTipoActivo(
+export async function updateAssetType(
   id: number,
   dto: UpdateTipoActivoDTO,
 ): Promise<TipoActivo> {

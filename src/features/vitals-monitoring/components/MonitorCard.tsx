@@ -1,8 +1,8 @@
 "use client";
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { useSignosVitales } from "@/features/vitals-monitoring/hooks/useSignosVitales";
-import { desasignarMonitor } from "@/features/vitals-monitoring/services/monitorService";
+import { useVitalSigns } from "@/features/vitals-monitoring/hooks/useVitalSigns";
+import { unassignMonitor } from "@/features/vitals-monitoring/services/monitorService";
 import { toast } from "@/lib/toast";
 import type { MonitorPacienteDto } from "@/features/vitals-monitoring/types";
 
@@ -142,7 +142,7 @@ function VitalCell({
 
 // Componente principal para mostrar la tarjeta de monitorización de un paciente con sus signos vitales y estado de conexión
 export function MonitorCard({ monitor, onDesasignado }: Props) {
-  const { lectura, estado } = useSignosVitales(monitor.pacienteId);
+  const { lectura, estado } = useVitalSigns(monitor.pacienteId);
   const cfg = STATE_CONFIG[estado];
   const isDimmed = estado === "disconnected" || estado === "error";
 
@@ -155,11 +155,11 @@ export function MonitorCard({ monitor, onDesasignado }: Props) {
     modalRef.current?.showModal();
   }
 
-  async function confirmarDesasignar() {
+  async function confirmUnassign() {
     setDesasignando(true);
     setErrorDesasignar(null);
     try {
-      await desasignarMonitor(monitor.id);
+      await unassignMonitor(monitor.id);
       modalRef.current?.close();
       onDesasignado(monitor.id);
       toast.success(`Monitor desasignado de ${monitor.nombrePaciente}.`);
@@ -362,7 +362,7 @@ export function MonitorCard({ monitor, onDesasignado }: Props) {
             </button>
             <button
               className="btn btn-sm bg-red-600 hover:bg-red-700 text-white border-none gap-1.5 min-w-[110px]"
-              onClick={confirmarDesasignar}
+              onClick={confirmUnassign}
               disabled={desasignando}
             >
               {desasignando ? (

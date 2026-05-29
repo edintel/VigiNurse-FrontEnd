@@ -1,12 +1,12 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  getZonas,
-  getZonaById,
+  getZones,
+  getZoneById,
 } from "@/features/administration/zones/services/zoneService";
-import { CreateZonaModal } from "@/features/administration/zones/components/CreateZoneModal";
-import { EditZonaModal } from "@/features/administration/zones/components/EditZoneModal";
-import { DeleteZonaModal } from "@/features/administration/zones/components/DeleteZoneModal";
+import { CreateZoneModal } from "@/features/administration/zones/components/CreateZoneModal";
+import { EditZoneModal } from "@/features/administration/zones/components/EditZoneModal";
+import { DeleteZoneModal } from "@/features/administration/zones/components/DeleteZoneModal";
 import { PaginationFooter } from "@/shared/ui/PaginationFooter";
 import {
   FilterPanel,
@@ -18,7 +18,7 @@ import type { Zona, PaginatedZonas } from "@/features/administration/zones/types
 const PAGE_SIZE = 10;
 
 // Componente principal para la gestión de zonas del hospital.
-export default function ZonasPage() {
+export default function ZonesPage() {
   const [zonas, setZonas] = useState<Zona[]>([]);
   const [totalRegistros, setTotalRegistros] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(1);
@@ -35,13 +35,13 @@ export default function ZonasPage() {
   // Estado de modales
   const [showCreate, setShowCreate] = useState(false);
   const [editZona, setEditZona] = useState<Zona | null>(null);
-  const [deleteZona, setDeleteZona] = useState<Zona | null>(null);
+  const [deleteZone, setDeleteZona] = useState<Zona | null>(null);
 
   const fetchAll = useCallback(async (page: number) => {
     setLoading(true);
     setError(null);
     try {
-      const result: PaginatedZonas = await getZonas(page, PAGE_SIZE);
+      const result: PaginatedZonas = await getZones(page, PAGE_SIZE);
       setZonas(result.datos);
       setTotalRegistros(result.totalRegistros);
       setTotalPaginas(result.totalPaginas);
@@ -57,7 +57,7 @@ export default function ZonasPage() {
     setLoading(true);
     setError(null);
     try {
-      const zona = await getZonaById(id);
+      const zona = await getZoneById(id);
       setZonas([zona]);
       setTotalRegistros(1);
       setTotalPaginas(1);
@@ -99,16 +99,16 @@ export default function ZonasPage() {
     void fetchAll(page);
   }
 
-  function handleZonaCreated(zona: Zona) {
+  function handleZoneCreated(zona: Zona) {
     setZonas((prev) => [zona, ...prev]);
     setTotalRegistros((n) => n + 1);
   }
 
-  function handleZonaUpdated(updated: Zona) {
+  function handleZoneUpdated(updated: Zona) {
     setZonas((prev) => prev.map((z) => (z.id === updated.id ? updated : z)));
   }
 
-  function handleZonaDeleted(id: number) {
+  function handleZoneDeleted(id: number) {
     setZonas((prev) => prev.filter((z) => z.id !== id));
     setTotalRegistros((n) => Math.max(0, n - 1));
   }
@@ -304,22 +304,22 @@ export default function ZonasPage() {
         />
       </div>
 
-      <CreateZonaModal
+      <CreateZoneModal
         open={showCreate}
         onClose={() => setShowCreate(false)}
-        onCreated={handleZonaCreated}
+        onCreated={handleZoneCreated}
       />
-      <EditZonaModal
+      <EditZoneModal
         open={editZona !== null}
         zona={editZona}
         onClose={() => setEditZona(null)}
-        onUpdated={handleZonaUpdated}
+        onUpdated={handleZoneUpdated}
       />
-      <DeleteZonaModal
-        open={deleteZona !== null}
-        zona={deleteZona}
+      <DeleteZoneModal
+        open={deleteZone !== null}
+        zona={deleteZone}
         onClose={() => setDeleteZona(null)}
-        onDeleted={handleZonaDeleted}
+        onDeleted={handleZoneDeleted}
       />
     </div>
   );

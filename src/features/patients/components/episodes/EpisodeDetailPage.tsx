@@ -168,7 +168,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 // Badge del estado del episodio.
-function EstadoBadge({ estado }: { estado: EpisodioEstado }) {
+function StatusBadge({ estado }: { estado: EpisodioEstado }) {
   const cfg =
     ESTADO_EPISODIO_CONFIG[estado] ??
     ESTADO_EPISODIO_CONFIG[EpisodioEstado.Pendiente];
@@ -325,7 +325,7 @@ export default function EpisodeDetailPage({
               <span className="text-xs font-mono text-[#64748b] bg-[#f1f5f9] rounded px-1.5 py-0.5">
                 #{episodio.id}
               </span>
-              <EstadoBadge estado={episodio.estado} />
+              <StatusBadge estado={episodio.estado} />
             </div>
             <p className="text-sm text-[#64748b] mt-0.5">
               {episodio.pacienteNombre}
@@ -367,7 +367,7 @@ export default function EpisodeDetailPage({
               />
               <Field
                 label="Estado"
-                value={<EstadoBadge estado={episodio.estado} />}
+                value={<StatusBadge estado={episodio.estado} />}
               />
               <Field
                 label="Nivel de triage"

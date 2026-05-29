@@ -2,6 +2,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useHasPermission } from "@/lib/hasPermission";
+import { useAppSelector } from "@/store/hooks";
+import { selectCurrentUser } from "@/store/slices/authSlice";
 import {
   getPatientById,
   getPatientContacts,
@@ -31,9 +33,10 @@ import { BabyInfoCard } from "@/features/baby-monitoring/components/BabyInfoCard
 import { BabyFeedingTab } from "@/features/baby-monitoring/components/BabyFeedingTab";
 import { BabyCareTab } from "@/features/baby-monitoring/components/BabyCareTab";
 import { BabyLocationTab } from "@/features/baby-monitoring/components/BabyLocationTab";
-import { DarDeAltaBebeModal } from "@/features/baby-monitoring/components/DarDeAltaBebeModal";
+import { DischargeBabyModal } from "@/features/baby-monitoring/components/DischargeBabyModal";
 import { getBabyById } from "@/features/baby-monitoring/services/babyService";
 import type { Bebe } from "@/features/baby-monitoring/types";
+import { getUserById } from "@/features/staff-monitoring/services/personalDetailService";
 
 type NoEpisodeTab = "informacion" | "historial";
 type ActiveEpisodeTab =
@@ -102,6 +105,7 @@ interface PatientRecordPageProps {
 // Permite iniciar un nuevo episodio o finalizar el episodio activo. Maneja la carga de datos y los estados de error.
 export default function PatientRecordPage({ id, bebeId }: PatientRecordPageProps) {
   const router = useRouter();
+  const currentUser = useAppSelector(selectCurrentUser);
   const canEditPatient = useHasPermission("patients.edit");
   const canManageContact = useHasPermission("patients.contactManage");
   const canManageAllergies = useHasPermission("patients.allergiesManage");
@@ -124,10 +128,11 @@ export default function PatientRecordPage({ id, bebeId }: PatientRecordPageProps
   const [error, setError] = useState<string | null>(null);
 
   const [paciente, setPaciente] = useState<Paciente | null>(null);
-  const [contacto, setContacto] = useState<ContactoPaciente | null>(null);
+  const [contactos, setContactos] = useState<ContactoPaciente[]>([]);
   const [episodioActivo, setEpisodioActivo] =
     useState<EpisodioHistorial | null>(null);
   const [bebe, setBebe] = useState<Bebe | null>(null);
+  const [myHospitalId, setMyHospitalId] = useState<number | null>(null);
 
   const [activeTab, setActiveTab] = useState<NoEpisodeTab | ActiveEpisodeTab>(
     "informacion",
@@ -143,23 +148,35 @@ export default function PatientRecordPage({ id, bebeId }: PatientRecordPageProps
     setLoading(true);
     setError(null);
     try {
-      const [pac, contactos, episodio, bebeData] = await Promise.all([
+      const userId = currentUser?.id ? Number(currentUser.id) : null;
+      const [pac, contactos, episodio, bebeData, userProfile] = await Promise.all([
         getPatientById(id),
         getPatientContacts(id),
         canViewEpisodes ? getActiveEpisode(id).catch(() => null) : Promise.resolve(null),
         bebeId ? getBabyById(bebeId) : Promise.resolve(null),
+        userId ? getUserById(userId).catch(() => null) : Promise.resolve(null),
       ]);
+      const resolvedHospitalId = typeof userProfile?.hospitalId === "number" ? userProfile.hospitalId : null;
+      const isFromOther = !!(episodio && resolvedHospitalId != null && episodio.hospitalId != null && episodio.hospitalId !== resolvedHospitalId);
       setPaciente(pac);
-      setContacto(contactos[0] ?? null);
+      setContactos(contactos);
       setEpisodioActivo(episodio);
       setBebe(bebeData);
-      setActiveTab(episodio ? "resumen" : "informacion");
+      setMyHospitalId(resolvedHospitalId);
+      setActiveTab(episodio && !isFromOther ? "resumen" : "informacion");
     } catch {
       setError("No se pudo cargar la ficha del paciente. Intente nuevamente.");
     } finally {
       setLoading(false);
     }
-  }, [id, bebeId, canViewEpisodes]);
+  }, [id, bebeId, canViewEpisodes, currentUser?.id]);
+
+  const isOtherHospital = !!(
+    episodioActivo &&
+    myHospitalId != null &&
+    episodioActivo.hospitalId != null &&
+    episodioActivo.hospitalId !== myHospitalId
+  );
 
   useEffect(() => {
     void loadData();
@@ -170,6 +187,12 @@ export default function PatientRecordPage({ id, bebeId }: PatientRecordPageProps
       setActiveTab(episodioActivo ? "resumen" : "informacion");
     }
   }, [activeTab, canViewMedicalImages, episodioActivo]);
+
+  useEffect(() => {
+    if (isOtherHospital && activeTab !== "informacion" && activeTab !== "historial") {
+      setActiveTab("informacion");
+    }
+  }, [isOtherHospital, activeTab]);
 
   if (loading) {
     return (
@@ -269,7 +292,7 @@ export default function PatientRecordPage({ id, bebeId }: PatientRecordPageProps
 
             {/* Right: action buttons */}
             <div className="flex items-center gap-2">
-              {episodioActivo ? (
+              {isOtherHospital ? null : episodioActivo ? (
                 <>
                   <button
                     type="button"
@@ -336,8 +359,8 @@ export default function PatientRecordPage({ id, bebeId }: PatientRecordPageProps
 
         {/* Tab bar */}
         <div className="flex items-center gap-0 border-b border-[#D1D9E6] px-8 xl:px-12 overflow-x-auto">
-          {!episodioActivo ? (
-            // Sin episodio activo: Información + Historial
+          {(!episodioActivo || isOtherHospital) ? (
+            // Sin episodio activo o episodio en otro hospital: Información + Historial
             noEpisodeTabs.map((t) => <TabBtn key={t.id} id={t.id} label={t.label} />)
           ) : isBabyActive ? (
             // Bebé activo: tabs fijas + baby + flecha colapsable + tabs clínicas
@@ -397,6 +420,16 @@ export default function PatientRecordPage({ id, bebeId }: PatientRecordPageProps
 
       {/* Tab content */}
       <div className="flex-1 min-h-0 overflow-y-auto py-6 px-8 xl:px-12 space-y-4">
+        {isOtherHospital && (
+          <div role="alert" className="alert alert-info text-sm py-3 gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="size-5 shrink-0">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+            </svg>
+            <span>
+              Este paciente está siendo atendido en <strong>{episodioActivo?.hospitalNombre}</strong>. Solo puede consultar su información y historial médico.
+            </span>
+          </div>
+        )}
         {activeTab === "informacion" && (
           <>
             {bebe ? (
@@ -406,8 +439,8 @@ export default function PatientRecordPage({ id, bebeId }: PatientRecordPageProps
                 <PatientInfoCard
                   paciente={paciente}
                   onUpdated={setPaciente}
-                  contacto={contacto}
-                  onContactUpdated={setContacto}
+                  contactos={contactos}
+                  onContactsUpdated={setContactos}
                   onAccountCreated={() => void loadData()}
                   canEditPatient={canEditPatient}
                   canManageContact={canManageContact}
@@ -430,7 +463,7 @@ export default function PatientRecordPage({ id, bebeId }: PatientRecordPageProps
           />
         )}
 
-        {activeTab === "historial" && !episodioActivo && canViewEpisodes && (
+        {activeTab === "historial" && (!episodioActivo || isOtherHospital) && canViewEpisodes && (
           <EpisodeHistoryTab pacienteId={id} bebeId={bebe?.id} />
         )}
 
@@ -506,7 +539,7 @@ export default function PatientRecordPage({ id, bebeId }: PatientRecordPageProps
       )}
 
       {canFinalizeEpisode && bebe && episodioActivo && (
-        <DarDeAltaBebeModal
+        <DischargeBabyModal
           open={showBebeDischargeModal}
           bebe={bebe}
           episodio={episodioActivo}

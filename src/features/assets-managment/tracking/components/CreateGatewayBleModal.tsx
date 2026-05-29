@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { createGatewayBle } from "@/features/assets-managment/tracking/services/gatewayBleService";
-import { createAsignacionGatewayArea } from "@/features/assets-managment/tracking/services/asignacionGatewayAreaService";
+import { createGatewayAreaAssignment } from "@/features/assets-managment/tracking/services/gatewayAreaAssignmentService";
 import { getAreas } from "@/features/administration/areas/services/areaService";
 import type { GatewayBle } from "@/features/assets-managment/tracking/types";
 import { toast } from "@/lib/toast";
@@ -82,7 +82,7 @@ export function CreateGatewayBleModal({
       });
 
       try {
-        await createAsignacionGatewayArea({
+        await createGatewayAreaAssignment({
           gatewayBleId: gateway.id,
           areaId: areaId!,
         });

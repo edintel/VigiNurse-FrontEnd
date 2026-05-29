@@ -6,8 +6,8 @@ import {
   filterInputCls,
 } from "@/shared/ui/FilterPanel";
 import { SearchableSelect } from "@/shared/ui/SearchableSelect";
-import { getMantenimientosCalendario } from "@/features/assets-managment/maintenance/services/maintenanceService";
-import { getActivoById } from "@/features/assets-managment/inventory/services/assetService";
+import { getMaintenanceCalendar } from "@/features/assets-managment/maintenance/services/maintenanceService";
+import { getAssetById } from "@/features/assets-managment/inventory/services/assetService";
 import { getAreas } from "@/features/administration/areas/services/areaService";
 import { getUsers } from "@/features/administration/users/services/userManagementService";
 import type { Mantenimiento } from "@/features/assets-managment/maintenance/types";
@@ -31,11 +31,11 @@ interface AppliedCalendarFilters {
   serial?: string;
 }
 
-// Este componente es la página principal del calendario de mantenimientos. Contiene:
+// Este componente es la página principal del calendar de mantenimientos. Contiene:
 // - Un encabezado con título y descripción
 // - Un componente de estadísticas (StatsCards) que muestra datos resumidos del mes
 // - Un panel de filtros (FilterPanel) con campos para número de serie, estado, tipo, área y responsable
-// - El widget del calendario (CalendarWidget) que muestra los mantenimientos programados del mes seleccionado
+// - El widget del calendar (CalendarWidget) que muestra los mantenimientos programados del mes seleccionado
 export default function MaintenanceCalendarPage() {
   const [calYear, setCalYear] = useState(now.getFullYear());
   const [calMonth, setCalMonth] = useState(now.getMonth());
@@ -95,7 +95,7 @@ export default function MaintenanceCalendarPage() {
   }, []);
 
   // Función para cargar mantenimientos del mes seleccionado con los filtros aplicados
-  const fetchCalendario = useCallback(
+  const fetchCalendar = useCallback(
     async (
       year: number,
       month: number,
@@ -104,7 +104,7 @@ export default function MaintenanceCalendarPage() {
       setLoadingCalendario(true);
       const { desde, hasta } = getMonthRange(year, month);
       try {
-        let data = await getMantenimientosCalendario(desde, hasta, {
+        let data = await getMaintenanceCalendar(desde, hasta, {
           areaId: filters.areaId,
           estado: filters.estado,
           tipo: filters.tipo,
@@ -122,7 +122,7 @@ export default function MaintenanceCalendarPage() {
         const entries = await Promise.all(
           uniqueIds.map(async (id) => {
             try {
-              const activo = await getActivoById(id);
+              const activo = await getAssetById(id);
               return [id, activo.tipoActivoNombre] as [number, string];
             } catch {
               return [id, ""] as [number, string];
@@ -140,8 +140,8 @@ export default function MaintenanceCalendarPage() {
   );
 
   useEffect(() => {
-    void fetchCalendario(calYear, calMonth, appliedFilters);
-  }, [fetchCalendario, calYear, calMonth, appliedFilters]);
+    void fetchCalendar(calYear, calMonth, appliedFilters);
+  }, [fetchCalendar, calYear, calMonth, appliedFilters]);
 
   function handleMonthChange(year: number, month: number) {
     setCalYear(year);

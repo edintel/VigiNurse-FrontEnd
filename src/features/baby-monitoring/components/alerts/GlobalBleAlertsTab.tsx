@@ -28,7 +28,7 @@ function SeveridadBadge({ s }: { s: SeveridadAlerta }) {
   return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border whitespace-nowrap ${cfg}`}>{SEVERIDAD_ALERTA_LABELS[s]}</span>;
 }
 
-function EstadoBadge({ e }: { e: EstadoAlertaBLE }) {
+function StatusBadge({ e }: { e: EstadoAlertaBLE }) {
   const cfg = {
     [EstadoAlertaBLE.Abierta]:    "bg-red-50 text-red-700 border-red-200",
     [EstadoAlertaBLE.Reconocida]: "bg-blue-50 text-blue-700 border-blue-200",
@@ -228,7 +228,7 @@ export default function GlobalBleAlertsTab() {
                     <td className="text-sm text-[#475569] whitespace-nowrap">{a.pacienteNombre ?? "—"}</td>
                     <td className="text-sm text-[#475569] whitespace-nowrap">{TIPO_ALERTA_BLE_LABELS[a.tipo]}</td>
                     <td><SeveridadBadge s={a.severidad} /></td>
-                    <td><EstadoBadge e={a.estado} /></td>
+                    <td><StatusBadge e={a.estado} /></td>
                     <td className="text-sm text-[#475569] truncate max-w-[110px]">{a.zonaNombre ?? "—"}</td>
                     <td className="text-sm text-[#475569] font-mono whitespace-nowrap">{a.brazaleteMac}</td>
                     <td className="text-sm text-[#475569] truncate max-w-[180px]">{a.descripcion}</td>

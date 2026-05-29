@@ -2,7 +2,7 @@ import { type RecetaDisplayItem } from "@/features/patients/components/episodes/
 
 
 // Componente para mostrar la sección de receta de alta en el resumen del episodio.
-// Permite visualizar los medicamentos recetados y acceder a la edición/agregación de la receta.
+// Permite visualizar los medications recetados y acceder a la edición/agregación de la receta.
 export function DischargeSection({
   recetaItems,
   submitting,

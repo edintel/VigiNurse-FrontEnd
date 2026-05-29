@@ -3,11 +3,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
-import { getUsuarioById } from "@/features/staff-monitoring/services/personalDetailService";
-import { getAsignacionesTareas } from "@/features/staff-monitoring/services/assignmentService";
-import { getTareaById, updateTareaEstado } from "@/features/staff-monitoring/services/taskService";
-import { updateEstadoPersonal } from "@/features/staff-monitoring/services/personalStatusService";
-import { getTurnos } from "@/features/staff-monitoring/services/turnosService";
+import { getUserById } from "@/features/staff-monitoring/services/personalDetailService";
+import { getTaskAssignments } from "@/features/staff-monitoring/services/assignmentService";
+import { getTaskById, updateTaskStatus } from "@/features/staff-monitoring/services/taskService";
+import { updateStaffStatus } from "@/features/staff-monitoring/services/personalStatusService";
+import { getShifts } from "@/features/staff-monitoring/services/shiftsService";
 import { getEpisodesByDoctor } from "@/features/patients/services/episodeService";
 import { toast } from "@/lib/toast";
 import {
@@ -18,8 +18,8 @@ import {
 import type { Tarea, AsignacionTarea, TurnoPersonal } from "@/features/staff-monitoring/types";
 import { EpisodioEstado } from "@/features/patients/types";
 import type { EpisodioHistorial } from "@/features/patients/types";
-import { TaskDetailModal } from "@/features/staff-monitoring/components/tareas/TaskDetailModal";
-import { CalendarioTurnos } from "@/features/staff-monitoring/components/calendario/CalendarioTurnos";
+import { TaskDetailModal } from "@/features/staff-monitoring/components/tasks/TaskDetailModal";
+import { ShiftCalendar } from "@/features/staff-monitoring/components/calendar/ShiftCalendar";
 import {
   findCurrentAndNextShift,
   getGreeting,
@@ -39,16 +39,16 @@ import {
   PatientEpisodeCard,
   PriorityStatCard,
   TaskCard,
-  TurnoCardFull,
-  TurnoInfoCard,
+  FullShiftCard,
+  ShiftInfoCard,
   type PriorityFilter,
   type TabId,
 } from "@/features/dashboard/components/staff-home";
 
 
 // Pagina principal del dashboard para personal médico y de enfermería. 
-// Muestra un resumen de su jornada, tareas urgentes, pacientes asignados (para médicos) 
-// y permite gestionar su disponibilidad y tareas.
+// Muestra un resumen de su jornada, tasks urgentes, pacientes asignados (para médicos) 
+// y permite gestionar su disponibilidad y tasks.
 export default function StaffHomePage() {
   const user = useAppSelector(selectCurrentUser);
   const router = useRouter();
@@ -101,9 +101,9 @@ export default function StaffHomePage() {
     const { fechaDesde, fechaHasta } = getTodayRange();
 
     const [profileResult, asignResult, turnosResult] = await Promise.allSettled([
-      getUsuarioById(userId),
-      getAsignacionesTareas(1, 100, undefined, userId),
-      getTurnos(1, 50, { usuarioId: userId, fechaDesde, fechaHasta }),
+      getUserById(userId),
+      getTaskAssignments(1, 100, undefined, userId),
+      getShifts(1, 50, { usuarioId: userId, fechaDesde, fechaHasta }),
     ]);
 
     if (profileResult.status === "fulfilled") {
@@ -115,7 +115,7 @@ export default function StaffHomePage() {
         await Promise.all(
           asignResult.value.datos.map(async (asignacion) => {
             try {
-              const tarea = await getTareaById(asignacion.tareaId);
+              const tarea = await getTaskById(asignacion.tareaId);
               return { tarea, asignacion };
             } catch {
               return null;
@@ -147,13 +147,13 @@ export default function StaffHomePage() {
     
   }, [loading, isDoctor]);
 
-  async function handleEstadoChange(nuevoEstado: EstadoDisponibilidadPersonal) {
+  async function handleStatusChange(nuevoEstado: EstadoDisponibilidadPersonal) {
     if (!userId || nuevoEstado === estado) return;
     setSavingEstado(true);
     const prev = estado;
     setEstado(nuevoEstado);
     try {
-      await updateEstadoPersonal(nuevoEstado);
+      await updateStaffStatus(nuevoEstado);
       toast.success(`Estado actualizado: ${ESTADO_CONFIG[nuevoEstado].label}`);
     } catch {
       setEstado(prev);
@@ -174,7 +174,7 @@ export default function StaffHomePage() {
     setCompletingIds((s) => new Set(s).add(tareaId));
     confirmModalRef.current?.close();
     try {
-      await updateTareaEstado(tareaId, { estado: EstadoTarea.Completada });
+      await updateTaskStatus(tareaId, { estado: EstadoTarea.Completada });
       setTaskPairs((prev) => prev.filter((p) => p.tarea.id !== tareaId));
       toast.success("Tarea completada.");
     } catch {
@@ -261,7 +261,7 @@ export default function StaffHomePage() {
             <AvailabilityDropdown
               estado={estado}
               saving={savingEstado}
-              onSelect={(e) => void handleEstadoChange(e)}
+              onSelect={(e) => void handleStatusChange(e)}
             />
           </div>
         </div>
@@ -272,7 +272,7 @@ export default function StaffHomePage() {
             isDoctor ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"
           }`}
         >
-          <TurnoInfoCard
+          <ShiftInfoCard
             current={turnoActual}
             next={proximoTurno}
             loadingTurnos={loadingTurnos}
@@ -357,7 +357,7 @@ export default function StaffHomePage() {
             {loadingTurnos ? (
               <div className="h-24 bg-[#f1f5f9] rounded-xl animate-pulse" />
             ) : turnoActual ?? proximoTurno ? (
-              <TurnoCardFull current={turnoActual} next={proximoTurno} />
+              <FullShiftCard current={turnoActual} next={proximoTurno} />
             ) : (
               <EmptyState icon={iconCalendar} title="Sin turnos próximos" subtitle="No hay turnos asignados en los próximos días." />
             )}
@@ -374,7 +374,7 @@ export default function StaffHomePage() {
               )}
             </div>
             {urgentPairs.length === 0 ? (
-              <EmptyState icon={iconCheck} title="Sin tareas urgentes" subtitle="No tienes tareas de alta prioridad en este momento." />
+              <EmptyState icon={iconCheck} title="Sin tasks urgentes" subtitle="No tienes tasks de alta prioridad en este momento." />
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {urgentPairs.map(({ tarea, asignacion }) => (
@@ -445,7 +445,7 @@ export default function StaffHomePage() {
       )}
 
       {/* ── Tab: Mis Tareas ────────────────────────────────────────────── */}
-      {activeTab === "tareas" && (
+      {activeTab === "tasks" && (
         <div className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <PriorityStatCard
@@ -478,11 +478,11 @@ export default function StaffHomePage() {
             {filteredPairs.length === 0 ? (
               <EmptyState
                 icon={iconCheck}
-                title="Sin tareas activas"
+                title="Sin tasks activas"
                 subtitle={
                   filterPriority === "todas"
-                    ? "No tienes tareas asignadas en este momento."
-                    : `No hay tareas de prioridad ${filterPriority}.`
+                    ? "No tienes tasks asignadas en este momento."
+                    : `No hay tasks de prioridad ${filterPriority}.`
                 }
               />
             ) : (
@@ -505,7 +505,7 @@ export default function StaffHomePage() {
 
       {/* ── Tab: Mi Horario ────────────────────────────────────────────── */}
       {activeTab === "horario" && userId && (
-        <CalendarioTurnos
+        <ShiftCalendar
           usuarioId={userId}
           showAreaFilter={false}
           allowDelete={false}

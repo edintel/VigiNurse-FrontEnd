@@ -47,7 +47,7 @@ const TIPO_STYLES: Record<
 };
 
 // Componente para mostrar el tipo de alerta con estilos específicos
-function TipoBadge({ tipo }: { tipo: AlertaTipo }) {
+function TypeBadge({ tipo }: { tipo: AlertaTipo }) {
   const s = TIPO_STYLES[tipo] ?? TIPO_STYLES[AlertaTipo.ProximoMantenimiento];
   return (
     <span
@@ -251,7 +251,7 @@ export default function AlertsPage() {
                     className="hover:bg-[#F8FAFC] transition-colors"
                   >
                     <td>
-                      <TipoBadge tipo={alerta.tipo} />
+                      <TypeBadge tipo={alerta.tipo} />
                     </td>
                     <td className="text-sm text-slate-700 max-w-xs">
                       {alerta.mensaje}

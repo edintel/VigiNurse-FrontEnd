@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { changeMantenimientoEstado } from "@/features/assets-managment/maintenance/services/maintenanceService";
-import { getActivoById } from "@/features/assets-managment/inventory/services/assetService";
+import { changeMaintenanceStatus } from "@/features/assets-managment/maintenance/services/maintenanceService";
+import { getAssetById } from "@/features/assets-managment/inventory/services/assetService";
 import {
   MantenimientoEstado,
   MantenimientoTipo,
@@ -32,7 +32,7 @@ function isVencido(m: Mantenimiento): boolean {
 }
 
 // Devuelve la etiqueta de estado, considerando el caso especial de "Vencido"
-function getEstadoLabel(m: Mantenimiento): string {
+function getStatusLabel(m: Mantenimiento): string {
   if (isVencido(m)) return "Vencido";
   switch (m.estado) {
     case MantenimientoEstado.EnProceso:
@@ -47,7 +47,7 @@ function getEstadoLabel(m: Mantenimiento): string {
 }
 
 // Devuelve el color asociado al estado, considerando el caso especial de "Vencido"
-function getEstadoColor(m: Mantenimiento): string {
+function getStatusColor(m: Mantenimiento): string {
   if (isVencido(m)) return "#ff627d";
   switch (m.estado) {
     case MantenimientoEstado.EnProceso:
@@ -99,7 +99,7 @@ export function MantenimientoDetailModal({
       setRazonError("");
       setApiError(null);
 
-      getActivoById(mantenimiento.activoId)
+      getAssetById(mantenimiento.activoId)
         .then(setActivo)
         .catch(() => {});
     } else {
@@ -114,7 +114,7 @@ export function MantenimientoDetailModal({
     setActionLoading(true);
     setApiError(null);
     try {
-      const updated = await changeMantenimientoEstado(
+      const updated = await changeMaintenanceStatus(
         mantenimiento.activoId,
         mantenimiento.id,
         {
@@ -148,7 +148,7 @@ export function MantenimientoDetailModal({
     setApiError(null);
     try {
       finalizeDialogRef.current?.close();
-      const updated = await changeMantenimientoEstado(
+      const updated = await changeMaintenanceStatus(
         mantenimiento.activoId,
         mantenimiento.id,
         {
@@ -185,7 +185,7 @@ export function MantenimientoDetailModal({
     setActionLoading(true);
     setApiError(null);
     try {
-      const updated = await changeMantenimientoEstado(
+      const updated = await changeMaintenanceStatus(
         mantenimiento.activoId,
         mantenimiento.id,
         {
@@ -218,8 +218,8 @@ export function MantenimientoDetailModal({
   const isFinalizado = mantenimiento.estado === MantenimientoEstado.Finalizado;
   const isCancelado = mantenimiento.estado === MantenimientoEstado.Cancelado;
 
-  const estadoColor = getEstadoColor(mantenimiento);
-  const estadoLabel = getEstadoLabel(mantenimiento);
+  const estadoColor = getStatusColor(mantenimiento);
+  const estadoLabel = getStatusLabel(mantenimiento);
 
   const activoDisplay = activo
     ? `${activo.tipoActivoNombre} — ${activo.marca} ${activo.modelo}`

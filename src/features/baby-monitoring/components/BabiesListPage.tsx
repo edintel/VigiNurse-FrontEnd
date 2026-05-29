@@ -59,7 +59,7 @@ export default function BabiesListPage() {
   const [error, setError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
-  const fetchBebes = useCallback(async (page: number) => {
+  const fetchBabies = useCallback(async (page: number) => {
     setLoading(true);
     setError(null);
     try {
@@ -76,14 +76,14 @@ export default function BabiesListPage() {
   }, []);
 
   useEffect(() => {
-    void fetchBebes(1);
-  }, [fetchBebes]);
+    void fetchBabies(1);
+  }, [fetchBabies]);
 
   function handlePageChange(page: number) {
-    void fetchBebes(page);
+    void fetchBabies(page);
   }
 
-  function handleBebeCreated(bebe: Bebe) {
+  function handleBabyCreated(bebe: Bebe) {
     setBebes((prev) => [bebe, ...prev]);
     setTotalRegistros((n) => n + 1);
   }
@@ -120,7 +120,7 @@ export default function BabiesListPage() {
             <span>{error}</span>
             <button
               className="btn btn-xs btn-ghost"
-              onClick={() => void fetchBebes(paginaActual)}
+              onClick={() => void fetchBabies(paginaActual)}
             >
               Reintentar
             </button>
@@ -238,7 +238,7 @@ export default function BabiesListPage() {
       <CreateBabyModal
         open={showCreate}
         onClose={() => setShowCreate(false)}
-        onCreated={handleBebeCreated}
+        onCreated={handleBabyCreated}
       />
     </div>
   );

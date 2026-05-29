@@ -1,11 +1,11 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  getTiposActivos,
-  getTipoActivoById,
+  getAssetTypes,
+  getAssetTypeById,
 } from "@/features/administration/assetTypes/services/assetTypeService";
-import { CreateTipoActivoModal } from "@/features/administration/assetTypes/components/CreateAssetTypeModal";
-import { EditTipoActivoModal } from "@/features/administration/assetTypes/components/EditAssetTypeModal";
+import { CreateAssetTypeModal } from "@/features/administration/assetTypes/components/CreateAssetTypeModal";
+import { EditAssetTypeModal } from "@/features/administration/assetTypes/components/EditAssetTypeModal";
 import { PaginationFooter } from "@/shared/ui/PaginationFooter";
 import {
   FilterPanel,
@@ -20,7 +20,7 @@ import type {
 const PAGE_SIZE = 10;
 
 // Componente principal para la gestión de tipos de activos.
-export default function TiposActivosPage() {
+export default function AssetTypesPage() {
   const [tiposActivos, setTiposActivos] = useState<TipoActivo[]>([]);
   const [totalRegistros, setTotalRegistros] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(1);
@@ -42,7 +42,7 @@ export default function TiposActivosPage() {
     setLoading(true);
     setError(null);
     try {
-      const result: PaginatedTiposActivos = await getTiposActivos(
+      const result: PaginatedTiposActivos = await getAssetTypes(
         page,
         PAGE_SIZE,
       );
@@ -63,7 +63,7 @@ export default function TiposActivosPage() {
     setLoading(true);
     setError(null);
     try {
-      const tipoActivo = await getTipoActivoById(id);
+      const tipoActivo = await getAssetTypeById(id);
       setTiposActivos([tipoActivo]);
       setTotalRegistros(1);
       setTotalPaginas(1);
@@ -105,12 +105,12 @@ export default function TiposActivosPage() {
     void fetchAll(page);
   }
 
-  function handleTipoActivoCreated(tipoActivo: TipoActivo) {
+  function handleAssetTypeCreated(tipoActivo: TipoActivo) {
     setTiposActivos((prev) => [tipoActivo, ...prev]);
     setTotalRegistros((n) => n + 1);
   }
 
-  function handleTipoActivoUpdated(updated: TipoActivo) {
+  function handleAssetTypeUpdated(updated: TipoActivo) {
     setTiposActivos((prev) =>
       prev.map((t) => (t.id === updated.id ? updated : t)),
     );
@@ -263,16 +263,16 @@ export default function TiposActivosPage() {
         />
       </div>
 
-      <CreateTipoActivoModal
+      <CreateAssetTypeModal
         open={showCreate}
         onClose={() => setShowCreate(false)}
-        onCreated={handleTipoActivoCreated}
+        onCreated={handleAssetTypeCreated}
       />
-      <EditTipoActivoModal
+      <EditAssetTypeModal
         open={editTipoActivo !== null}
         tipoActivo={editTipoActivo}
         onClose={() => setEditTipoActivo(null)}
-        onUpdated={handleTipoActivoUpdated}
+        onUpdated={handleAssetTypeUpdated}
       />
     </div>
   );

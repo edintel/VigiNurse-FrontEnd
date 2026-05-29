@@ -13,9 +13,6 @@ export const API_ENDPOINTS = {
   },
   specialties: {
     list: `${API_BASE_URL}/especialidades`,
-  },
-  especialidades: {
-    list: `${API_BASE_URL}/especialidades`,
     byId: (id: number) => `${API_BASE_URL}/especialidades/${id}`,
   },
   users: {
@@ -39,6 +36,13 @@ export const API_ENDPOINTS = {
   areas: {
     list: `${API_BASE_URL}/areas`,
     byId: (id: number) => `${API_BASE_URL}/areas/${id}`,
+    posicion: (id: number) => `${API_BASE_URL}/areas/${id}/posicion`,
+  },
+  hospitalFloorPlans: {
+    lista: (hospitalId: number) => `${API_BASE_URL}/planos-hospital/${hospitalId}/lista`,
+    crear: `${API_BASE_URL}/planos-hospital`,
+    vista: (planoId: number) => `${API_BASE_URL}/planos-hospital/${planoId}/vista`,
+    eliminar: (planoId: number) => `${API_BASE_URL}/planos-hospital/${planoId}`,
   },
   tiposActivos: {
     list: `${API_BASE_URL}/tipos-activos`,
@@ -48,7 +52,7 @@ export const API_ENDPOINTS = {
     list: `${API_BASE_URL}/zonas`,
     byId: (id: number) => `${API_BASE_URL}/zonas/${id}`,
   },
-  signosVitales: {
+  vitalSigns: {
     tipos: `${API_BASE_URL}/signos-vitales/tipos`,
     tipoById: (id: number) => `${API_BASE_URL}/signos-vitales/tipos/${id}`,
   },
@@ -63,7 +67,7 @@ export const API_ENDPOINTS = {
     leer: (id: number) => `${API_BASE_URL}/alertas/${id}/leer`,
   },
   mantenimientos: {
-    calendario: `${API_BASE_URL}/mantenimientos/calendario`,
+    calendar: `${API_BASE_URL}/mantenimientos/calendario`,
     byActivo: (activoId: number) =>
       `${API_BASE_URL}/activos/${activoId}/mantenimientos`,
     byId: (activoId: number, mantenimientoId: number) =>
@@ -117,7 +121,7 @@ export const API_ENDPOINTS = {
     medico: (medicoId: number) =>
       `${API_BASE_URL}/episodios/medico/${medicoId}`,
   },
-  medicamentos: {
+  medications: {
     list: `${API_BASE_URL}/medicamentos`,
     byId: (id: number) => `${API_BASE_URL}/medicamentos/${id}`,
   },
@@ -160,7 +164,7 @@ export const API_ENDPOINTS = {
   },
   personalMedico: {
     list: `${API_BASE_URL}/personal-medico`,
-    grupos: `${API_BASE_URL}/personal-medico/grupos`,
+    groups: `${API_BASE_URL}/personal-medico/grupos`,
     grupoById: (id: number) => `${API_BASE_URL}/personal-medico/grupos/${id}`,
     grupoMiembros: (id: number) => `${API_BASE_URL}/personal-medico/grupos/${id}/miembros`,
     grupoMiembroById: (grupoId: number, usuarioId: number) =>
@@ -168,7 +172,7 @@ export const API_ENDPOINTS = {
     turnos: `${API_BASE_URL}/personal-medico/turnos`,
     turnoById: (id: number) => `${API_BASE_URL}/personal-medico/turnos/${id}`,
     turnosRango: `${API_BASE_URL}/personal-medico/turnos/rango`,
-    tareas: `${API_BASE_URL}/personal-medico/tareas`,
+    tasks: `${API_BASE_URL}/personal-medico/tareas`,
     tareaById: (id: number) => `${API_BASE_URL}/personal-medico/tareas/${id}`,
     tareaEstado: (id: number) => `${API_BASE_URL}/personal-medico/tareas/${id}/estado`,
     asignacionesTareas: `${API_BASE_URL}/personal-medico/asignaciones`,
@@ -208,10 +212,6 @@ export const API_ENDPOINTS = {
     eventoById: (id: number) => `${API_BASE_URL}/ble/eventos/${id}`,
     sensores: `${API_BASE_URL}/ble/sensores`,
     sensorById: (id: number) => `${API_BASE_URL}/ble/sensores/${id}`,
-    autorizaciones: `${API_BASE_URL}/ble/autorizaciones`,
-    autorizacionesByEpisodio: (episodioId: number) => `${API_BASE_URL}/ble/autorizaciones/episodio/${episodioId}`,
-    autorizacionById: (id: number) => `${API_BASE_URL}/ble/autorizaciones/${id}`,
-    marcarAutorizacionUtilizada: (id: number) => `${API_BASE_URL}/ble/autorizaciones/${id}/marcar-utilizada`,
   },
   zonasPermitidas: {
     byEpisodio: (episodioId: number) => `${API_BASE_URL}/ble/zonas-permitidas/episodio/${episodioId}`,
@@ -227,7 +227,7 @@ export const API_ENDPOINTS = {
   turnosCiclos: {
     list: `${API_BASE_URL}/turnos/ciclos`,
     byId: (id: number) => `${API_BASE_URL}/turnos/ciclos/${id}`,
-    asignaciones: `${API_BASE_URL}/turnos/ciclos/asignaciones`,
+    assignments: `${API_BASE_URL}/turnos/ciclos/asignaciones`,
     asignacionById: (id: number) => `${API_BASE_URL}/turnos/ciclos/asignaciones/${id}`,
     asignacionPreview: `${API_BASE_URL}/turnos/ciclos/asignaciones/preview`,
     asignacionRenovar: (id: number) => `${API_BASE_URL}/turnos/ciclos/asignaciones/${id}/renovar`,
@@ -269,5 +269,6 @@ export const API_ENDPOINTS = {
   },
 } as const;
 
+export const SERVER_BASE_URL = API_BASE_URL.replace(/\/+$/g, "").replace(/\/api$/i, "");
 export const SIGNALR_HUB_URL = `${API_BASE_URL.replace(/\/+$/g, "").replace(/\/api$/i, "")}/hubs/signos-vitales`;
 export const CHAT_HUB_URL = `${API_BASE_URL.replace(/\/+$/g, "").replace(/\/api$/i, "")}/hubs/chat`;

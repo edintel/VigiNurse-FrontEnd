@@ -50,7 +50,7 @@ const ESTADO_TAG_CONFIG: Record<EstadoTagBle, EstadoTagBleConfig> = {
   },
 };
 
-function EstadoTagBadge({ estado }: { estado: EstadoTagBle }) {
+function TagStatusBadge({ estado }: { estado: EstadoTagBle }) {
   const c = ESTADO_TAG_CONFIG[estado] ?? ESTADO_TAG_CONFIG[EstadoTagBle.Activo];
   return (
     <span
@@ -319,7 +319,7 @@ export default function TagsBleTab() {
                       </span>
                     </td>
                     <td>
-                      <EstadoTagBadge estado={tag.estado} />
+                      <TagStatusBadge estado={tag.estado} />
                     </td>
                     <td>
                       <BatteryIcon nivel={tag.nivelBateria} />

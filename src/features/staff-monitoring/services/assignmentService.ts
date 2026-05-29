@@ -7,8 +7,8 @@ import type {
   Paginated,
 } from "../types";
 
-// Obtiene una lista paginada de asignaciones de tareas, con opciones de filtrado por tareaId y usuarioId
-export async function getAsignacionesTareas(
+// Obtiene una lista paginada de assignments de tasks, con opciones de filtrado por tareaId y usuarioId
+export async function getTaskAssignments(
   pagina = 1,
   tamanio = 100,
   tareaId?: number,
@@ -32,7 +32,7 @@ export async function getAsignacionesTareas(
 }
 
 // Crea una nueva asignación de tarea para un usuario específico, con la opción de asignar a un hospital
-export async function createAsignacionTarea(dto: CrearAsignacionTareaDto): Promise<AsignacionTarea> {
+export async function createTaskAssignment(dto: CrearAsignacionTareaDto): Promise<AsignacionTarea> {
   const response = await axiosInstance.post<AsignacionTarea>(
     API_ENDPOINTS.personalMedico.asignacionesTareas,
     dto,
@@ -41,7 +41,7 @@ export async function createAsignacionTarea(dto: CrearAsignacionTareaDto): Promi
 }
 
 // Actualiza una asignación de tarea existente
-export async function updateAsignacionTarea(
+export async function updateTaskAssignment(
   id: number,
   dto: ActualizarAsignacionTareaDto,
 ): Promise<AsignacionTarea> {

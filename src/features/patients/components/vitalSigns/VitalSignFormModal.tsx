@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { getTiposSignoVital } from "@/features/administration/signosVitales/services/signosVitalesService";
+import { getVitalSignTypes } from "@/features/administration/vitalSigns/services/vitalSignsService";
 import { createVitalSign } from "@/features/patients/services/vitalSignService";
-import type { TipoSignoVital } from "@/features/administration/signosVitales/types";
+import type { TipoSignoVital } from "@/features/administration/vitalSigns/types";
 import type { SignoVital } from "@/features/patients/types";
 import { loadSession } from "@/lib/session";
 import { toast } from "@/lib/toast";
@@ -15,16 +15,16 @@ function normalizeName(s: string) {
     .replace(/\p{Mn}/gu, "");
 }
 
-function isSistolicaTipo(nombre: string) {
+function isSystolicType(nombre: string) {
   return normalizeName(nombre).includes("sistol");
 }
 
-function isDiastolicaTipo(nombre: string) {
+function isDiastolicType(nombre: string) {
   return normalizeName(nombre).includes("diastol");
 }
 
-function isBPTipo(nombre: string) {
-  return isSistolicaTipo(nombre) || isDiastolicaTipo(nombre);
+function isBPType(nombre: string) {
+  return isSystolicType(nombre) || isDiastolicType(nombre);
 }
 
 function isOutOfRange(valor: number, min: number, max: number) {
@@ -92,11 +92,11 @@ export function VitalSignFormModal({
   const [submitting, setSubmitting] = useState(false);
   const [registroFecha, setRegistroFecha] = useState<Date>(new Date());
 
-  const tipoSistolica = tipos.find((t) => isSistolicaTipo(t.nombre));
-  const tipoDiastolica = tipos.find((t) => isDiastolicaTipo(t.nombre));
+  const tipoSistolica = tipos.find((t) => isSystolicType(t.nombre));
+  const tipoDiastolica = tipos.find((t) => isDiastolicType(t.nombre));
   const hasBP = !!(tipoSistolica && tipoDiastolica);
 
-  const regularTipos = tipos.filter((t) => !isBPTipo(t.nombre));
+  const regularTipos = tipos.filter((t) => !isBPType(t.nombre));
 
   const selectedTipo =
     selectedTipoId !== "" && selectedTipoId !== "bp"
@@ -115,7 +115,7 @@ export function VitalSignFormModal({
       setErrors({});
       setRegistroFecha(new Date());
       setLoadingTipos(true);
-      getTiposSignoVital()
+      getVitalSignTypes()
         .then(setTipos)
         .catch(() => {
           setTipos([]);

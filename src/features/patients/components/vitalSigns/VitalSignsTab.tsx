@@ -1,10 +1,10 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { getEpisodeVitalSigns } from "@/features/patients/services/vitalSignService";
-import { getTiposSignoVital } from "@/features/administration/signosVitales/services/signosVitalesService";
+import { getVitalSignTypes } from "@/features/administration/vitalSigns/services/vitalSignsService";
 import { VitalSignFormModal } from "@/features/patients/components/vitalSigns/VitalSignFormModal";
-import { useSignosVitales } from "@/features/vitals-monitoring/hooks/useSignosVitales";
-import { getMonitoresPorPaciente } from "@/features/vitals-monitoring/services/monitorService";
+import { useVitalSigns } from "@/features/vitals-monitoring/hooks/useVitalSigns";
+import { getMonitorsByPatient } from "@/features/vitals-monitoring/services/monitorService";
 import {
   FilterPanel,
   FilterLabel,
@@ -12,7 +12,7 @@ import {
 } from "@/shared/ui/FilterPanel";
 import { CallyDatePicker } from "@/shared/ui/CallyDatePicker";
 import type { SignoVital } from "@/features/patients/types";
-import type { TipoSignoVital } from "@/features/administration/signosVitales/types";
+import type { TipoSignoVital } from "@/features/administration/vitalSigns/types";
 import type { MonitorPacienteDto } from "@/features/vitals-monitoring/types";
 import { toast } from "@/lib/toast";
 
@@ -24,7 +24,7 @@ function normalizeName(s: string) {
     .replace(/\p{Mn}/gu, "");
 }
 
-function isBPTipo(nombre: string) {
+function isBPType(nombre: string) {
   const n = normalizeName(nombre);
   return n.includes("sistol") || n.includes("diastol");
 }
@@ -127,7 +127,7 @@ function MonitorRealtimePanel({
   monitor: MonitorPacienteDto;
   onRefreshMonitor: () => void;
 }) {
-  const { lectura, estado } = useSignosVitales(pacienteId);
+  const { lectura, estado } = useVitalSigns(pacienteId);
   const cfg = LIVE_CONN_BADGE[estado];
 
   return (
@@ -248,8 +248,8 @@ function buildCards(signos: SignoVital[]): {
     (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime(),
   );
 
-  const bpSignos = sorted.filter((s) => isBPTipo(s.tipoSignoNombre));
-  const regularSignos = sorted.filter((s) => !isBPTipo(s.tipoSignoNombre));
+  const bpSignos = sorted.filter((s) => isBPType(s.tipoSignoNombre));
+  const regularSignos = sorted.filter((s) => !isBPType(s.tipoSignoNombre));
 
   const seen = new Set<number>();
   const recent: SignoVital[] = [];
@@ -304,7 +304,7 @@ export function VitalSignsTab({ episodioId, pacienteId, canCreate = true }: Vita
       let encontrado: MonitorPacienteDto | null = null;
 
       do {
-        const response = await getMonitoresPorPaciente(pacienteId, pagina, 50);
+        const response = await getMonitorsByPatient(pacienteId, pagina, 50);
         const activos = response.datos
           .filter((m) => m.fechaDesasignacion === null)
           .sort(
@@ -340,7 +340,7 @@ export function VitalSignsTab({ episodioId, pacienteId, canCreate = true }: Vita
     try {
       const [data, tiposData] = await Promise.all([
         getEpisodeVitalSigns(episodioId),
-        getTiposSignoVital(),
+        getVitalSignTypes(),
       ]);
       setAllSignos(data);
       setTableSignos(data);

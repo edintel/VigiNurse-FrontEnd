@@ -4,6 +4,7 @@ export interface AuthUser {
     email: string;
     name: string;
     role: AuthRole;
+    hospitalId?: number | null;
 }
 export interface PersistedSession {
     token: string;

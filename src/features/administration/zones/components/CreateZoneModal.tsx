@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { InputField } from "@/shared/ui/InputField";
-import { createZona } from "@/features/administration/zones/services/zoneService";
+import { createZone } from "@/features/administration/zones/services/zoneService";
 import type { Zona } from "@/features/administration/zones/types";
 import { toast } from "@/lib/toast";
 
@@ -12,7 +12,7 @@ interface CreateZonaModalProps {
 }
 
 // Modal para crear una nueva zona del hospital.
-export function CreateZonaModal({
+export function CreateZoneModal({
   open,
   onClose,
   onCreated,
@@ -59,7 +59,7 @@ export function CreateZonaModal({
     setLoading(true);
     setApiError(null);
     try {
-      const zona = await createZona({
+      const zona = await createZone({
         nombre: nombre.trim(),
         descripcion: descripcion.trim(),
         esSegura,

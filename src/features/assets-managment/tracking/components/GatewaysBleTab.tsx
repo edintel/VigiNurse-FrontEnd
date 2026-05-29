@@ -52,7 +52,7 @@ const ESTADO_GW_CONFIG: Record<EstadoGatewayBle, EstadoGatewayConfig> = {
   },
 };
 
-function EstadoGwBadge({ estado }: { estado: EstadoGatewayBle }) {
+function GatewayStatusBadge({ estado }: { estado: EstadoGatewayBle }) {
   const c =
     ESTADO_GW_CONFIG[estado] ?? ESTADO_GW_CONFIG[EstadoGatewayBle.Offline];
   return (
@@ -301,7 +301,7 @@ export default function GatewaysBleTab() {
                       </span>
                     </td>
                     <td>
-                      <EstadoGwBadge estado={gw.estado} />
+                      <GatewayStatusBadge estado={gw.estado} />
                     </td>
                     <td className="text-xs text-slate-500">
                       {formatDate(gw.ultimaConexion)}

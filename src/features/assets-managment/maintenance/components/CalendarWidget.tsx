@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Mantenimiento } from "@/features/assets-managment/maintenance/types";
 import {
-  getEstadoColor,
+  getStatusColor,
   groupByDate,
 } from "@/features/assets-managment/maintenance/utils/calendarHelpers";
 
@@ -188,7 +188,7 @@ export function CalendarWidget({
                       <span
                         key={m.id}
                         className="w-2 h-2 rounded-full shrink-0"
-                        style={{ backgroundColor: getEstadoColor(m) }}
+                        style={{ backgroundColor: getStatusColor(m) }}
                       />
                     ))}
                     {items.length > 4 && (
@@ -208,7 +208,7 @@ export function CalendarWidget({
                       >
                         <span
                           className="w-2 h-2 rounded-full shrink-0"
-                          style={{ backgroundColor: getEstadoColor(m) }}
+                          style={{ backgroundColor: getStatusColor(m) }}
                         />
                         <div className="min-w-0 flex-1">
                           {tipoActivoMap[m.activoId] && (

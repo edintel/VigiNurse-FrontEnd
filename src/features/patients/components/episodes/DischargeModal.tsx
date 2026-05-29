@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getMedicamentosForDropdown } from "@/features/administration/medicamentos/services/medicamentosService";
+import { getMedicationsForDropdown } from "@/features/administration/medications/services/medicationsService";
 import { SearchableSelect } from "@/shared/ui/SearchableSelect";
 import type { RecetaAltaDetalle } from "@/features/patients/types";
-import type { MedicamentoAdmin } from "@/features/administration/medicamentos/types";
+import type { MedicamentoAdmin } from "@/features/administration/medications/types";
 import { toast } from "@/lib/toast";
 
 
@@ -51,21 +51,21 @@ interface Props {
   initialItems?: RecetaDisplayItem[] | null;
 }
 
-// Componente modal para crear la receta de alta, con búsqueda de medicamentos y validación de campos.
+// Componente modal para crear la receta de alta, con búsqueda de medications y validación de campos.
 
 
 export function DischargeModal({ open, onClose, onConfirmar, initialItems }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [medicamentos, setMedicamentos] = useState<MedicamentoAdmin[]>([]);
+  const [medications, setMedicamentos] = useState<MedicamentoAdmin[]>([]);
   const [medLoading, setMedLoading] = useState(false);
   const [rows, setRows] = useState<RecetaRow[]>([makeRow()]);
   const [submitting, setSubmitting] = useState(false);
 
-  // Cargar medicamentos al abrir
+  // Cargar medications al abrir
   useEffect(() => {
     if (!open) return;
     setMedLoading(true);
-    getMedicamentosForDropdown(undefined, 1, 200)
+    getMedicationsForDropdown(undefined, 1, 200)
       .then((meds) => {
         setMedicamentos(meds);
 
@@ -92,7 +92,7 @@ export function DischargeModal({ open, onClose, onConfirmar, initialItems }: Pro
       })
       .catch(() => {
         setRows([makeRow()]);
-        toast.error("No se pudieron cargar los medicamentos para la receta.");
+        toast.error("No se pudieron cargar los medications para la receta.");
       })
       .finally(() => setMedLoading(false));
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -119,11 +119,11 @@ export function DischargeModal({ open, onClose, onConfirmar, initialItems }: Pro
     setRows((prev) => [...prev, makeRow()]);
   }
 
-  // Función para obtener las opciones de medicamentos filtradas según el texto de búsqueda en cada fila.
+  // Función para obtener las opciones de medications filtradas según el texto de búsqueda en cada fila.
 
   function getOptions(search: string) {
     const q = search.toLowerCase().trim();
-    return medicamentos
+    return medications
       .filter(
         (m) =>
           !q ||
@@ -200,7 +200,7 @@ export function DischargeModal({ open, onClose, onConfirmar, initialItems }: Pro
             <div>
               <h3 className="text-base font-bold text-[#0f172a]">Receta de alta</h3>
               <p className="text-xs text-[#64748b] mt-0.5">
-                Agregue los medicamentos que se recetan al paciente al momento del alta.
+                Agregue los medications que se recetan al paciente al momento del alta.
               </p>
             </div>
           </div>
@@ -278,7 +278,7 @@ export function DischargeModal({ open, onClose, onConfirmar, initialItems }: Pro
                     })
                   }
                   onSelect={(opt) => {
-                    const med = medicamentos.find((m) => m.id === opt.id);
+                    const med = medications.find((m) => m.id === opt.id);
                     updateRow(row.uid, {
                       medicamentoId: opt.id,
                       medicamentoSearch: med ? buildLabel(med) : opt.label,
@@ -290,7 +290,7 @@ export function DischargeModal({ open, onClose, onConfirmar, initialItems }: Pro
                   onFocus={() => updateRow(row.uid, { showDropdown: true })}
                   onBlur={() => updateRow(row.uid, { showDropdown: false })}
                   placeholder="Buscar medicamento..."
-                  emptyText="No se encontraron medicamentos."
+                  emptyText="No se encontraron medications."
                   error={row.errors.medicamento}
                   onClear={() =>
                     updateRow(row.uid, { medicamentoId: null, medicamentoSearch: "" })

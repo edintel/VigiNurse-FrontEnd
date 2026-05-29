@@ -2,10 +2,10 @@
 import { useEffect, useRef, useState } from "react";
 import { updateGatewayBle } from "@/features/assets-managment/tracking/services/gatewayBleService";
 import {
-  getAsignacionesGatewayArea,
-  createAsignacionGatewayArea,
-  desasignarGatewayArea,
-} from "@/features/assets-managment/tracking/services/asignacionGatewayAreaService";
+  getGatewayAreaAssignments,
+  createGatewayAreaAssignment,
+  unassignGatewayArea,
+} from "@/features/assets-managment/tracking/services/gatewayAreaAssignmentService";
 import { getAreas } from "@/features/administration/areas/services/areaService";
 import {
   EstadoGatewayBle,
@@ -71,9 +71,9 @@ export function EditGatewayBleModal({
       // Busca el ID de la asignación activa de este gateway para poder desasignarla si cambia.
       if (gateway.areaId !== null) {
         setLoadingArea(true);
-        getAsignacionesGatewayArea(true)
-          .then((asignaciones) => {
-            const asignacion = asignaciones.find(
+        getGatewayAreaAssignments(true)
+          .then((assignments) => {
+            const asignacion = assignments.find(
               (a) => a.gatewayBleId === gateway.id,
             );
             setCurrentAssignmentId(asignacion?.id ?? null);
@@ -99,12 +99,12 @@ export function EditGatewayBleModal({
 
     // Desasigna el área anterior si existía.
     if (previousAreaId !== null && currentAssignmentId !== null) {
-      await desasignarGatewayArea(currentAssignmentId);
+      await unassignGatewayArea(currentAssignmentId);
     }
 
     // Asigna la nueva área si se seleccionó una.
     if (newAreaId !== null) {
-      const asignacion = await createAsignacionGatewayArea({
+      const asignacion = await createGatewayAreaAssignment({
         gatewayBleId: gatewayId,
         areaId: newAreaId,
       });

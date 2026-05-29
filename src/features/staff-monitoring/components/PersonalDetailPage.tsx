@@ -1,17 +1,19 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getUsuarioById } from "../services/personalDetailService";
-import { getCargaTrabajoUsuario } from "../services/workloadService";
-import { getAsignacionesTareas } from "../services/assignmentService";
-import { getTareaById } from "../services/taskService";
-import { CalendarioTurnos } from "./calendario/CalendarioTurnos";
+import { getUserById } from "../services/personalDetailService";
+import { getUserWorkload } from "../services/workloadService";
+import { getTaskAssignments } from "../services/assignmentService";
+import { getTaskById } from "../services/taskService";
+import { getEpisodesByDoctor } from "@/features/patients/services/episodeService";
+import { ShiftCalendar } from "./calendar/ShiftCalendar";
+import { PatientEpisodeCard } from "@/features/dashboard/components/staff-home/PatientEpisodeCard";
 import {
   PrioridadBadge,
   DisponibilidadBadge,
   fmtDate,
   fmtDateTime,
-} from "./tareas/taskHelpers";
+} from "./tasks/taskHelpers";
 import type {
   PersonalMedicoDetalle,
   CargaTrabajo,
@@ -19,6 +21,8 @@ import type {
   Tarea,
 } from "../types";
 import { NivelCarga, PrioridadTarea } from "../types";
+import type { EpisodioHistorial } from "@/features/patients/types";
+import { EpisodioEstado } from "@/features/patients/types";
 
 
 const PRIORITY_ACCENT: Record<PrioridadTarea, { border: string; label: string }> = {
@@ -168,13 +172,14 @@ function Skeleton() {
 }
 
 // Pagina principal de detalle de personal médico. Muestra información del usuario, su carga de trabajo, 
-// tareas asignadas y calendario de turnos.
+// tasks asignadas y calendar de turnos.
 export function PersonalDetailPage({ id }: { id: number }) {
   const router = useRouter();
 
   const [user, setUser] = useState<PersonalMedicoDetalle | null>(null);
   const [carga, setCarga] = useState<CargaTrabajo | null>(null);
   const [taskPairs, setTaskPairs] = useState<{ tarea: Tarea; asignacion: AsignacionTarea }[]>([]);
+  const [episodios, setEpisodios] = useState<EpisodioHistorial[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -186,22 +191,29 @@ export function PersonalDetailPage({ id }: { id: number }) {
     setNotFound(false);
 
     try {
-      const userData = await getUsuarioById(id);
+      const userData = await getUserById(id);
       setUser(userData);
 
-      const [cargaResult, asignResult] = await Promise.allSettled([
-        getCargaTrabajoUsuario(id),
-        getAsignacionesTareas(1, 50, undefined, id),
+      const isDoctor = userData.roles.some((r) => r.toUpperCase() === "DOCTOR");
+
+      const [cargaResult, asignResult, episodiosResult] = await Promise.allSettled([
+        getUserWorkload(id),
+        getTaskAssignments(1, 50, undefined, id),
+        isDoctor
+          ? getEpisodesByDoctor(id, 1, 50, { estado: EpisodioEstado.EnCurso })
+          : Promise.resolve(null),
       ]);
 
       if (cargaResult.status === "fulfilled") setCarga(cargaResult.value);
+      if (episodiosResult.status === "fulfilled" && episodiosResult.value)
+        setEpisodios(episodiosResult.value.datos);
 
       if (asignResult.status === "fulfilled") {
-        const asignaciones = asignResult.value.datos;
+        const assignments = asignResult.value.datos;
         const pairs = await Promise.all(
-          asignaciones.map(async (asignacion) => {
+          assignments.map(async (asignacion) => {
             try {
-              const tarea = await getTareaById(asignacion.tareaId);
+              const tarea = await getTaskById(asignacion.tareaId);
               return { tarea, asignacion };
             } catch {
               return null;
@@ -267,6 +279,7 @@ export function PersonalDetailPage({ id }: { id: number }) {
 
   const initials = getInitials(user.nombre, user.apellidos);
   const fullName = `${user.nombre} ${user.apellidos}`;
+  const isDoctor = user.roles.some((r) => r.toUpperCase() === "DOCTOR");
   const activeTasks = taskPairs.filter(
     ({ tarea }) => tarea.estado !== 2 && tarea.estado !== 3,
   );
@@ -392,7 +405,7 @@ export function PersonalDetailPage({ id }: { id: number }) {
                 style={{
                   background: `conic-gradient(${workloadVisual.accent} ${workloadVisual.progress * 3.6}deg, #edf2f7 0deg)`,
                 }}
-                aria-label={`${workloadActiveTasks} tareas activas. Nivel de carga: ${workloadDescription}`}
+                aria-label={`${workloadActiveTasks} tasks activas. Nivel de carga: ${workloadDescription}`}
               >
                 <div className="absolute inset-3 rounded-full bg-white flex flex-col items-center justify-center px-2 text-center shadow-[inset_0_0_0_1px_#eef2f7]">
                   <span className="text-4xl font-extrabold leading-none text-[#0f172a]">
@@ -433,33 +446,68 @@ export function PersonalDetailPage({ id }: { id: number }) {
             <h2 className="text-base font-bold text-[#0f172a]">Tareas asignadas</h2>
             <p className="text-xs text-slate-500">
               {activeTasks.length} activa{activeTasks.length !== 1 ? "s" : ""}
-              {completedTasks.length > 0 && ` · ${completedTasks.length} completada${completedTasks.length !== 1 ? "s" : ""}`}
+              {completedTasks.length > 0 }
             </p>
           </div>
         </div>
 
-        {taskPairs.length === 0 ? (
+        {activeTasks.length === 0 ? (
           <div className="bg-white rounded-xl border border-[#e2e8f0] shadow-sm py-12 flex flex-col items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="size-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
               </svg>
             </div>
-            <p className="text-sm text-slate-400">Sin tareas asignadas</p>
+            <p className="text-sm text-slate-400">Sin tasks asignadas</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {taskPairs.map(({ tarea, asignacion }) => (
+            {activeTasks.map(({ tarea, asignacion }) => (
               <TaskCard key={asignacion.id} tarea={tarea} asignacion={asignacion} />
             ))}
           </div>
         )}
       </div>
 
+      {/* ── Pacientes asignados (solo Doctor) ─────────────────────────────── */}
+      {isDoctor && (
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-base font-bold text-[#0f172a]">Pacientes asignados</h2>
+            {episodios.length > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#09268E]">
+                {episodios.length}
+              </span>
+            )}
+          </div>
+
+          {episodios.length === 0 ? (
+            <div className="bg-white rounded-xl border border-[#e2e8f0] shadow-sm py-12 flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="size-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                </svg>
+              </div>
+              <p className="text-sm text-slate-400">Sin pacientes asignados actualmente</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {episodios.map((ep) => (
+                <PatientEpisodeCard
+                  key={ep.id}
+                  ep={ep}
+                  onView={() => router.push(`/patients/${ep.pacienteId}`)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Calendar section ──────────────────────────────────────────────── */}
       <div>
         <h2 className="text-base font-bold text-[#0f172a] mb-4">Calendario de turnos</h2>
-        <CalendarioTurnos
+        <ShiftCalendar
           usuarioId={id}
           showAreaFilter={false}
           allowDelete={false}

@@ -12,8 +12,8 @@ import { CreateMantenimientoModal } from "@/features/assets-managment/maintenanc
 import { EditMantenimientoModal } from "@/features/assets-managment/maintenance/components/EditMaintenanceModal";
 import { MantenimientoDetailModal } from "@/features/assets-managment/maintenance/components/MaintenanceDetailModal";
 import {
-  getMantenimientosByActivo,
-  getMantenimientosCalendario,
+  getMaintenanceByAsset,
+  getMaintenanceCalendar,
 } from "@/features/assets-managment/maintenance/services/maintenanceService";
 import { getUsers } from "@/features/administration/users/services/userManagementService";
 import {
@@ -39,7 +39,7 @@ function isVencido(m: Mantenimiento): boolean {
 }
 
 // Colores para estados (vencido > en proceso > finalizado > cancelado > programado)
-function getEstadoColor(m: Mantenimiento): string {
+function getStatusColor(m: Mantenimiento): string {
   if (isVencido(m)) return "#ff627d";
   switch (m.estado) {
     case MantenimientoEstado.EnProceso:
@@ -54,7 +54,7 @@ function getEstadoColor(m: Mantenimiento): string {
 }
 
 // Etiquetas para estados
-function getEstadoLabel(m: Mantenimiento): string {
+function getStatusLabel(m: Mantenimiento): string {
   if (isVencido(m)) return "Vencido";
   switch (m.estado) {
     case MantenimientoEstado.EnProceso:
@@ -69,8 +69,8 @@ function getEstadoLabel(m: Mantenimiento): string {
 }
 
 // Badge de estado con colores dinámicos
-function EstadoBadge({ m }: { m: Mantenimiento }) {
-  const color = getEstadoColor(m);
+function StatusBadge({ m }: { m: Mantenimiento }) {
+  const color = getStatusColor(m);
   return (
     <span
       className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase border"
@@ -80,7 +80,7 @@ function EstadoBadge({ m }: { m: Mantenimiento }) {
         color,
       }}
     >
-      {getEstadoLabel(m)}
+      {getStatusLabel(m)}
     </span>
   );
 }
@@ -169,7 +169,7 @@ export default function AssetsPage({ activoId }: AssetsPageProps) {
       setLoadingTable(true);
       setTableError(null);
       try {
-        const res = await getMantenimientosByActivo(
+        const res = await getMaintenanceByAsset(
           activoId,
           page,
           PAGE_SIZE,
@@ -193,7 +193,7 @@ export default function AssetsPage({ activoId }: AssetsPageProps) {
       setLoadingTable(true);
       setTableError(null);
       try {
-        const data = await getMantenimientosCalendario(desde, hasta);
+        const data = await getMaintenanceCalendar(desde, hasta);
         setTableData(data);
         setPaginaActual(1);
         setTotalPaginas(1);
@@ -462,7 +462,7 @@ export default function AssetsPage({ activoId }: AssetsPageProps) {
                       {m.nombreResponsable}
                     </td>
                     <td>
-                      <EstadoBadge m={m} />
+                      <StatusBadge m={m} />
                     </td>
                     <td>
                       <div className="flex items-center justify-end gap-1">
