@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SearchableSelect } from "@/shared/ui/SearchableSelect";
-import { getPersonalMedico } from "@/features/staff-monitoring/services/personalMedicoService";
+import { getMedicalStaff } from "@/features/staff-monitoring/services/medicalStaffService";
 import { assignPrimaryDoctor, changeCurrentDoctor } from "@/features/patients/services/episodeService";
 import type { PersonalMedico } from "@/features/staff-monitoring/types";
 import type { EpisodioHistorial } from "@/features/patients/types";
@@ -68,7 +68,7 @@ export function AssignEpisodeDoctorModal({
   function loadDoctors() {
     setDoctorsLoading(true);
     setDoctorsError(null);
-    getPersonalMedico(1, 100, { rol: "Doctor" })
+    getMedicalStaff(1, 100, { rol: "Doctor" })
       .then((res) => setDoctors(res.datos))
       .catch(() => setDoctorsError("No se pudieron cargar los doctores."))
       .finally(() => setDoctorsLoading(false));

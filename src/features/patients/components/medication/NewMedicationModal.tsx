@@ -1,12 +1,12 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createMedication } from "@/features/patients/services/medicationService";
-import { getMedicamentosForDropdown } from "@/features/administration/medicamentos/services/medicamentosService";
+import { getMedicationsForDropdown } from "@/features/administration/medications/services/medicationsService";
 import { SearchableSelect } from "@/shared/ui/SearchableSelect";
 import type { Medicacion } from "@/features/patients/types";
 import { loadSession } from "@/lib/session";
 import { toast } from "@/lib/toast";
-import type { MedicamentoAdmin } from "@/features/administration/medicamentos/types";
+import type { MedicamentoAdmin } from "@/features/administration/medications/types";
 
 type SelectOption = { id: number; label: string; sublabel?: string };
 
@@ -32,7 +32,7 @@ export function NewMedicationModal({ open, episodioId, onClose, onCreated }: Pro
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   // Medicamento search
-  const [medicamentos, setMedicamentos] = useState<MedicamentoAdmin[]>([]);
+  const [medications, setMedicamentos] = useState<MedicamentoAdmin[]>([]);
   const [medSearch, setMedSearch] = useState("");
   const [medSelectedId, setMedSelectedId] = useState<number | null>(null);
   const [medShowDropdown, setMedShowDropdown] = useState(false);
@@ -58,14 +58,14 @@ export function NewMedicationModal({ open, episodioId, onClose, onCreated }: Pro
     setMedLoading(true);
     setMedFetchError(undefined);
     const t = setTimeout(() => {
-      getMedicamentosForDropdown(medSearch || undefined, 1, 50, controller.signal)
+      getMedicationsForDropdown(medSearch || undefined, 1, 50, controller.signal)
         .then(setMedicamentos)
         .catch((err: unknown) => {
           if (controller.signal.aborted) return;
           const msg =
             (err as { response?: { data?: { mensaje?: string; message?: string } } })?.response?.data?.mensaje ??
             (err as { response?: { data?: { mensaje?: string; message?: string } } })?.response?.data?.message ??
-            "No se pudieron cargar los medicamentos.";
+            "No se pudieron cargar los medications.";
           setMedFetchError(msg);
           setMedicamentos([]);
         })
@@ -92,8 +92,8 @@ export function NewMedicationModal({ open, episodioId, onClose, onCreated }: Pro
   }, [open]);
 
   const medOptions = useMemo<SelectOption[]>(
-    () => medicamentos.map((m) => ({ id: m.id, label: `${m.nombreGenerico} ${ `- ${m.concentracion}`}` })),
-    [medicamentos],
+    () => medications.map((m) => ({ id: m.id, label: `${m.nombreGenerico} ${ `- ${m.concentracion}`}` })),
+    [medications],
   );
 
   function validate(): boolean {
@@ -167,7 +167,7 @@ export function NewMedicationModal({ open, episodioId, onClose, onCreated }: Pro
               onFocus={() => setMedShowDropdown(true)}
               onBlur={() => setMedShowDropdown(false)}
               placeholder="Buscar medicamento..."
-              emptyText="No se encontraron medicamentos."
+              emptyText="No se encontraron medications."
               error={errors.medicamento}
               fetchError={medFetchError}
               onRetry={() => setMedReloadToken((v) => v + 1)}

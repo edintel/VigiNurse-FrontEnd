@@ -3,11 +3,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentUser } from "@/store/slices/authSlice";
-import { getUsuarioById } from "@/features/staff-monitoring/services/personalDetailService";
+import { getUserById } from "@/features/staff-monitoring/services/personalDetailService";
 import { getActiveEpisodes } from "@/features/patients/services/episodeService";
 import { getUsers } from "@/features/administration/users/services/userManagementService";
-import { getPersonalMedico } from "@/features/staff-monitoring/services/personalMedicoService";
-import { getTurnos } from "@/features/staff-monitoring/services/turnosService";
+import { getMedicalStaff } from "@/features/staff-monitoring/services/medicalStaffService";
+import { getShifts } from "@/features/staff-monitoring/services/shiftsService";
 import { getAreas } from "@/features/staff-monitoring/services/areasService";
 import { getBabies } from "@/features/baby-monitoring/services/babyService";
 import { EstadoDisponibilidadPersonal } from "@/features/staff-monitoring/types";
@@ -136,15 +136,15 @@ export default function AdminHospitalDashboard() {
         areasRes,
         neonatosRes,
       ] = await Promise.allSettled([
-        getUsuarioById(userId),
+        getUserById(userId),
         getActiveEpisodes(1, 100),
         getUsers(1, 1),
         getUsers(1, 1, { bloqueado: true }),
-        getPersonalMedico(1, 1, { estado: EstadoDisponibilidadPersonal.Disponible }),
-        getPersonalMedico(1, 1, { estado: EstadoDisponibilidadPersonal.Ocupado }),
-        getPersonalMedico(1, 1, { estado: EstadoDisponibilidadPersonal.EnBreak }),
-        getPersonalMedico(1, 1, { estado: EstadoDisponibilidadPersonal.FueraDeServicio }),
-        getTurnos(1, 500, { fechaDesde, fechaHasta }),
+        getMedicalStaff(1, 1, { estado: EstadoDisponibilidadPersonal.Disponible }),
+        getMedicalStaff(1, 1, { estado: EstadoDisponibilidadPersonal.Ocupado }),
+        getMedicalStaff(1, 1, { estado: EstadoDisponibilidadPersonal.EnBreak }),
+        getMedicalStaff(1, 1, { estado: EstadoDisponibilidadPersonal.FueraDeServicio }),
+        getShifts(1, 500, { fechaDesde, fechaHasta }),
         getAreas(),
         getBabies(1, 1),
       ]);
@@ -407,8 +407,8 @@ export default function AdminHospitalDashboard() {
               <div className="space-y-3">
                 {[
                   { label: "Disponible", value: data?.disponibles ?? 0, bar: "bg-green-500", text: "text-green-700" },
-                  { label: "Ocupado", value: data?.ocupados ?? 0, bar: "bg-[#09268E]", text: "text-[#09268E]" },
-                  { label: "En break", value: data?.enBreak ?? 0, bar: "bg-amber-400", text: "text-amber-600" },
+                  { label: "Ocupado", value: data?.ocupados ?? 0, bar: "bg-red-500", text: "text-red-700" },
+                  { label: "En break", value: data?.enBreak ?? 0, bar: "bg-blue-500", text: "text-blue-700" },
                   { label: "Fuera de servicio", value: data?.fueraDeServicio ?? 0, bar: "bg-slate-400", text: "text-slate-600" },
                 ].map((row) => {
                   const total =

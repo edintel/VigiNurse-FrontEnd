@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { deleteZona } from "@/features/administration/zones/services/zoneService";
+import { deleteZone } from "@/features/administration/zones/services/zoneService";
 import type { Zona } from "@/features/administration/zones/types";
 import { toast } from "@/lib/toast";
 
@@ -12,7 +12,7 @@ interface DeleteZonaModalProps {
 }
 
 // Modal de confirmación para eliminar una zona.
-export function DeleteZonaModal({
+export function DeleteZoneModal({
   open,
   zona,
   onClose,
@@ -36,7 +36,7 @@ export function DeleteZonaModal({
     setLoading(true);
     setApiError(null);
     try {
-      await deleteZona(zona.id);
+      await deleteZone(zona.id);
       toast.success(`Zona "${zona.nombre}" eliminada exitosamente.`);
       onDeleted(zona.id);
       onClose();

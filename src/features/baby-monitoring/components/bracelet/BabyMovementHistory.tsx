@@ -10,6 +10,10 @@ import { CallyDatePicker } from "@/shared/ui/CallyDatePicker";
 import { FilterPanel, FilterLabel, filterInputCls } from "@/shared/ui/FilterPanel";
 import { PaginationFooter } from "@/shared/ui/PaginationFooter";
 
+function mVToPercent(mv: number): number {
+  return Math.min(100, Math.max(0, Math.round((mv - 2000) / 1000 * 100)));
+}
+
 const PAGE_SIZE = 20;
 
 interface BabyMovementHistoryProps {
@@ -28,7 +32,7 @@ const TIPO_EVENT_BADGE_CFG: Record<TipoEventoRastreo, string> = {
   [TipoEventoRastreo.SensorDesconocido]:   "bg-slate-100 text-slate-500 border-slate-200",
 };
 
-function TipoEventoBadge({ tipo }: { tipo: TipoEventoRastreo }) {
+function EventTypeBadge({ tipo }: { tipo: TipoEventoRastreo }) {
   const cfg = TIPO_EVENT_BADGE_CFG[tipo] ?? "bg-slate-100 text-slate-500 border-slate-200";
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border whitespace-nowrap ${cfg}`}>
@@ -128,8 +132,8 @@ export function BabyMovementHistory({ bebe, assignments, assignmentsLoading }: B
           <span className="text-xs font-bold uppercase tracking-[0.5px] text-[#64748b]">Historial de movimientos</span>
         </div>
         <div className="flex flex-col items-center justify-center py-10 text-center gap-2">
-          <p className="text-sm font-semibold text-[#475569]">Sin asignaciones de brazalete</p>
-          <p className="text-xs text-slate-400">Este bebé no tiene asignaciones de brazalete registradas.</p>
+          <p className="text-sm font-semibold text-[#475569]">Sin assignments de brazalete</p>
+          <p className="text-xs text-slate-400">Este bebé no tiene assignments de brazalete registradas.</p>
         </div>
       </div>
     );
@@ -216,12 +220,12 @@ export function BabyMovementHistory({ bebe, assignments, assignmentsLoading }: B
               events.map((ev) => (
                 <tr key={ev.id} className="hover:bg-base-200">
                   <td className="text-sm text-[#475569] whitespace-nowrap">{formatDT(ev.fechaEvento)}</td>
-                  <td><TipoEventoBadge tipo={ev.tipoEvento} /></td>
+                  <td><EventTypeBadge tipo={ev.tipoEvento} /></td>
                   <td className="text-sm text-[#475569] truncate max-w-[120px]">{ev.zonaNombre ?? "—"}</td>
-                  <td className="text-sm text-[#475569] truncate max-w-[120px]">{ev.sensorNombre ?? "—"}</td>
+                  <td className="text-sm text-[#475569] font-mono truncate max-w-[120px]">{ev.gatewayMac ?? "—"}</td>
                   <td className="text-sm text-[#475569] font-mono whitespace-nowrap">{ev.brazaleteMac ?? "—"}</td>
                   <td className="text-sm text-[#475569] whitespace-nowrap">{ev.rssiDbm != null ? `${ev.rssiDbm} dBm` : "—"}</td>
-                  <td className="text-sm text-[#475569] whitespace-nowrap">{ev.nivelBateria != null ? `${ev.nivelBateria}%` : "—"}</td>
+                  <td className="text-sm text-[#475569] whitespace-nowrap">{ev.nivelBateria != null ? `${mVToPercent(ev.nivelBateria)}%` : "—"}</td>
                   <td className="text-sm text-[#475569] whitespace-nowrap">{formatDT(ev.fechaProcesado)}</td>
                 </tr>
               ))

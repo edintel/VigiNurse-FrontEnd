@@ -28,7 +28,7 @@ const TIPOS_ESTUDIO = [
 
 const PAGE_SIZE = 20;
 
-function formatFecha(fechaStr: string | null | undefined): string {
+function formatDate(fechaStr: string | null | undefined): string {
   if (!fechaStr) return "—";
   try {
     const d = new Date(fechaStr);
@@ -399,7 +399,7 @@ export function MedicalImagesTab({ pacienteId }: MedicalImagesTabProps) {
                   estudios.map((estudio) => (
                     <tr key={estudio.id} className="hover:bg-base-200">
                       <td className="text-sm text-[#0f172a] whitespace-nowrap">
-                        {formatFecha(estudio.fechaEstudio)}
+                        {formatDate(estudio.fechaEstudio)}
                       </td>
                       <td className="text-sm font-medium text-[#1A2B5E]">
                         {estudio.tipoEstudio}

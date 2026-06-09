@@ -1,7 +1,8 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getActivos } from "@/features/assets-managment/inventory/services/assetService";
+import { useHasPermission } from "@/lib/hasPermission";
+import { getAssets } from "@/features/assets-managment/inventory/services/assetService";
 import { CreateAssetModal } from "@/features/assets-managment/inventory/components/CreateAssetModal";
 import { EditAssetModal } from "@/features/assets-managment/inventory/components/EditAssetModal";
 import { RetireAssetModal } from "@/features/assets-managment/inventory/components/RetireAssetModal";
@@ -17,7 +18,7 @@ import type {
 const PAGE_SIZE = 10;
 
 // Badge de condición/estado del activo
-function EstadoBadge({ estado }: { estado: ActivoEstado }) {
+function StatusBadge({ estado }: { estado: ActivoEstado }) {
   const configs: Record<
     ActivoEstado,
     { bg: string; border: string; text: string; label: string }
@@ -90,6 +91,8 @@ function CriticoIcon({ esCritico }: { esCritico: boolean }) {
 // Componente principal de la pestaña de inventario.
 export default function InventoryPage() {
   const router = useRouter();
+  const canCreate = useHasPermission("assetsManagement.create");
+  const canEdit = useHasPermission("assetsManagement.edit");
   const [activos, setActivos] = useState<Activo[]>([]);
   const [totalRegistros, setTotalRegistros] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(1);
@@ -103,14 +106,14 @@ export default function InventoryPage() {
   // Modales
   const [showCreate, setShowCreate] = useState(false);
   const [editActivo, setEditActivo] = useState<Activo | null>(null);
-  const [retirarActivo, setRetirarActivo] = useState<Activo | null>(null);
+  const [retireAsset, setRetirarActivo] = useState<Activo | null>(null);
 
-  const fetchActivos = useCallback(
+  const fetchAssets = useCallback(
     async (page: number, filters: ActivoFilters) => {
       setLoading(true);
       setError(null);
       try {
-        const result: PaginatedActivos = await getActivos(
+        const result: PaginatedActivos = await getAssets(
           page,
           PAGE_SIZE,
           filters,
@@ -129,33 +132,33 @@ export default function InventoryPage() {
   );
 
   useEffect(() => {
-    void fetchActivos(1, {});
-  }, [fetchActivos]);
+    void fetchAssets(1, {});
+  }, [fetchAssets]);
 
   function handleApplyFilters(filters: ActivoFilters) {
     setAppliedFilters(filters);
-    void fetchActivos(1, filters);
+    void fetchAssets(1, filters);
   }
 
   function handleClearFilters() {
     setAppliedFilters({});
-    void fetchActivos(1, {});
+    void fetchAssets(1, {});
   }
 
   function handlePageChange(page: number) {
-    void fetchActivos(page, appliedFilters);
+    void fetchAssets(page, appliedFilters);
   }
 
-  function handleActivoCreated(activo: Activo) {
+  function handleAssetCreated(activo: Activo) {
     setActivos((prev) => [activo, ...prev]);
     setTotalRegistros((n) => n + 1);
   }
 
-  function handleActivoUpdated(updated: Activo) {
+  function handleAssetUpdated(updated: Activo) {
     setActivos((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
   }
 
-  function handleActivoRetirado(id: number) {
+  function handleAssetRetired(id: number) {
     setActivos((prev) =>
       prev.map((a) =>
         a.id === id
@@ -168,6 +171,7 @@ export default function InventoryPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
+        {canCreate && (
         <button
           type="button"
           className="btn text-white"
@@ -190,6 +194,7 @@ export default function InventoryPage() {
           </svg>
           Registrar nuevo activo
         </button>
+        )}
       </div>
 
       <InventoryFilters
@@ -203,7 +208,7 @@ export default function InventoryPage() {
             <span>{error}</span>
             <button
               className="btn btn-xs btn-ghost"
-              onClick={() => fetchActivos(paginaActual, appliedFilters)}
+              onClick={() => fetchAssets(paginaActual, appliedFilters)}
             >
               Reintentar
             </button>
@@ -272,7 +277,7 @@ export default function InventoryPage() {
                       {activo.tipoActivoNombre}
                     </td>
                     <td>
-                      <EstadoBadge estado={activo.estado} />
+                      <StatusBadge estado={activo.estado} />
                     </td>
                     <td className="text-sm text-[#0f172a]">
                       {activo.areaNombre}
@@ -311,6 +316,7 @@ export default function InventoryPage() {
                             />
                           </svg>
                         </button>
+                        {canEdit && (
                         <button
                           type="button"
                           className="btn btn-square btn-sm btn-ghost text-[#09268E] disabled:text-slate-300"
@@ -337,6 +343,7 @@ export default function InventoryPage() {
                             />
                           </svg>
                         </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -358,19 +365,19 @@ export default function InventoryPage() {
       <CreateAssetModal
         open={showCreate}
         onClose={() => setShowCreate(false)}
-        onCreated={handleActivoCreated}
+        onCreated={handleAssetCreated}
       />
       <EditAssetModal
         open={editActivo !== null}
         activo={editActivo}
         onClose={() => setEditActivo(null)}
-        onUpdated={handleActivoUpdated}
+        onUpdated={handleAssetUpdated}
       />
       <RetireAssetModal
-        open={retirarActivo !== null}
-        activo={retirarActivo}
+        open={retireAsset !== null}
+        activo={retireAsset}
         onClose={() => setRetirarActivo(null)}
-        onRetirado={handleActivoRetirado}
+        onRetirado={handleAssetRetired}
       />
     </div>
   );

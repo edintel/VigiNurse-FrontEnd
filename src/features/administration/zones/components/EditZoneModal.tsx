@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { InputField } from "@/shared/ui/InputField";
-import { updateZona } from "@/features/administration/zones/services/zoneService";
+import { updateZone } from "@/features/administration/zones/services/zoneService";
 import type { Zona } from "@/features/administration/zones/types";
 import { toast } from "@/lib/toast";
 
@@ -13,7 +13,7 @@ interface EditZonaModalProps {
 }
 
 // Modal para editar una zona existente.
-export function EditZonaModal({
+export function EditZoneModal({
   open,
   zona,
   onClose,
@@ -61,7 +61,7 @@ export function EditZonaModal({
     setLoading(true);
     setApiError(null);
     try {
-      const updated = await updateZona(zona.id, {
+      const updated = await updateZone(zona.id, {
         nombre: nombre.trim(),
         descripcion: descripcion.trim(),
         esSegura,

@@ -27,8 +27,6 @@ import type {
   AlertaBrazalete,
   PaginatedAlertas,
   CloseAlertDTO,
-  AutorizacionMovimiento,
-  CrearAutorizacionMovimientoDTO,
 } from "@/features/baby-monitoring/types";
 import {
   EstadoBrazalete,
@@ -157,7 +155,7 @@ export async function updateBracelet(id: number, dto: ActualizarBrazaleteDTO): P
 }
 
 // PATCH /api/ble/brazaletes/{id}/status — no permite estado Activo=1
-export async function updateBraceletEstado(id: number, dto: CambiarEstadoBrazaleteDTO): Promise<Brazalete> {
+export async function updateBraceletStatus(id: number, dto: CambiarEstadoBrazaleteDTO): Promise<Brazalete> {
   const res = await axiosInstance.patch<Brazalete>(API_ENDPOINTS.ble.brazaleteStatus(id), dto);
   return res.data;
 }
@@ -281,6 +279,10 @@ export async function getAlerts(params?: {
       estado: params?.status,
       pacienteId: params?.babyId,
       brazaleteId: params?.braceletId,
+      severidad: params?.severity,
+      tipo: params?.type,
+      fechaDesde: params?.dateFrom ?? undefined,
+      fechaHasta: params?.dateTo ?? undefined,
     },
   });
   return res.data;
@@ -296,23 +298,3 @@ export async function closeAlert(id: number, dto: CloseAlertDTO): Promise<Alerta
   return res.data;
 }
 
-// ─── Autorizaciones de movimiento ──────────────────────────────────────────────
-
-export async function getMovementAuthorizationsByEpisode(episodioId: number): Promise<AutorizacionMovimiento[]> {
-  const res = await axiosInstance.get<AutorizacionMovimiento[]>(
-    API_ENDPOINTS.ble.autorizacionesByEpisodio(episodioId)
-  );
-  return res.data;
-}
-
-export async function createMovementAuthorization(dto: CrearAutorizacionMovimientoDTO): Promise<AutorizacionMovimiento> {
-  const res = await axiosInstance.post<AutorizacionMovimiento>(API_ENDPOINTS.ble.autorizaciones, dto);
-  return res.data;
-}
-
-export async function markMovementAuthorizationAsUsed(id: number): Promise<AutorizacionMovimiento> {
-  const res = await axiosInstance.post<AutorizacionMovimiento>(
-    API_ENDPOINTS.ble.marcarAutorizacionUtilizada(id)
-  );
-  return res.data;
-}

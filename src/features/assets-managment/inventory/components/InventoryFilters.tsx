@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getTiposActivos } from "@/features/administration/assetTypes/services/assetTypeService";
+import { getAssetTypes } from "@/features/administration/assetTypes/services/assetTypeService";
 import { getAreas } from "@/features/administration/areas/services/areaService";
 import { SearchableSelect } from "@/shared/ui/SearchableSelect";
 import {
@@ -45,7 +45,7 @@ export function InventoryFilters({ onApply, onClear }: InventoryFiltersProps) {
 
   // Carga las opciones de tipos y áreas al montar el componente.
   useEffect(() => {
-    getTiposActivos(1, 200)
+    getAssetTypes(1, 200)
       .then((res) =>
         setTipoOptions(res.datos.map((t) => ({ id: t.id, label: t.nombre }))),
       )

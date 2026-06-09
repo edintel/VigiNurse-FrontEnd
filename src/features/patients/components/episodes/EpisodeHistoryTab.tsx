@@ -41,7 +41,7 @@ function formatDate(dateStr: string | null): string {
 }
 
 // Badge del estado del episodio con color según el valor del enum.
-function EstadoBadge({ estado }: { estado: EpisodioEstado }) {
+function StatusBadge({ estado }: { estado: EpisodioEstado }) {
   const cfg =
     ESTADO_EPISODIO_CONFIG[estado] ??
     ESTADO_EPISODIO_CONFIG[EpisodioEstado.Pendiente];
@@ -245,7 +245,7 @@ export function EpisodeHistoryTab({
 
                       {/* Estado */}
                       <td>
-                        <EstadoBadge estado={ep.estado} />
+                        <StatusBadge estado={ep.estado} />
                       </td>
 
                       {/* Triage */}

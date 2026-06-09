@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { getPersonalMedico } from "@/features/staff-monitoring/services/personalMedicoService";
+import { getMedicalStaff } from "@/features/staff-monitoring/services/medicalStaffService";
 import { createDirectConversation } from "@/features/chat/services/chatService";
 import type { PersonalMedico } from "@/features/staff-monitoring/types";
 import type { ConversationSummary } from "@/features/chat/types";
@@ -49,7 +49,7 @@ export function NewDirectChatModal({
     debounceRef.current = setTimeout(() => {
       setSearching(true);
       setError(null);
-      getPersonalMedico(1, 20, { nombre: search.trim() })
+      getMedicalStaff(1, 20, { nombre: search.trim() })
         .then((res) => {
           setResults(
             res.datos.filter((u) => u.id !== currentUserId),

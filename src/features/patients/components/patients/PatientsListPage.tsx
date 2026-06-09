@@ -1,7 +1,8 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getPatients } from "@/features/patients/services/patientService";
+import { getBabies } from "@/features/baby-monitoring/services/babyService";
 import { CreatePatientModal } from "@/features/patients/components/patients/CreatePatientModal";
 import { CreateContactModal } from "@/features/patients/components/patients/CreateContactModal";
 import {
@@ -55,6 +56,18 @@ export default function PatientsListPage() {
   const router = useRouter();
   const canCreatePatients = useHasPermission("patients.create");
 
+  // IDs de pacientes que son bebés activos — se excluyen de este listado
+  const babyIdsRef = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    getBabies(1, 500)
+      .then((res) => {
+        babyIdsRef.current = new Set(
+          res.datos.filter((b) => b.activo).map((b) => b.pacienteId)
+        );
+      })
+      .catch(() => {});
+  }, []);
+
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [totalRegistros, setTotalRegistros] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(1);
@@ -83,7 +96,7 @@ export default function PatientsListPage() {
           PAGE_SIZE,
           filters,
         );
-        setPacientes(result.datos);
+        setPacientes(result.datos.filter((p) => !babyIdsRef.current.has(p.id)));
         setTotalRegistros(result.totalRegistros);
         setTotalPaginas(result.totalPaginas);
         setPaginaActual(result.paginaActual);

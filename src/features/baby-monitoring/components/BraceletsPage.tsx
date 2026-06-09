@@ -1,10 +1,11 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useHasPermission } from "@/lib/hasPermission";
 import {
   getBracelets,
   createBracelet,
   updateBracelet,
-  updateBraceletEstado,
+  updateBraceletStatus,
 } from "@/features/baby-monitoring/services/babyService";
 import { PaginationFooter } from "@/shared/ui/PaginationFooter";
 import { toast } from "@/lib/toast";
@@ -52,7 +53,7 @@ function formatDateTime(dateStr: string | null): string {
 
 // ─── Badges ───────────────────────────────────────────────────────────────────
 
-function EstadoBadge({ estado }: { estado: EstadoBrazalete }) {
+function StatusBadge({ estado }: { estado: EstadoBrazalete }) {
   const map: Record<EstadoBrazalete, string> = {
     [EstadoBrazalete.Disponible]:   "bg-emerald-50 border-emerald-200 text-emerald-700",
     [EstadoBrazalete.Activo]:       "bg-blue-50 border-blue-200 text-blue-700",
@@ -195,7 +196,7 @@ interface EditarBrazaleteModalProps {
   onUpdated: (b: Brazalete) => void;
 }
 
-function EditarBrazaleteModal({ open, brazalete, onClose, onUpdated }: EditarBrazaleteModalProps) {
+function EditBraceletModal({ open, brazalete, onClose, onUpdated }: EditarBrazaleteModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [descripcion, setDescripcion] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -276,7 +277,7 @@ interface CambiarEstadoModalProps {
   onUpdated: (b: Brazalete) => void;
 }
 
-function CambiarEstadoModal({ open, brazalete, onClose, onUpdated }: CambiarEstadoModalProps) {
+function ChangeStatusModal({ open, brazalete, onClose, onUpdated }: CambiarEstadoModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [estado, setEstado] = useState<EstadoBrazalete>(EstadoBrazalete.Disponible);
   const [motivo, setMotivo] = useState("");
@@ -305,7 +306,7 @@ function CambiarEstadoModal({ open, brazalete, onClose, onUpdated }: CambiarEsta
         estado,
         motivo: motivo.trim() || null,
       };
-      const updated = await updateBraceletEstado(brazalete.id, dto);
+      const updated = await updateBraceletStatus(brazalete.id, dto);
       toast.success(`Estado cambiado a "${ESTADO_BRAZALETE_LABELS[estado]}".`);
       onUpdated(updated);
       onClose();
@@ -327,7 +328,7 @@ function CambiarEstadoModal({ open, brazalete, onClose, onUpdated }: CambiarEsta
               <span className="text-xs text-slate-400 font-mono">{brazalete.codigo}</span>
               <span className="text-slate-300">·</span>
               <span className="text-xs text-slate-400">Estado actual:</span>
-              <EstadoBadge estado={brazalete.estado} />
+              <StatusBadge estado={brazalete.estado} />
             </div>
           )}
         </div>
@@ -388,6 +389,7 @@ function CambiarEstadoModal({ open, brazalete, onClose, onUpdated }: CambiarEsta
 // Componente que muestra la lista de brazaletes y permite crear, editar y cambiar estado
 
 export default function BraceletsPage() {
+  const canManage = useHasPermission("babyMonitoring.braceletManage");
   const [brazaletes, setBrazaletes] = useState<Brazalete[]>([]);
   const [totalRegistros, setTotalRegistros] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(1);
@@ -399,7 +401,7 @@ export default function BraceletsPage() {
   const [showEdit, setShowEdit] = useState(false);
   const [showCambiarEstado, setShowCambiarEstado] = useState(false);
 
-  const fetchBrazaletes = useCallback(async (page: number) => {
+  const fetchBracelets = useCallback(async (page: number) => {
     setLoading(true);
     setError(null);
     try {
@@ -415,7 +417,7 @@ export default function BraceletsPage() {
     }
   }, []);
 
-  useEffect(() => { void fetchBrazaletes(1); }, [fetchBrazaletes]);
+  useEffect(() => { void fetchBracelets(1); }, [fetchBracelets]);
 
   function handleCreated(b: Brazalete) {
     setBrazaletes((prev) => [b, ...prev]);
@@ -431,7 +433,7 @@ export default function BraceletsPage() {
     setShowEdit(true);
   }
 
-  function openCambiarEstado(b: Brazalete) {
+  function openChangeStatus(b: Brazalete) {
     setSelectedBrazalete(b);
     setShowCambiarEstado(true);
   }
@@ -440,6 +442,7 @@ export default function BraceletsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <h2 className="text-lg font-bold text-[#0f172a]">Brazaletes</h2>
+        {canManage && (
         <button type="button" className="btn text-white"
           style={{ backgroundColor: "#09268E", borderColor: "#09268E" }}
           onClick={() => setShowCreate(true)}>
@@ -448,13 +451,14 @@ export default function BraceletsPage() {
           </svg>
           Registrar brazalete
         </button>
+        )}
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] overflow-hidden">
         {error && (
           <div role="alert" className="alert alert-error m-4 text-sm py-3">
             <span>{error}</span>
-            <button className="btn btn-xs btn-ghost" onClick={() => void fetchBrazaletes(paginaActual)}>Reintentar</button>
+            <button className="btn btn-xs btn-ghost" onClick={() => void fetchBracelets(paginaActual)}>Reintentar</button>
           </div>
         )}
 
@@ -498,9 +502,11 @@ export default function BraceletsPage() {
                     <td><BatteryIcon nivel={b.nivelBateria} /></td>
                     <td className="text-sm text-[#475569] whitespace-nowrap">{formatDateTime(b.ultimaSenal)}</td>
                     <td className="text-sm text-[#475569] whitespace-nowrap">{formatDate(b.fechaCreacion)}</td>
-                    <td><EstadoBadge estado={b.estado} /></td>
+                    <td><StatusBadge estado={b.estado} /></td>
                     <td>
                       <div className="flex items-center justify-end gap-1">
+                        {canManage && (
+                        <>
                         {/* Editar: solo campos editables */}
                         <button type="button" className="btn btn-square btn-xs btn-ghost text-slate-500"
                           title="Editar" onClick={() => openEdit(b)}>
@@ -513,11 +519,13 @@ export default function BraceletsPage() {
                           className="btn btn-square btn-xs btn-ghost text-slate-500"
                           title="Cambiar estado"
                           disabled={b.estado === EstadoBrazalete.Activo}
-                          onClick={() => openCambiarEstado(b)}>
+                          onClick={() => openChangeStatus(b)}>
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="size-3.5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                           </svg>
                         </button>
+                        </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -532,20 +540,20 @@ export default function BraceletsPage() {
           total={totalPaginas}
           totalRecords={totalRegistros}
           showing={brazaletes.length}
-          onPageChange={(page) => void fetchBrazaletes(page)}
+          onPageChange={(page) => void fetchBracelets(page)}
         />
       </div>
 
       <CreateBraceletModal open={showCreate} onClose={() => setShowCreate(false)} onCreated={handleCreated} />
 
-      <EditarBrazaleteModal
+      <EditBraceletModal
         open={showEdit}
         brazalete={selectedBrazalete}
         onClose={() => { setShowEdit(false); setSelectedBrazalete(null); }}
         onUpdated={handleUpdated}
       />
 
-      <CambiarEstadoModal
+      <ChangeStatusModal
         open={showCambiarEstado}
         brazalete={selectedBrazalete}
         onClose={() => { setShowCambiarEstado(false); setSelectedBrazalete(null); }}

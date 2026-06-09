@@ -26,7 +26,7 @@ const PAGE_SIZE = 10;
 
 // ─── Badges ───────────────────────────────────────────────────────────────────
 
-function TipoZonaBadge({ tipo }: { tipo: TipoZona }) {
+function ZoneTypeBadge({ tipo }: { tipo: TipoZona }) {
   const cfg = ({
     [TipoZona.Segura]:      "bg-emerald-50 text-emerald-700 border-emerald-200",
     [TipoZona.Transito]:    "bg-amber-50 text-amber-700 border-amber-200",
@@ -40,7 +40,7 @@ function TipoZonaBadge({ tipo }: { tipo: TipoZona }) {
   );
 }
 
-function EstadoZonaBadge({ estado }: { estado: EstadoZona }) {
+function ZoneStatusBadge({ estado }: { estado: EstadoZona }) {
   const cfg = estado === EstadoZona.Activa
     ? "bg-emerald-50 text-emerald-700 border-emerald-200"
     : "bg-slate-100 text-slate-500 border-slate-200";
@@ -51,7 +51,7 @@ function EstadoZonaBadge({ estado }: { estado: EstadoZona }) {
   );
 }
 
-function EstadoSensorBadge({ estado }: { estado: EstadoSensor }) {
+function SensorStatusBadge({ estado }: { estado: EstadoSensor }) {
   const cfg = ({
     [EstadoSensor.Activo]:       "bg-emerald-50 text-emerald-700 border-emerald-200",
     [EstadoSensor.Inactivo]:     "bg-slate-100 text-slate-500 border-slate-200",
@@ -397,8 +397,8 @@ export default function ZonesAndSensorsTab() {
                     <td>
                       <span className="font-semibold text-[#1A2B5E] text-sm">{zona.nombre}</span>
                     </td>
-                    <td><TipoZonaBadge tipo={zona.tipo} /></td>
-                    <td><EstadoZonaBadge estado={zona.estado} /></td>
+                    <td><ZoneTypeBadge tipo={zona.tipo} /></td>
+                    <td><ZoneStatusBadge estado={zona.estado} /></td>
                     <td className="text-sm text-slate-500 max-w-[200px] truncate">
                       {zona.descripcion ?? "—"}
                     </td>
@@ -467,7 +467,7 @@ export default function ZonesAndSensorsTab() {
                 Sensores —
               </span>
               <span className="text-sm font-semibold text-[#1A2B5E] truncate">{selectedZone.nombre}</span>
-              <TipoZonaBadge tipo={selectedZone.tipo} />
+              <ZoneTypeBadge tipo={selectedZone.tipo} />
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
@@ -531,7 +531,7 @@ export default function ZonesAndSensorsTab() {
                         </span>
                       </td>
                       <td className="font-mono text-xs text-slate-500 whitespace-nowrap">{s.direccionMac}</td>
-                      <td><EstadoSensorBadge estado={s.estado} /></td>
+                      <td><SensorStatusBadge estado={s.estado} /></td>
                       <td className="text-sm text-slate-500 whitespace-nowrap">
                         {formatDateTime(s.ultimaSenal)}
                       </td>

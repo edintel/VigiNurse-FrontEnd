@@ -48,7 +48,7 @@ export function CreateOrderModal({
     }
   }, [open]);
 
-  function handleTipoChange(e: React.ChangeEvent<HTMLSelectElement>) {
+  function handleTypeChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newTipo = parseInt(e.target.value) as TipoOrden;
     setTipo(newTipo);
     setCategoria(CATEGORIAS_POR_TIPO[newTipo][0]);
@@ -117,7 +117,7 @@ export function CreateOrderModal({
                 <select
                   className={"select select-bordered w-full text-sm bg-white border-[#e2e8f0] text-[#0f172a] focus:border-[#09268E] focus:outline-none"}
                   value={tipo}
-                  onChange={handleTipoChange}
+                  onChange={handleTypeChange}
                   disabled={submitting}
                   required
                 >

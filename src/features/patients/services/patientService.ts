@@ -143,3 +143,13 @@ export async function updatePatientContact(
   );
   return res.data;
 }
+
+// Elimina un contacto de emergencia de un paciente.
+export async function deletePatientContact(
+  pacienteId: number,
+  contactoId: number,
+): Promise<void> {
+  await axiosInstance.delete(
+    API_ENDPOINTS.pacientes.contactoById(pacienteId, contactoId),
+  );
+}

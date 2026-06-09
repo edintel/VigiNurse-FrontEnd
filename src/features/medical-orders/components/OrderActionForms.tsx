@@ -46,6 +46,7 @@ export function InProgressForm({ saving, actionError, onVolver, onConfirm }: InP
 interface CompleteOrderFormProps {
   ordenId: number;
   esImagen: boolean;
+  canLinkPACS?: boolean;
   saving: boolean;
   pacsCheckLoading: boolean;
   pacsVinculado: boolean;
@@ -63,6 +64,7 @@ interface CompleteOrderFormProps {
 export function CompleteOrderForm({
   ordenId,
   esImagen,
+  canLinkPACS = false,
   saving,
   pacsCheckLoading,
   pacsVinculado,
@@ -76,7 +78,8 @@ export function CompleteOrderForm({
   onVolver,
   onConfirm,
 }: CompleteOrderFormProps) {
-  const confirmDisabled = saving || pacsCheckLoading || (esImagen ? !pacsVinculado : !observacion.trim());
+  const requirePACS = esImagen && canLinkPACS;
+  const confirmDisabled = saving || pacsCheckLoading || (requirePACS ? !pacsVinculado : !observacion.trim());
 
   return (
     <div className="bg-white rounded-xl border border-[#d1fae5] shadow-sm p-5 space-y-4">
@@ -85,9 +88,9 @@ export function CompleteOrderForm({
       {/* Archivos adjuntos o estudio PACS */}
       <div>
         <p className="text-[10px] font-bold uppercase tracking-[0.5px] text-[#94a3b8] mb-2">
-          {esImagen ? "Estudio PACS vinculado" : "Archivos adjuntos"}
+          {requirePACS ? "Estudio PACS vinculado" : "Archivos adjuntos"}
         </p>
-        {esImagen ? (
+        {requirePACS ? (
           <div className="flex items-center gap-3">
             {pacsCheckLoading ? (
               <span className="loading loading-spinner loading-sm text-[#09268E]" />
@@ -132,8 +135,8 @@ export function CompleteOrderForm({
         )}
       </div>
 
-      {/* Observación — solo para órdenes no-imagen */}
-      {!esImagen && (
+      {/* Observación — para órdenes no-imagen o cuando no puede vincular PACS */}
+      {!requirePACS && (
         <div className="flex flex-col gap-1.5">
           <label className="text-[#64748b] text-[11px] font-bold uppercase tracking-[0.55px]">
             Observación de ejecución <span className="text-[#f43f5e]">*</span>

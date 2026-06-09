@@ -72,6 +72,9 @@ export interface Zona {
   esSegura: boolean;
   sensor: string | null;
   hospitalId: number;
+  planoHospitalId?: number | null;
+  posX?: number | null;
+  posY?: number | null;
   sensores?: Sensor[] | null;
 }
 

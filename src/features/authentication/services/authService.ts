@@ -10,6 +10,22 @@ import type {
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
+// Extrae hospitalId del claim "hospital_id" del JWT.
+function hospitalIdFromToken(token: string): number | null {
+  try {
+    const part = token.split(".")[1];
+    if (!part) return null;
+    const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+    const payload = JSON.parse(atob(padded)) as Record<string, unknown>;
+    const raw = payload["hospital_id"];
+    if (typeof raw === "number") return raw;
+    if (typeof raw === "string") return parseInt(raw, 10) || null;
+    return null;
+  } catch {
+    return null;
+  }
+}
 // Normaliza token.
 function normalizeToken(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
@@ -67,6 +83,7 @@ function normalizeLoginResponse(payload: unknown): LoginSuccessResponse {
           email: user.email,
           name: user.name,
           role: normalizeRole(user.role),
+          hospitalId: hospitalIdFromToken(token),
         },
       };
     }
@@ -92,6 +109,7 @@ function normalizeLoginResponse(payload: unknown): LoginSuccessResponse {
           email: usuario.email,
           name: usuario.nombreCompleto,
           role: normalizeRole(firstRole),
+          hospitalId: hospitalIdFromToken(token),
         },
       };
     }

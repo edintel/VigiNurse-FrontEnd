@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { LoginForm } from "@/features/authentication/components/LoginForm";
 import { ForgotPasswordForm } from "@/features/authentication/components/ForgotPasswordForm";
 type Step = "login" | "forgot";
@@ -8,31 +9,15 @@ export function AuthSlidePanel() {
   const [step, setStep] = useState<Step>("login");
   return (
     <div className="flex-1 bg-white flex flex-col min-h-screen">
-      <div className="lg:hidden flex items-center gap-3 px-6 py-4 border-b border-slate-100 shrink-0">
-        <div
-          className="flex items-center justify-center rounded-lg p-1.5"
-          style={{ backgroundColor: "#092168" }}
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#fff"
-            strokeWidth="2.5"
-          >
-            <path d="M8 2H16V8H22V16H16V22H8V16H2V8H8z" />
-          </svg>
-        </div>
-        <span
-          className="text-lg font-bold text-slate-900"
-          style={{
-            fontFamily: "Montserrat, sans-serif",
-            letterSpacing: "-0.4px",
-          }}
-        >
-          VigiNurse
-        </span>
+      <div className="lg:hidden flex items-center justify-center px-6 pt-4 pb-0 shrink-0">
+        <Image
+          src="/Logo-transparent.png"
+          alt="VigiNurse"
+          width={300}
+          height={300}
+          priority
+          style={{ width: "auto", height: "auto", maxHeight: "28vh", maxWidth: "80vw" }}
+        />
       </div>
 
       <div className="flex-1 relative overflow-hidden min-h-0">
@@ -44,11 +29,11 @@ export function AuthSlidePanel() {
             transition: "transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
-          <div className="w-1/2 flex items-center justify-center overflow-y-auto p-6 sm:p-12 lg:p-24">
+          <div className="w-1/2 flex items-start lg:items-center justify-center overflow-y-auto p-4 sm:p-10 lg:px-16 lg:py-12">
             <LoginForm onForgotPassword={() => setStep("forgot")} />
           </div>
 
-          <div className="w-1/2 flex items-center justify-center overflow-y-auto p-6 sm:p-12 lg:p-24">
+          <div className="w-1/2 flex items-start lg:items-center justify-center overflow-y-auto p-4 sm:p-10 lg:px-16 lg:py-12">
             <ForgotPasswordForm onBack={() => setStep("login")} />
           </div>
         </div>

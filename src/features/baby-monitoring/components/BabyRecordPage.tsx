@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useHasPermission } from "@/lib/hasPermission";
 import { getBabyById } from "@/features/baby-monitoring/services/babyService";
 import { getEpisodeById } from "@/features/patients/services/episodeService";
 import { BabyInfoCard } from "@/features/baby-monitoring/components/BabyInfoCard";
@@ -65,6 +66,18 @@ interface BabyRecordPageProps {
 // (diagnósticos, medicación, signos vitales, etc).
 export default function BabyRecordPage({ id }: BabyRecordPageProps) {
   const router = useRouter();
+
+  const canAssignEpisodeDoctor = useHasPermission("patients.episodesAssignDoctor");
+  const canCreateDiagnostics = useHasPermission("patients.diagnosticsCreate");
+  const canCreateMedication = useHasPermission("patients.medicationCreate");
+  const canAdministerMedication = useHasPermission("patients.medicationAdminister");
+  const canChangeMedicationState = useHasPermission("patients.medicationChangeState");
+  const canCreateOrders = useHasPermission("patients.ordersCreate");
+  const canChangeOrderState = useHasPermission("patients.ordersChangeState");
+  const canViewImages = useHasPermission("patients.medicalImagesView");
+  const canCreateVitalSigns = useHasPermission("patients.vitalSignsCreate");
+  const canCreateClinicalEvolution = useHasPermission("patients.clinicalEvolutionCreate");
+  const canCreateNursingNotes = useHasPermission("patients.nursingNotesCreate");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -207,7 +220,7 @@ export default function BabyRecordPage({ id }: BabyRecordPageProps) {
 
         {/* Tab bar */}
         <div className="flex gap-1 border-b border-[#D1D9E6] px-8 xl:px-12 overflow-x-auto">
-          {BABY_TABS.map((tab) => (
+          {BABY_TABS.filter((tab) => tab.id !== "imagenes" || canViewImages).map((tab) => (
             <button
               key={tab.id}
               type="button"
@@ -236,41 +249,47 @@ export default function BabyRecordPage({ id }: BabyRecordPageProps) {
             onGoToMedication={() => setActiveTab("medicacion")}
             onGoToDiagnostics={() => setActiveTab("diagnosticos")}
             onGoToOrders={() => setActiveTab("ordenes")}
-            onAssignDoctor={(mode) => {
+            onAssignDoctor={canAssignEpisodeDoctor ? (mode) => {
               setDoctorModalMode(mode);
               setShowDoctorModal(true);
-            }}
+            } : undefined}
           />
         )}
 
         {activeTab === "diagnosticos" && (
-          <DiagnosticsTab episodio={episodio} />
+          <DiagnosticsTab episodio={episodio} canCreate={canCreateDiagnostics} />
         )}
 
         {activeTab === "medicacion" && (
-          <MedicationTab episodioId={episodio.id} />
+          <MedicationTab
+            episodioId={episodio.id}
+            canCreate={canCreateMedication}
+            canAdminister={canAdministerMedication}
+            canChangeState={canChangeMedicationState}
+          />
         )}
 
         {activeTab === "ordenes" && (
           <OrdersTab
             episodio={episodio}
-            canCreate={episodio.estado === EpisodioEstado.EnCurso}
+            canCreate={canCreateOrders && episodio.estado === EpisodioEstado.EnCurso}
+            canChangeState={canChangeOrderState}
           />
         )}
 
         {activeTab === "signos" && (
-          <VitalSignsTab episodioId={episodio.id} pacienteId={bebe.pacienteId} />
+          <VitalSignsTab episodioId={episodio.id} pacienteId={bebe.pacienteId} canCreate={canCreateVitalSigns} />
         )}
 
         {activeTab === "evolucion" && (
-          <ClinicalEvolutionTab episodioId={episodio.id} episodio={episodio} />
+          <ClinicalEvolutionTab episodioId={episodio.id} episodio={episodio} canCreate={canCreateClinicalEvolution} />
         )}
 
         {activeTab === "notas" && (
-          <NursingNotesTab episodioId={episodio.id} episodio={episodio} />
+          <NursingNotesTab episodioId={episodio.id} episodio={episodio} canCreate={canCreateNursingNotes} />
         )}
 
-        {activeTab === "imagenes" && (
+        {activeTab === "imagenes" && canViewImages && (
           <MedicalImagesTab pacienteId={bebe.pacienteId} />
         )}
       </div>

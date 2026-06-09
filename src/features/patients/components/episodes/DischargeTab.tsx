@@ -4,7 +4,7 @@ import { getDischargeNote } from "@/features/patients/services/episodeService";
 import type { RecetaAlta, RecetaAltaDetalleResponse } from "@/features/patients/types";
 import { toast } from "@/lib/toast";
 
-function formatFecha(iso: string): string {
+function formatDate(iso: string): string {
   try {
     return new Date(iso).toLocaleString("es-ES", {
       day: "2-digit",
@@ -20,7 +20,7 @@ function formatFecha(iso: string): string {
 }
 
 // Componente para mostrar cada medicamento de la receta
-function MedicamentoCard({
+function MedicationCard({
   detalle,
   index,
 }: {
@@ -188,19 +188,19 @@ export function DischargeTab({ episodioId }: Props) {
             Fecha de emisión
           </p>
           <p className="text-xs font-semibold text-[#475569]">
-            {formatFecha(receta.fechaCreacion)}
+            {formatDate(receta.fechaCreacion)}
           </p>
         </div>
       </div>
 
-      {/* Lista de medicamentos */}
+      {/* Lista de medications */}
       <div className="space-y-3">
         {receta.detalles.map((d, i) => (
-          <MedicamentoCard key={d.id} detalle={d} index={i} />
+          <MedicationCard key={d.id} detalle={d} index={i} />
         ))}
       </div>
 
-      {/* Footer: total de medicamentos */}
+      {/* Footer: total de medications */}
       <p className="text-xs text-[#94a3b8] text-right">
         {receta.detalles.length} medicamento{receta.detalles.length !== 1 ? "s" : ""} recetado{receta.detalles.length !== 1 ? "s" : ""}
       </p>

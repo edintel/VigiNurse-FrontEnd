@@ -1,22 +1,22 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { InputField } from "@/shared/ui/InputField";
-import { createTipoActivo } from "@/features/administration/assetTypes/services/assetTypeService";
+import { createAssetType } from "@/features/administration/assetTypes/services/assetTypeService";
 import type { TipoActivo } from "@/features/administration/assetTypes/types";
 import { toast } from "@/lib/toast";
 
-interface CreateTipoActivoModalProps {
+interface CreateAssetTypeModalProps {
   open: boolean;
   onClose: () => void;
   onCreated: (tipoActivo: TipoActivo) => void;
 }
 
 // Modal para crear un nuevo tipo de activo.
-export function CreateTipoActivoModal({
+export function CreateAssetTypeModal({
   open,
   onClose,
   onCreated,
-}: CreateTipoActivoModalProps) {
+}: CreateAssetTypeModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
@@ -54,7 +54,7 @@ export function CreateTipoActivoModal({
     setLoading(true);
     setApiError(null);
     try {
-      const tipoActivo = await createTipoActivo({
+      const tipoActivo = await createAssetType({
         nombre: nombre.trim(),
         descripcion: descripcion.trim(),
       });

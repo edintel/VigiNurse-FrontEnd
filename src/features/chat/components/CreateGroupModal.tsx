@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { getPersonalMedico } from "@/features/staff-monitoring/services/personalMedicoService";
+import { getMedicalStaff } from "@/features/staff-monitoring/services/medicalStaffService";
 import { createGroupConversation } from "@/features/chat/services/chatService";
 import type { PersonalMedico } from "@/features/staff-monitoring/types";
 import type { ConversationSummary } from "@/features/chat/types";
@@ -51,7 +51,7 @@ export function CreateGroupModal({
     }
     debounceRef.current = setTimeout(() => {
       setSearching(true);
-      getPersonalMedico(1, 20, { nombre: search.trim() })
+      getMedicalStaff(1, 20, { nombre: search.trim() })
         .then((res) => {
           const selectedIds = new Set(selected.map((s) => s.id));
           setResults(

@@ -6,7 +6,7 @@ import { toast } from "@/lib/toast";
 
 const OHIF_URL = process.env.NEXT_PUBLIC_OHIF_URL ?? "";
 
-function formatFecha(fechaStr: string | null | undefined): string {
+function formatDate(fechaStr: string | null | undefined): string {
   if (!fechaStr) return "—";
   try {
     const d = new Date(fechaStr);
@@ -99,7 +99,7 @@ export function OHIFViewerModal({ estudio, onClose }: OHIFViewerModalProps) {
               {estudio.descripcion ? ` — ${estudio.descripcion}` : ""}
             </p>
             <p className="text-blue-200 text-xs">
-              {formatFecha(estudio.fechaEstudio)} · {estudio.nombreHospital}
+              {formatDate(estudio.fechaEstudio)} · {estudio.nombreHospital}
             </p>
           </div>
         </div>

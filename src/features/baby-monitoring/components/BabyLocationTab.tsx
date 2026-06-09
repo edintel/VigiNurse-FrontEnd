@@ -11,8 +11,8 @@ import {
 } from "@/features/baby-monitoring/services/babyService";
 import { BabyAllowedZonesSection } from "@/features/baby-monitoring/components/zones/BabyAllowedZonesSection";
 import { BabyRecentAlerts } from "@/features/baby-monitoring/components/bracelet/BabyRecentAlerts";
-import { BabyMovementAuthorizations } from "@/features/baby-monitoring/components/bracelet/BabyMovementAuthorizations";
 import { BabyMovementHistory } from "@/features/baby-monitoring/components/bracelet/BabyMovementHistory";
+import { BabyFloorPlanMap } from "@/features/baby-monitoring/components/BabyFloorPlanMap";
 import { toast } from "@/lib/toast";
 import { EstadoBrazalete, EstadoUbicacionBebe, EstadoAlertaBLE } from "@/features/baby-monitoring/types";
 import type {
@@ -31,10 +31,14 @@ interface BabyLocationTabProps {
 
 type LocationSubTab = "resumen" | "alertas" | "autorizaciones" | "historial";
 
+function mVToPercent(mv: number): number {
+  return Math.min(100, Math.max(0, Math.round((mv - 2000) / 1000 * 100)));
+}
+
 const SUB_TABS: { id: LocationSubTab; label: string }[] = [
   { id: "resumen", label: "Resumen" },
   { id: "alertas", label: "Alertas" },
-  { id: "autorizaciones", label: "Autorizaciones y zonas" },
+  { id: "autorizaciones", label: "Zonas permitidas" },
   { id: "historial", label: "Historial de movimientos" },
 ];
 
@@ -70,7 +74,7 @@ function InfoField({ label, value }: { label: string; value: React.ReactNode }) 
   );
 }
 
-function EstadoUbicacionBadge({ estado, mensaje }: { estado: EstadoUbicacionBebe; mensaje: string }) {
+function LocationStatusBadge({ estado, mensaje }: { estado: EstadoUbicacionBebe; mensaje: string }) {
   const config = ({
     [EstadoUbicacionBebe.Normal]:   { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", dot: "bg-emerald-500" },
     [EstadoUbicacionBebe.Warning]:  { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-200",   dot: "bg-amber-500"   },
@@ -310,13 +314,13 @@ function UnassignBraceletModal({ open, bebeId, brazaleteIdentificador, onClose, 
   );
 }
 
-// ─── Historial de asignaciones ─────────────────────────────
+// ─── Historial de assignments ─────────────────────────────
 
 function AssignmentHistoryTable({ assignments, loading }: { assignments: AsignacionBrazalete[]; loading: boolean }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] overflow-hidden">
       <div className="px-5 py-3.5 border-b border-[#f1f5f9] bg-[#F8FAFC] flex items-center justify-between">
-        <span className="text-xs font-bold uppercase tracking-[0.5px] text-[#64748b]">Historial de asignaciones</span>
+        <span className="text-xs font-bold uppercase tracking-[0.5px] text-[#64748b]">Historial de assignments</span>
         {!loading && assignments.length > 0 && (
           <span className="text-xs font-bold bg-[#f1f5f9] text-[#64748b] rounded-full px-2 py-0.5">{assignments.length}</span>
         )}
@@ -343,7 +347,7 @@ function AssignmentHistoryTable({ assignments, loading }: { assignments: Asignac
             {loading ? (
               <tr><td colSpan={5} className="text-center py-10"><span className="loading loading-spinner loading-md text-[#09268E]" /></td></tr>
             ) : assignments.length === 0 ? (
-              <tr><td colSpan={5} className="text-center py-10 text-base-content/40 text-sm">No hay historial de asignaciones para este episodio.</td></tr>
+              <tr><td colSpan={5} className="text-center py-10 text-base-content/40 text-sm">No hay historial de assignments para este episodio.</td></tr>
             ) : (
               assignments.map((a) => (
                 <tr key={a.id} className="hover:bg-base-200">
@@ -510,9 +514,9 @@ export function BabyLocationTab({ bebe, readOnly }: BabyLocationTabProps) {
               )}
               {ubicacion?.nivelBateria != null && (
                 <InfoField label="Batería" value={
-                  <span className={ubicacion.nivelBateria < 20 ? "text-red-600" : undefined}>
-                    {ubicacion.nivelBateria}%
-                    {ubicacion.nivelBateria < 20 && " — Baja"}
+                  <span className={mVToPercent(ubicacion.nivelBateria) < 20 ? "text-red-600" : undefined}>
+                    {mVToPercent(ubicacion.nivelBateria)}%
+                    {mVToPercent(ubicacion.nivelBateria) < 20 && " — Baja"}
                   </span>
                 } />
               )}
@@ -522,8 +526,15 @@ export function BabyLocationTab({ bebe, readOnly }: BabyLocationTabProps) {
             </div>
             {ubicacion && (
               <div className="mt-4">
-                <EstadoUbicacionBadge estado={ubicacion.estadoActual} mensaje={ubicacion.mensajeEstado} />
+                <LocationStatusBadge estado={ubicacion.estadoActual} mensaje={ubicacion.mensajeEstado} />
               </div>
+            )}
+            {ubicacion?.ultimaZonaId != null && (
+              <BabyFloorPlanMap
+                zonaId={ubicacion.ultimaZonaId}
+                pacienteId={bebe.pacienteId}
+                zonaNombre={ubicacion.ultimaZonaNombre}
+              />
             )}
           </div>
         ) : (
@@ -618,7 +629,7 @@ export function BabyLocationTab({ bebe, readOnly }: BabyLocationTabProps) {
             />
           </div>
 
-          {/* Historial de asignaciones */}
+          {/* Historial de assignments */}
           <AssignmentHistoryTable assignments={assignments} loading={loading} />
         </div>
       )}
@@ -632,21 +643,13 @@ export function BabyLocationTab({ bebe, readOnly }: BabyLocationTabProps) {
         />
       )}
 
-      {/* Sub-tab: Autorizaciones y Zonas */}
+      {/* Sub-tab: Zonas permitidas */}
       {activeSubTab === "autorizaciones" && (
-        <div className="space-y-4">
-          <BabyMovementAuthorizations
-            bebe={bebe}
-            readOnly={readOnly}
-            currentZonaId={ubicacion?.ultimaZonaId}
-            currentZonaNombre={ubicacion?.ultimaZonaNombre}
-          />
-          <BabyAllowedZonesSection
-            bebe={bebe}
-            readOnly={readOnly}
-            onRefreshLocation={() => void loadData()}
-          />
-        </div>
+        <BabyAllowedZonesSection
+          bebe={bebe}
+          readOnly={readOnly}
+          onRefreshLocation={() => void loadData()}
+        />
       )}
 
       {/* Sub-tab: Historial de movimientos */}

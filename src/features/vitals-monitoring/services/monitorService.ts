@@ -26,7 +26,7 @@ function buildPaginatedResponse(
 }
 
 // Obtiene una lista paginada de monitores vinculados a pacientes, con filtros opcionales.
-export async function getMonitorPacientes(
+export async function getPatientMonitors(
   page = 1,
   pageSize = 50,
   filters: MonitorPacientesFilters = {},
@@ -45,7 +45,7 @@ export async function getMonitorPacientes(
 }
 
 // Obtiene los detalles de un monitor vinculado a paciente por su ID. Lanza error si no se encuentra.
-export async function getMonitorPacienteById(id: number): Promise<MonitorPacienteDto> {
+export async function getPatientMonitorById(id: number): Promise<MonitorPacienteDto> {
   const res = await axiosInstance.get<MonitorPacienteDto>(
     API_ENDPOINTS.monitorPacientes.byId(id),
   );
@@ -53,7 +53,7 @@ export async function getMonitorPacienteById(id: number): Promise<MonitorPacient
 }
 
 // Obtiene una lista paginada de monitores vinculados a un paciente específico, con manejo de respuesta flexible.
-export async function getMonitoresPorPaciente(
+export async function getMonitorsByPatient(
   pacienteId: number,
   page = 1,
   pageSize = 50,
@@ -68,7 +68,7 @@ export async function getMonitoresPorPaciente(
 }
 
 // Crea una nueva vinculación entre un paciente y un monitor, enviando los datos necesarios al backend.
-export async function crearMonitorPaciente(
+export async function createPatientMonitor(
   dto: CrearMonitorPacienteDto,
 ): Promise<MonitorPacienteDto> {
   const res = await axiosInstance.post<MonitorPacienteDto>(
@@ -79,7 +79,7 @@ export async function crearMonitorPaciente(
 }
 
 // Actualiza la ubicación (habitación y número de cama) de un monitor vinculado a paciente, enviando los cambios al backend.
-export async function actualizarUbicacionMonitor(
+export async function updateMonitorLocation(
   id: number,
   dto: ActualizarUbicacionMonitorDto,
 ): Promise<MonitorPacienteDto> {
@@ -91,11 +91,11 @@ export async function actualizarUbicacionMonitor(
 }
 
 // Desasigna un monitor de un paciente, marcando la vinculación como inactiva en el backend.
-export async function desasignarMonitor(id: number): Promise<void> {
+export async function unassignMonitor(id: number): Promise<void> {
   await axiosInstance.patch(API_ENDPOINTS.monitorPacientes.desasignar(id));
 }
 
 // Elimina completamente la vinculación entre un paciente y un monitor, removiéndola del sistema en el backend.
-export async function eliminarMonitorPaciente(id: number): Promise<void> {
+export async function deletePatientMonitor(id: number): Promise<void> {
   await axiosInstance.delete(API_ENDPOINTS.monitorPacientes.byId(id));
 }

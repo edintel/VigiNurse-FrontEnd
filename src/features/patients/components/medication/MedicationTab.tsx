@@ -27,7 +27,7 @@ function formatDate(s: string) {
   }
 }
 
-function EstadoBadge({ estado }: { estado: MedicacionEstado }) {
+function StatusBadge({ estado }: { estado: MedicacionEstado }) {
   const cfg = MEDICACION_ESTADO_CONFIG[estado];
   return (
     <span
@@ -290,7 +290,7 @@ export function MedicationTab({
                             {m.dosis} {m.unidadMedida}
                           </td>
                           <td>
-                            <EstadoBadge estado={m.estado} />
+                            <StatusBadge estado={m.estado} />
                           </td>
                           <td className="text-sm text-[#475569] whitespace-nowrap">
                             Cada {m.frecuenciaHoras}h

@@ -4,7 +4,7 @@ import { SearchableSelect } from "@/shared/ui/SearchableSelect";
 import { createEpisode, assignPrimaryDoctor } from "@/features/patients/services/episodeService";
 import { getPatients } from "@/features/patients/services/patientService";
 import { getAreas } from "@/features/administration/areas/services/areaService";
-import { getPersonalMedico } from "@/features/staff-monitoring/services/personalMedicoService";
+import { getMedicalStaff } from "@/features/staff-monitoring/services/medicalStaffService";
 import {
   TriageNivel,
   TipoEpisodio,
@@ -108,7 +108,7 @@ export function CreateEpisodeModal({
       });
 
     setMedicoLoading(true);
-    getPersonalMedico(1, 100, { rol: "Doctor" })
+    getMedicalStaff(1, 100, { rol: "Doctor" })
       .then((res) =>
         setMedicoOptions(
           res.datos.map((d) => ({

@@ -14,7 +14,7 @@ function normalizeName(s: string) {
 }
 
 // Identifica si el signo es de tipo presión arterial (sistólica o diastólica)
-function isBPTipo(nombre: string) {
+function isBPType(nombre: string) {
   const n = normalizeName(nombre);
   return n.includes("sistol") || n.includes("diastol");
 }
@@ -24,7 +24,7 @@ function isOutOfRange(valor: number, min: number, max: number) {
   return valor < min || valor > max;
 }
 
-function formatSignoDate(dateStr: string): string {
+function formatVitalSignDate(dateStr: string): string {
   try {
     const d = new Date(dateStr);
     return d.toLocaleString("es-ES", {
@@ -55,8 +55,8 @@ function buildCards(signos: SignoVital[]): {
     (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime(),
   );
 
-  const bpSignos = sorted.filter((s) => isBPTipo(s.tipoSignoNombre));
-  const regularSignos = sorted.filter((s) => !isBPTipo(s.tipoSignoNombre));
+  const bpSignos = sorted.filter((s) => isBPType(s.tipoSignoNombre));
+  const regularSignos = sorted.filter((s) => !isBPType(s.tipoSignoNombre));
 
   const seen = new Set<number>();
   const recent: SignoVital[] = [];
@@ -128,7 +128,7 @@ function VitalMiniCard({
         <span className="text-xs font-medium text-[#94a3b8] mb-0.5">{unit}</span>
       </div>
 
-      <p className="text-[10px] text-[#b0bec5] mt-0.5">{formatSignoDate(fecha)}</p>
+      <p className="text-[10px] text-[#b0bec5] mt-0.5">{formatVitalSignDate(fecha)}</p>
     </div>
   );
 }

@@ -228,8 +228,8 @@ export interface EventoRastreo {
   id: number;
   brazaleteId: number | null;
   brazaleteMac: string | null;
-  sensorId: number | null;
-  sensorNombre: string | null;
+  gatewayBleId: number | null;
+  gatewayMac: string | null;
   zonaId: number | null;
   zonaNombre: string | null;
   tipoEvento: TipoEventoRastreo;
@@ -354,30 +354,3 @@ export interface CloseAlertDTO {
   notasCierre?: string | null;
 }
 
-// ─── Autorizaciones de movimiento ──────────────────────────────────────────────
-
-export interface AutorizacionMovimiento {
-  id: number;
-  pacienteId: number;
-  pacienteNombre: string;
-  episodioId: number;
-  zonaOrigenId: number | null;
-  zonaOrigenNombre: string | null;
-  zonaDestinoId: number;
-  zonaDestinoNombre: string;
-  autorizadoPorNombre: string;
-  motivo: string;
-  fechaAutorizacion: string;
-  fechaExpiracion: string | null;
-  utilizada: boolean;
-  fechaUso: string | null;
-}
-
-export interface CrearAutorizacionMovimientoDTO {
-  pacienteId: number;
-  episodioId: number;
-  zonaOrigenId?: number | null;
-  zonaDestinoId: number;
-  motivo: string;
-  fechaExpiracion?: string | null;
-}

@@ -1,5 +1,5 @@
 import type { AsignacionTarea, Tarea } from "@/features/staff-monitoring/types";
-import { PrioridadBadge } from "@/features/staff-monitoring/components/tareas/taskHelpers";
+import { PrioridadBadge } from "@/features/staff-monitoring/components/tasks/taskHelpers";
 import { formatDateTime } from "@/features/administration/users/utils/helpers";
 import { PRIORITY_BORDER } from "./staffHomeConfig";
 

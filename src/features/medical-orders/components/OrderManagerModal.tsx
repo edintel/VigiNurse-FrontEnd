@@ -20,6 +20,7 @@ import { Field } from "@/features/medical-orders/components/OrderField";
 import { getOrderTypeIconBg, OrderTypeIcon } from "@/features/medical-orders/components/OrderTypeIcon";
 import { InProgressForm, CompleteOrderForm, CancelOrderForm } from "./OrderActionForms";
 import { toast } from "@/lib/toast";
+import { useHasPermission } from "@/lib/hasPermission";
 
 type ActionView = "none" | "en_proceso" | "completar" | "cancelar";
 
@@ -32,6 +33,7 @@ interface Props {
 export function OrderManagerModal({ orden: initialOrden, onClose, onUpdated }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [orden, setOrden] = useState(initialOrden);
+  const canLinkPACS = useHasPermission("medicalImaging.upload");
 
   const estado = orden.estado as OrdenEstado;
   const tipo = orden.tipoOrden as TipoOrden;
@@ -57,7 +59,7 @@ export function OrderManagerModal({ orden: initialOrden, onClose, onUpdated }: P
   useEffect(() => { dialogRef.current?.showModal(); }, []);
 
   useEffect(() => {
-    if (!esImagen || !canActuar) return;
+    if (!esImagen || !canActuar || !canLinkPACS) return;
     setPacsCheckLoading(true);
     void getEpisodeById(orden.episodioId)
       .then((ep) => getPatientStudies(ep.pacienteId, 1, 1, undefined, undefined, orden.id))
@@ -73,7 +75,7 @@ export function OrderManagerModal({ orden: initialOrden, onClose, onUpdated }: P
     setActionError(null);
     setJustificacion("");
     setObservacion("");
-    if (view === "completar" && !esImagen) {
+    if (view === "completar" && (!esImagen || !canLinkPACS)) {
       setLoadingArchivos(true);
       void getOrderAttachments(orden.id)
         .then(setArchivos)
@@ -302,6 +304,7 @@ export function OrderManagerModal({ orden: initialOrden, onClose, onUpdated }: P
               <CompleteOrderForm
                 ordenId={orden.id}
                 esImagen={esImagen}
+                canLinkPACS={canLinkPACS}
                 saving={saving}
                 pacsCheckLoading={pacsCheckLoading}
                 pacsVinculado={pacsVinculado}

@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { useHasPermission } from "@/lib/hasPermission";
 import { getTagsBle } from "@/features/assets-managment/tracking/services/tagBleService";
 import { CreateTagBleModal } from "@/features/assets-managment/tracking/components/CreateTagBleModal";
 import { EditTagBleModal } from "@/features/assets-managment/tracking/components/EditTagBleModal";
@@ -50,7 +51,7 @@ const ESTADO_TAG_CONFIG: Record<EstadoTagBle, EstadoTagBleConfig> = {
   },
 };
 
-function EstadoTagBadge({ estado }: { estado: EstadoTagBle }) {
+function TagStatusBadge({ estado }: { estado: EstadoTagBle }) {
   const c = ESTADO_TAG_CONFIG[estado] ?? ESTADO_TAG_CONFIG[EstadoTagBle.Activo];
   return (
     <span
@@ -155,6 +156,8 @@ function TagFilters({
 }
 
 export default function TagsBleTab() {
+  const canCreate = useHasPermission("assetsManagement.create");
+  const canEdit = useHasPermission("assetsManagement.edit");
   const [tags, setTags] = useState<TagBle[]>([]);
   const [totalRegistros, setTotalRegistros] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(1);
@@ -220,6 +223,7 @@ export default function TagsBleTab() {
      
 
       <div className="flex justify-end">
+        {canCreate && (
         <button
           type="button"
           className="btn text-white"
@@ -242,6 +246,7 @@ export default function TagsBleTab() {
           </svg>
           Registrar nuevo tag
         </button>
+        )}
       </div>
 
       <TagFilters
@@ -319,7 +324,7 @@ export default function TagsBleTab() {
                       </span>
                     </td>
                     <td>
-                      <EstadoTagBadge estado={tag.estado} />
+                      <TagStatusBadge estado={tag.estado} />
                     </td>
                     <td>
                       <BatteryIcon nivel={tag.nivelBateria} />
@@ -340,6 +345,7 @@ export default function TagsBleTab() {
                     </td>
                     <td>
                       <div className="flex items-center justify-end gap-1">
+                        {canEdit && (
                         <button
                           type="button"
                           className="btn btn-square btn-sm btn-ghost text-[#09268E]"
@@ -361,6 +367,7 @@ export default function TagsBleTab() {
                             />
                           </svg>
                         </button>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -2,8 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { InputField } from "@/shared/ui/InputField";
 import { SearchableSelect } from "@/shared/ui/SearchableSelect";
-import { updateActivo } from "@/features/assets-managment/inventory/services/assetService";
-import { getTiposActivos } from "@/features/administration/assetTypes/services/assetTypeService";
+import { updateAsset } from "@/features/assets-managment/inventory/services/assetService";
+import { getAssetTypes } from "@/features/administration/assetTypes/services/assetTypeService";
 import { getAreas } from "@/features/administration/areas/services/areaService";
 import { ActivoEstado } from "@/features/assets-managment/inventory/types";
 import type { Activo } from "@/features/assets-managment/inventory/types";
@@ -67,7 +67,7 @@ export function EditAssetModal({
       setApiError(null);
 
       setTipoLoading(true);
-      getTiposActivos(1, 200)
+      getAssetTypes(1, 200)
         .then((res) => {
           const opts = res.datos.map((t) => ({ id: t.id, label: t.nombre }));
           setTipoOptions(opts);
@@ -122,7 +122,7 @@ export function EditAssetModal({
     setLoading(true);
     setApiError(null);
     try {
-      const updated = await updateActivo(activo.id, {
+      const updated = await updateAsset(activo.id, {
         numeroSerie: numeroSerie.trim(),
         tipoActivoId: tipoSelectedId!,
         marca: marca.trim(),

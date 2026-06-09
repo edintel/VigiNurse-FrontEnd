@@ -9,6 +9,7 @@ export interface LoginSuccessResponse {
     email: string;
     name: string;
     role: string;
+    hospitalId?: number | null;
   };
   expiracion?: string;
 }

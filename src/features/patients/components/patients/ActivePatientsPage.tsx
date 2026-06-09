@@ -1,8 +1,9 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useHasPermission } from "@/lib/hasPermission";
 import { getActiveEpisodes } from "@/features/patients/services/episodeService";
+import { getBabies } from "@/features/baby-monitoring/services/babyService";
 import { getEpisodeVitalSigns } from "@/features/patients/services/vitalSignService";
 import { getMedications } from "@/features/patients/services/medicationService";
 import { getAdministrations } from "@/features/patients/services/medicationService";
@@ -300,6 +301,19 @@ function EmptyFiltersState() {
 export default function ActivePatientsPage() {
   const router = useRouter();
   const canCreateEpisode = useHasPermission("patients.episodesCreate");
+
+  // IDs de pacientes que son bebés activos — se excluyen de este listado
+  const babyIdsRef = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    getBabies(1, 500)
+      .then((res) => {
+        babyIdsRef.current = new Set(
+          res.datos.filter((b) => b.activo).map((b) => b.pacienteId)
+        );
+      })
+      .catch(() => {});
+  }, []);
+
   const [episodios, setEpisodios] = useState<EpisodioActivo[]>([]);
   const [totalRegistros, setTotalRegistros] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(1);
@@ -323,7 +337,7 @@ export default function ActivePatientsPage() {
           PAGE_SIZE,
           filters,
         );
-        setEpisodios(result.datos);
+        setEpisodios(result.datos.filter((e) => !babyIdsRef.current.has(e.pacienteId)));
         setTotalRegistros(result.totalRegistros);
         setTotalPaginas(result.totalPaginas);
         setPaginaActual(result.paginaActual);

@@ -3,7 +3,7 @@ import { API_ENDPOINTS } from "@/config/api";
 import type { CargaTrabajo, SugerenciaPersonal, Paginated, NivelCarga } from "../types";
 
 // Obtiene la carga de trabajo del personal médico con paginación y filtro por nivel de carga
-export async function getCargaTrabajo(
+export async function getWorkload(
   pagina = 1,
   tamanio = 200,
   nivelCarga?: NivelCarga,
@@ -23,8 +23,8 @@ export async function getCargaTrabajo(
   };
 }
 
-// Obtiene sugerencias de personal médico para asignar tareas, con filtros opcionales por área, tarea y rol
-export async function getSugerenciasPersonal(params: {
+// Obtiene sugerencias de personal médico para asignar tasks, con filtros opcionales por área, tarea y rol
+export async function getStaffSuggestions(params: {
   areaId?: number;
   tareaId?: number;
   rolId?: number;
@@ -41,7 +41,7 @@ export async function getSugerenciasPersonal(params: {
 }
 
 // Obtiene la carga de trabajo específica de un usuario por su ID
-export async function getCargaTrabajoUsuario(usuarioId: number): Promise<CargaTrabajo> {
+export async function getUserWorkload(usuarioId: number): Promise<CargaTrabajo> {
   const response = await axiosInstance.get<CargaTrabajo>(
     API_ENDPOINTS.personalMedico.cargaTrabajoUsuario(usuarioId),
   );

@@ -1,14 +1,16 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useHasPermission } from "@/lib/hasPermission";
 import {
-  getActivoById,
-  getActivoQrBlob,
+  getAssetById,
+  getAssetQrBlob,
 } from "@/features/assets-managment/inventory/services/assetService";
 import { EditAssetModal } from "@/features/assets-managment/inventory/components/EditAssetModal";
 import { RetireAssetModal } from "@/features/assets-managment/inventory/components/RetireAssetModal";
 import MaintenanceAssetsPage from "@/features/assets-managment/maintenance/components/AssetsPage";
-import { UbicacionBleCard } from "@/features/assets-managment/tracking/components/UbicacionBleCard";
+import { BleLocationCard } from "@/features/assets-managment/tracking/components/BleLocationCard";
+import { AssetFloorPlanMap } from "@/features/assets-managment/tracking/components/AssetFloorPlanMap";
 import { ActivoEstado } from "@/features/assets-managment/inventory/types";
 import type { Activo } from "@/features/assets-managment/inventory/types";
 
@@ -27,7 +29,7 @@ function formatDate(iso: string | null | undefined): string {
 }
 
 // Mapea el estado del activo a estilos y etiquetas predefinidas.
-function EstadoBadge({ estado }: { estado: ActivoEstado }) {
+function StatusBadge({ estado }: { estado: ActivoEstado }) {
   const configs: Record<
     ActivoEstado,
     { bg: string; border: string; text: string; label: string }
@@ -92,6 +94,10 @@ const TABS = [
 // Página de detalles de un activo específico. Muestra información detallada, código QR, historial de mantenimientos y permite editar o retirar el activo.
 export default function AssetDetailPage({ id }: AssetDetailPageProps) {
   const router = useRouter();
+  const canEdit = useHasPermission("assetsManagement.edit");
+  const canRetire = useHasPermission("assetsManagement.retire");
+  const canPlanMaintenance = useHasPermission("assetsManagement.maintenancePlan");
+  const canExecuteMaintenance = useHasPermission("assetsManagement.maintenanceExecute");
   const [activo, setActivo] = useState<Activo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -100,11 +106,11 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
   const [showRetirar, setShowRetirar] = useState(false);
   const [activeTab, setActiveTab] = useState("info");
 
-  const fetchActivo = useCallback(async () => {
+  const fetchAsset = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getActivoById(id);
+      const data = await getAssetById(id);
       setActivo(data);
     } catch {
       setError("No se pudo cargar la información del activo.");
@@ -114,13 +120,13 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
   }, [id]);
 
   useEffect(() => {
-    void fetchActivo();
-  }, [fetchActivo]);
+    void fetchAsset();
+  }, [fetchAsset]);
 
   // Carga la imagen QR como blob para incluir el token de autenticación.
   useEffect(() => {
     let objectUrl: string | null = null;
-    getActivoQrBlob(id)
+    getAssetQrBlob(id)
       .then((blob) => {
         objectUrl = URL.createObjectURL(blob);
         setQrUrl(objectUrl);
@@ -133,12 +139,12 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
     };
   }, [id]);
 
-  function handleActivoUpdated(updated: Activo) {
+  function handleAssetUpdated(updated: Activo) {
     setActivo(updated);
     setShowEdit(false);
   }
 
-  function handleActivoRetirado() {
+  function handleAssetRetired() {
     setActivo((prev) =>
       prev
         ? { ...prev, estado: ActivoEstado.Retirado, estadoNombre: "Retirado" }
@@ -147,7 +153,7 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
     setShowRetirar(false);
     setActiveTab("info");
     // Recarga para obtener motivo, retiradoPor y fechaRetiro del servidor.
-    void fetchActivo();
+    void fetchAsset();
   }
 
   if (loading) {
@@ -165,7 +171,7 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
           <span>{error ?? "Activo no encontrado."}</span>
           <button
             className="btn btn-xs btn-ghost"
-            onClick={() => void fetchActivo()}
+            onClick={() => void fetchAsset()}
           >
             Reintentar
           </button>
@@ -212,7 +218,7 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
             <h1 className="text-4xl font-bold text-black tracking-tight font-[var(--font-montserrat)]">
               {activo.numeroSerie}
             </h1>
-            <EstadoBadge estado={activo.estado} />
+            <StatusBadge estado={activo.estado} />
             {activo.esCritico && (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -228,7 +234,7 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
               </svg>
             )}
           </div>
-          {!isRetirado && (
+          {!isRetirado && canEdit && (
             <button
               type="button"
               className="btn text-white flex items-center gap-2"
@@ -279,7 +285,7 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
 
         {/* Contenido tab Mantenimientos */}
         {activeTab === "mantenimientos" && (
-          <MaintenanceAssetsPage activoId={id} />
+          <MaintenanceAssetsPage activoId={id} canPlan={canPlanMaintenance} canExecute={canExecuteMaintenance} />
         )}
 
         {/* Contenido tab Información General */}
@@ -404,7 +410,7 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
 
               {/* Card: Localización — BLE para activos críticos, clásica para el resto */}
               {activo.esCritico ? (
-                <UbicacionBleCard activoId={activo.id} />
+                <BleLocationCard activoId={activo.id} canEdit={canEdit} />
               ) : (
                 <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6 flex flex-col gap-6">
                   <div className="flex items-center gap-2">
@@ -447,6 +453,7 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
                       {formatDate(activo.fechaCreacion)}
                     </InfoField>
                   </div>
+                  <AssetFloorPlanMap areaId={activo.areaId} activoId={activo.id} areaName={activo.areaNombre} />
                 </div>
               )}
 
@@ -489,6 +496,7 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
                     <p className="text-sm text-slate-500">
                       Este activo no ha sido retirado.
                     </p>
+                    {canRetire && (
                     <button
                       type="button"
                       className="btn btn-sm text-white"
@@ -514,6 +522,7 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
                       </svg>
                       Registrar Retiro
                     </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -526,13 +535,13 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
         open={showEdit}
         activo={activo}
         onClose={() => setShowEdit(false)}
-        onUpdated={handleActivoUpdated}
+        onUpdated={handleAssetUpdated}
       />
       <RetireAssetModal
         open={showRetirar}
         activo={activo}
         onClose={() => setShowRetirar(false)}
-        onRetirado={handleActivoRetirado}
+        onRetirado={handleAssetRetired}
       />
     </div>
   );

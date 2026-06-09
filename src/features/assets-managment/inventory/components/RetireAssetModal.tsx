@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { retirarActivo } from "@/features/assets-managment/inventory/services/assetService";
+import { retireAsset } from "@/features/assets-managment/inventory/services/assetService";
 import type { Activo } from "@/features/assets-managment/inventory/types";
 import { toast } from "@/lib/toast";
 
@@ -44,7 +44,7 @@ export function RetireAssetModal({
     setLoading(true);
     setApiError(null);
     try {
-      await retirarActivo(activo.id, { motivoRetiro: motivoRetiro.trim() });
+      await retireAsset(activo.id, { motivoRetiro: motivoRetiro.trim() });
       toast.success(`Activo "${activo.numeroSerie}" retirado exitosamente.`);
       onRetirado(activo.id);
       onClose();

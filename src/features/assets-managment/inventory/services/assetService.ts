@@ -10,7 +10,7 @@ import type {
 } from "@/features/assets-managment/inventory/types";
 
 // Obtiene activos paginados con filtros opcionales.
-export async function getActivos(
+export async function getAssets(
   page = 1,
   pageSize = 10,
   filters: ActivoFilters = {},
@@ -32,13 +32,13 @@ export async function getActivos(
 }
 
 // Crea un activo.
-export async function createActivo(dto: CreateActivoDTO): Promise<Activo> {
+export async function createAsset(dto: CreateActivoDTO): Promise<Activo> {
   const res = await axiosInstance.post<Activo>(API_ENDPOINTS.activos.list, dto);
   return res.data;
 }
 
 // Actualiza un activo.
-export async function updateActivo(
+export async function updateAsset(
   id: number,
   dto: UpdateActivoDTO,
 ): Promise<Activo> {
@@ -50,13 +50,13 @@ export async function updateActivo(
 }
 
 // Obtiene un activo por ID.
-export async function getActivoById(id: number): Promise<Activo> {
+export async function getAssetById(id: number): Promise<Activo> {
   const res = await axiosInstance.get<Activo>(API_ENDPOINTS.activos.byId(id));
   return res.data;
 }
 
 // Retira un activo sin eliminarlo.
-export async function retirarActivo(
+export async function retireAsset(
   id: number,
   dto: RetirarActivoDTO,
 ): Promise<void> {
@@ -64,7 +64,7 @@ export async function retirarActivo(
 }
 
 // Obtiene la imagen QR de un activo como Blob.
-export async function getActivoQrBlob(id: number): Promise<Blob> {
+export async function getAssetQrBlob(id: number): Promise<Blob> {
   const res = await axiosInstance.get<Blob>(API_ENDPOINTS.activos.qr(id), {
     responseType: "blob",
   });
