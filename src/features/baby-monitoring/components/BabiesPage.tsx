@@ -3,23 +3,30 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import BabiesListPage from "@/features/baby-monitoring/components/BabiesListPage";
 import BraceletsPage from "@/features/baby-monitoring/components/BraceletsPage";
+import { useBleAlerts } from "@/features/baby-monitoring/context/BleAlertsContext";
 
 const GlobalBleAlertsTab = dynamic(
   () => import("@/features/baby-monitoring/components/alerts/GlobalBleAlertsTab"),
   { ssr: false }
 );
 
-type Tab = "neonatos" | "brazaletes" | "alertas";
+const BabyMapTab = dynamic(
+  () => import("@/features/baby-monitoring/components/BabyMapTab"),
+  { ssr: false }
+);
+
+type Tab = "neonatos" | "brazaletes" | "alertas" | "mapa";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "neonatos", label: "Neonatos" },
   { id: "brazaletes", label: "Brazaletes" },
   { id: "alertas", label: "Alertas" },
+  { id: "mapa", label: "Mapa en tiempo real" },
 ];
 
-// Componente principal de la página de gestión de neonatos
 export default function BabiesPage() {
   const [activeTab, setActiveTab] = useState<Tab>("neonatos");
+  const { openCount } = useBleAlerts();
 
   return (
     <div className="py-6 px-8 xl:px-12 space-y-6">
@@ -63,13 +70,18 @@ export default function BabiesPage() {
             type="button"
             onClick={() => setActiveTab(tab.id)}
             className={[
-              "px-5 py-3 text-sm font-semibold transition-colors -mb-px border-b-2 whitespace-nowrap",
+              "px-5 py-3 text-sm font-semibold transition-colors -mb-px border-b-2 whitespace-nowrap flex items-center gap-1.5",
               activeTab === tab.id
                 ? "text-[#09268E] border-[#09268E]"
                 : "text-slate-500 border-transparent hover:text-[#1A2B5E] hover:border-slate-300",
             ].join(" ")}
           >
             {tab.label}
+            {tab.id === "alertas" && openCount > 0 && (
+              <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold px-1 animate-pulse">
+                {openCount > 99 ? "99+" : openCount}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -78,6 +90,7 @@ export default function BabiesPage() {
       {activeTab === "neonatos" && <BabiesListPage />}
       {activeTab === "brazaletes" && <BraceletsPage />}
       {activeTab === "alertas" && <GlobalBleAlertsTab />}
+      {activeTab === "mapa" && <BabyMapTab />}
     </div>
   );
 }

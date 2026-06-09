@@ -128,7 +128,7 @@ export function BabyRecentAlerts({ bebe, readOnly, onAlertsChanged }: BabyRecent
                             {acknowledging === a.id ? <span className="loading loading-spinner loading-xs" /> : "Reconocer"}
                           </button>
                         )}
-                        {a.estado !== EstadoAlertaBLE.Cerrada && (
+                        {a.estado === EstadoAlertaBLE.Reconocida && (
                           <button
                             type="button"
                             className="btn btn-xs btn-ghost text-slate-500 hover:text-red-600"

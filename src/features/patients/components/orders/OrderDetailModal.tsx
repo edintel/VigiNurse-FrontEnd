@@ -27,6 +27,7 @@ interface OrderDetailModalProps {
   episodioId: number;
   pacienteId: number;
   canChangeState?: boolean;
+  canViewImages?: boolean;
   onClose: () => void;
   onCancelled: () => void;
 }
@@ -36,6 +37,7 @@ export function OrderDetailModal({
   episodioId,
   pacienteId,
   canChangeState = true,
+  canViewImages = false,
   onClose,
   onCancelled,
 }: OrderDetailModalProps) {
@@ -236,7 +238,7 @@ export function OrderDetailModal({
                   <p className="text-xs font-bold uppercase tracking-[0.6px] text-[#334155]">
                     Detalles de Ejecución
                   </p>
-                  {estudioVinculado && (
+                  {estudioVinculado && canViewImages && (
                     <button
                       type="button"
                       onClick={() => setShowVisor(true)}

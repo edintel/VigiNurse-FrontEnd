@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useHasPermission } from "@/lib/hasPermission";
 import { getPatientMonitors } from "@/features/vitals-monitoring/services/monitorService";
 import { toast } from "@/lib/toast";
 import type { MonitorPacienteDto } from "@/features/vitals-monitoring/types";
@@ -58,6 +59,7 @@ function getPageNumbers(current: number, total: number): (number | "ellipsis")[]
 // Componente principal para mostrar la vista de monitores de pacientes, con manejo de estado, carga de datos, 
 // paginación y modal para vinculación
 export function MonitorsView() {
+  const canManage = useHasPermission("vitalsMonitoring.manage");
   const [monitores, setMonitores] = useState<MonitorPacienteDto[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -157,28 +159,30 @@ export function MonitorsView() {
           </div>
         </div>
 
-        <button
-          type="button"
-          className="btn text-white"
-          style={{ backgroundColor: "#09268E", borderColor: "#09268E" }}
-          onClick={handleAbrirForm}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="2.5"
-            stroke="currentColor"
-            className="size-[1.2em]"
+        {canManage && (
+          <button
+            type="button"
+            className="btn text-white"
+            style={{ backgroundColor: "#09268E", borderColor: "#09268E" }}
+            onClick={handleAbrirForm}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4.5v15m7.5-7.5h-15"
-            />
-          </svg>
-          Vincular monitor
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="2.5"
+              stroke="currentColor"
+              className="size-[1.2em]"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4.5v15m7.5-7.5h-15"
+              />
+            </svg>
+            Vincular monitor
+          </button>
+        )}
       </div>
 
       <div className="flex min-h-[calc(100vh-16rem)] flex-col">
@@ -229,7 +233,7 @@ export function MonitorsView() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {monitores.map((m) => (
-              <MonitorCard key={m.id} monitor={m} onDesasignado={handleUnassigned} />
+              <MonitorCard key={m.id} monitor={m} canManage={canManage} onDesasignado={handleUnassigned} />
             ))}
           </div>
         )}

@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
+import { useHasPermission } from "@/lib/hasPermission";
 import { toast } from "@/lib/toast";
 import { getGroupMembers, addMember, removeMember } from "../../services/groupsService";
 import { getMedicalStaff } from "../../services/medicalStaffService";
@@ -47,6 +48,7 @@ async function enrichMiembros(raw: MiembroGrupo[]): Promise<MiembroGrupo[]> {
 
 // Modal para mostrar los detalles de un grupo, incluyendo su lista de miembros y la opción de agregar o quitar miembros.
 export function GroupDetailModal({ open, grupo, onClose }: Props) {
+  const canManage = useHasPermission("staffMonitoring.scheduleManage");
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [miembros, setMiembros] = useState<MiembroGrupo[]>([]);
   const [loadingMiembros, setLoadingMiembros] = useState(false);
@@ -187,6 +189,7 @@ export function GroupDetailModal({ open, grupo, onClose }: Props) {
                       Desde {new Date(m.fechaIngreso).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}
                     </p>
                   </div>
+                  {canManage && (
                   <button
                     type="button"
                     title="Registrar salida"
@@ -197,13 +200,14 @@ export function GroupDetailModal({ open, grupo, onClose }: Props) {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
                     </svg>
                   </button>
+                  )}
                 </div>
               ))}
             </div>
           )}
 
           {/* Agregar miembro */}
-          {!addOpen ? (
+          {canManage && (!addOpen ? (
             <button
               type="button"
               onClick={() => setAddOpen(true)}
@@ -251,7 +255,7 @@ export function GroupDetailModal({ open, grupo, onClose }: Props) {
                 <p className="text-xs text-slate-400 text-center py-2">Sin resultados.</p>
               )}
             </div>
-          )}
+          ))}
         </div>
 
         <div className="px-7 py-4 border-t border-[#f1f5f9] bg-[#f8fafc] flex justify-end">

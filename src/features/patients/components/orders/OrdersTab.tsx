@@ -25,9 +25,10 @@ interface OrdersTabProps {
   episodio: EpisodioHistorial;
   canCreate: boolean;
   canChangeState?: boolean;
+  canViewImages?: boolean;
 }
 
-export function OrdersTab({ episodio, canCreate, canChangeState = true }: OrdersTabProps) {
+export function OrdersTab({ episodio, canCreate, canChangeState = true, canViewImages = false }: OrdersTabProps) {
   const [ordenes, setOrdenes] = useState<Dato[]>([]);
   const [totalRegistros, setTotalRegistros] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(1);
@@ -364,6 +365,7 @@ export function OrdersTab({ episodio, canCreate, canChangeState = true }: Orders
           episodioId={episodio.id}
           pacienteId={episodio.pacienteId}
           canChangeState={canChangeState}
+          canViewImages={canViewImages}
           onClose={() => setSelectedOrden(null)}
           onCancelled={() => {
             setSelectedOrden(null);

@@ -71,7 +71,7 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
     }
   }
   return (
-    <div className="flex flex-col w-full max-w-[448px] gap-[clamp(24px,5vw,40px)]">
+    <div className="flex flex-col w-full max-w-[560px] gap-[clamp(24px,5vw,40px)]">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold leading-9 text-slate-900 m-0">
           Iniciar sesión

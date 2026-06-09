@@ -8,7 +8,7 @@ import type {
   PlanoHospital,
   VistaPlano,
   AreaEnPlano,
-  DispositivoEnPlano,
+  ActivoEnArea,
 } from "@/features/administration/hospitalFloorPlans/types";
 import { SERVER_BASE_URL } from "@/config/api";
 
@@ -32,8 +32,6 @@ function formatRelative(iso: string) {
   return `hace ${hrs}h`;
 }
 
-// Componente principal de la pestaña de monitoreo de planos. 
-// Muestra una lista de planos disponibles y al seleccionar uno muestra su vista con las áreas y dispositivos posicionados.
 export default function FloorPlanMonitoringTab({ hospitalId }: Props) {
   const [planos, setPlanos] = useState<PlanoHospital[]>([]);
   const [activePlanoId, setActivePlanoId] = useState<number | null>(null);
@@ -92,12 +90,12 @@ export default function FloorPlanMonitoringTab({ hospitalId }: Props) {
     };
   }, [activePlanoId, loadVista]);
 
-  const areasConDispositivos = vista?.areas.filter(
+  const areasConPosicion = vista?.areas.filter(
     (a) => a.posX !== undefined && a.posX !== null
   ) ?? [];
 
-  const totalDispositivos = areasConDispositivos.reduce(
-    (acc, a) => acc + a.dispositivos.length,
+  const totalActivos = areasConPosicion.reduce(
+    (acc, a) => acc + (a.activos?.length ?? 0),
     0
   );
 
@@ -147,13 +145,13 @@ export default function FloorPlanMonitoringTab({ hospitalId }: Props) {
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs font-medium text-slate-600">
-              {areasConDispositivos.filter((a) => a.dispositivos.length > 0).length} área
-              {areasConDispositivos.filter((a) => a.dispositivos.length > 0).length !== 1 ? "s" : ""} con activos
+              {areasConPosicion.filter((a) => (a.activos?.length ?? 0) > 0).length} área
+              {areasConPosicion.filter((a) => (a.activos?.length ?? 0) > 0).length !== 1 ? "s" : ""} con activos
             </span>
           </div>
           <div className="h-3 w-px bg-slate-200" />
           <span className="text-xs text-slate-500">
-            {totalDispositivos} dispositivo{totalDispositivos !== 1 ? "s" : ""} detectado{totalDispositivos !== 1 ? "s" : ""}
+            {totalActivos} activo{totalActivos !== 1 ? "s" : ""} detectado{totalActivos !== 1 ? "s" : ""}
           </span>
         </div>
 
@@ -242,21 +240,19 @@ export default function FloorPlanMonitoringTab({ hospitalId }: Props) {
                     <span className="loading loading-spinner loading-xs text-[#09268E]" />
                   </div>
                 )}
-                {/* Area pins */}
-                {areasConDispositivos.map((area) => (
+                {areasConPosicion.map((area) => (
                   <AreaPin key={area.areaId} area={area} />
                 ))}
               </div>
 
-              {/* Legend */}
-              {areasConDispositivos.length > 0 && (
+              {areasConPosicion.length > 0 && (
                 <div className="px-5 py-4 border-t border-[#E2E8F0] bg-slate-50">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-3">
                     Áreas con activos detectados
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {areasConDispositivos
-                      .filter((a) => a.dispositivos.length > 0)
+                    {areasConPosicion
+                      .filter((a) => (a.activos?.length ?? 0) > 0)
                       .map((area) => (
                         <div
                           key={area.areaId}
@@ -265,11 +261,11 @@ export default function FloorPlanMonitoringTab({ hospitalId }: Props) {
                           <div className="w-2 h-2 rounded-full bg-[#09268E]" />
                           {area.areaNombre}
                           <span className="bg-[#EBF0FF] text-[#09268E] rounded-full px-1.5 py-px text-[10px] font-semibold">
-                            {area.dispositivos.length}
+                            {area.activos?.length ?? 0}
                           </span>
                         </div>
                       ))}
-                    {areasConDispositivos.filter((a) => a.dispositivos.length > 0).length === 0 && (
+                    {areasConPosicion.filter((a) => (a.activos?.length ?? 0) > 0).length === 0 && (
                       <p className="text-xs text-slate-400">
                         Ningún activo detectado en este piso en este momento.
                       </p>
@@ -278,7 +274,7 @@ export default function FloorPlanMonitoringTab({ hospitalId }: Props) {
                 </div>
               )}
 
-              {areasConDispositivos.length === 0 && !loadingVista && (
+              {areasConPosicion.length === 0 && !loadingVista && (
                 <div className="px-5 py-6 border-t border-[#E2E8F0] bg-slate-50 text-center">
                   <p className="text-xs text-slate-400">
                     Este plano no tiene áreas posicionadas aún. El administrador debe configurar las posiciones.
@@ -293,10 +289,9 @@ export default function FloorPlanMonitoringTab({ hospitalId }: Props) {
   );
 }
 
-// Componente que representa un pin de área en el plano, posicionado según las coordenadas del área. Al hacer hover muestra un tooltip con el nombre del área y los dispositivos detectados en esa área.
 function AreaPin({ area }: { area: AreaEnPlano }) {
   const [hover, setHover] = useState(false);
-  const hasDevices = area.dispositivos.length > 0;
+  const hasDevices = (area.activos?.length ?? 0) > 0;
 
   return (
     <div
@@ -309,12 +304,8 @@ function AreaPin({ area }: { area: AreaEnPlano }) {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      {/* Tooltip */}
-      {hover && (
-        <DeviceTooltip area={area} />
-      )}
+      {hover && <DeviceTooltip area={area} flipTooltip={area.posY < 30} />}
 
-      {/* Pin */}
       <div className="flex flex-col items-center">
         <div
           className={[
@@ -337,7 +328,7 @@ function AreaPin({ area }: { area: AreaEnPlano }) {
           </svg>
           {hasDevices && (
             <div className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center border border-white">
-              {area.dispositivos.length > 9 ? "9+" : area.dispositivos.length}
+              {(area.activos?.length ?? 0) > 9 ? "9+" : (area.activos?.length ?? 0)}
             </div>
           )}
         </div>
@@ -357,67 +348,66 @@ function AreaPin({ area }: { area: AreaEnPlano }) {
   );
 }
 
-// Tooltip que aparece al hacer hover sobre un pin de área, mostrando el nombre del área y una lista de los dispositivos detectados en esa área, con su última actualización.
-function DeviceTooltip({ area }: { area: AreaEnPlano }) {
-  return (
-    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-30 pointer-events-none">
-      <div className="bg-[#1A2B5E] text-white rounded-xl shadow-xl border border-[#09268E]/30 min-w-48 max-w-64 overflow-hidden">
-        <div className="px-3 py-2 border-b border-white/10">
-          <p className="font-bold text-sm">{area.areaNombre}</p>
-          <p className="text-[10px] text-blue-200 mt-0.5">
-            {area.dispositivos.length} dispositivo{area.dispositivos.length !== 1 ? "s" : ""}
-          </p>
+function DeviceTooltip({ area, flipTooltip }: { area: AreaEnPlano; flipTooltip?: boolean }) {
+  const activos = area.activos ?? [];
+  const box = (
+    <div className="bg-[#1A2B5E] text-white rounded-xl shadow-xl border border-[#09268E]/30 min-w-48 max-w-64 overflow-hidden">
+      <div className="px-3 py-2 border-b border-white/10">
+        <p className="font-bold text-sm">{area.areaNombre}</p>
+        <p className="text-[10px] text-blue-200 mt-0.5">
+          {activos.length} activo{activos.length !== 1 ? "s" : ""}
+        </p>
+      </div>
+      {activos.length === 0 ? (
+        <div className="px-3 py-2">
+          <p className="text-xs text-slate-300">Sin activos detectados</p>
         </div>
-        {area.dispositivos.length === 0 ? (
-          <div className="px-3 py-2">
-            <p className="text-xs text-slate-300">Sin activos detectados</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-white/10 max-h-40 overflow-y-auto">
-            {area.dispositivos.map((d, i) => (
-              <DeviceRow key={i} device={d} />
-            ))}
-          </div>
-        )}
-      </div>
-      {/* Arrow */}
-      <div className="flex justify-center">
-        <div className="w-0 h-0" style={{
-          borderLeft: "6px solid transparent",
-          borderRight: "6px solid transparent",
-          borderTop: "6px solid #1A2B5E",
-        }} />
-      </div>
+      ) : (
+        <div className="divide-y divide-white/10 max-h-40 overflow-y-auto">
+          {activos.map((d, i) => (
+            <DeviceRow key={i} device={d} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+  const arrowDown = (
+    <div className="flex justify-center">
+      <div className="w-0 h-0" style={{ borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid #1A2B5E" }} />
+    </div>
+  );
+  const arrowUp = (
+    <div className="flex justify-center">
+      <div className="w-0 h-0" style={{ borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderBottom: "6px solid #1A2B5E" }} />
+    </div>
+  );
+  return flipTooltip ? (
+    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-30 pointer-events-none">
+      {arrowUp}
+      {box}
+    </div>
+  ) : (
+    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-30 pointer-events-none">
+      {box}
+      {arrowDown}
     </div>
   );
 }
 
-// Componente que representa una fila en el tooltip de dispositivos, mostrando un ícono dependiendo si es un activo médico o un bebé, su nombre o descripción, y la última actualización.
-function DeviceRow({ device }: { device: DispositivoEnPlano }) {
-  const isActivo = device.tipo === "Activo";
+function DeviceRow({ device }: { device: ActivoEnArea }) {
   return (
     <div className="px-3 py-2 flex items-start gap-2">
-      <div className={[
-        "w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5",
-        isActivo ? "bg-blue-500/20" : "bg-pink-500/20",
-      ].join(" ")}>
-        {isActivo ? (
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2.5">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-          </svg>
-        ) : (
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f472b6" strokeWidth="2.5">
-            <path d="M9 12h.01M15 12h.01M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5" />
-            <path d="M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1" />
-          </svg>
-        )}
+      <div className="w-5 h-5 rounded bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2.5">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+        </svg>
       </div>
       <div className="min-w-0">
         <p className="text-xs font-semibold text-white truncate">
-          {device.activoDescripcion ?? device.bebeNombre ?? "Dispositivo"}
+          {device.activoDescripcion ?? "Activo sin descripción"}
         </p>
         <p className="text-[10px] text-slate-400 mt-0.5">
-          {isActivo ? "Activo médico" : "Bebé"} · {formatRelative(device.ultimaActualizacion)}
+          Últ. señal: {formatRelative(device.ultimaActualizacion)}
         </p>
       </div>
     </div>

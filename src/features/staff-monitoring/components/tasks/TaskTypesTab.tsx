@@ -1,5 +1,6 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
+import { useHasPermission } from "@/lib/hasPermission";
 import { toast } from "@/lib/toast";
 import { getTaskTypes } from "../../services/taskTypesService";
 import { TaskTypeFormModal } from "./TaskTypeFormModal";
@@ -13,6 +14,7 @@ const tdCls = "px-3.5 py-2.5 text-sm text-[#0f172a] border-b border-[#f1f5f9] al
 
 // Pestaña de gestión de tipos de tarea. Permite crear, editar y listar los tipos de tarea disponibles en el hospital.
 export function TaskTypesTab() {
+  const canManage = useHasPermission("staffMonitoring.scheduleManage");
   const [tipos, setTipos] = useState<TipoTarea[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(1);
@@ -64,17 +66,19 @@ export function TaskTypesTab() {
           <h2 className="text-base font-bold text-[#1A2B5E]">Tipos de tarea</h2>
           <p className="text-xs text-slate-500">Categorías de tasks disponibles en el hospital.</p>
         </div>
-        <button
-          type="button"
-          onClick={() => { setEditTarget(null); setFormOpen(true); }}
-          className="btn btn-sm text-white border-none gap-1.5"
-          style={{ background: "#09268E" }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          Nuevo tipo
-        </button>
+        {canManage && (
+          <button
+            type="button"
+            onClick={() => { setEditTarget(null); setFormOpen(true); }}
+            className="btn btn-sm text-white border-none gap-1.5"
+            style={{ background: "#09268E" }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Nuevo tipo
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -123,6 +127,7 @@ export function TaskTypesTab() {
                     </td>
                     <td className={tdCls + " text-slate-500"}>{t.nombreHospital}</td>
                     <td className={tdCls + " text-right"}>
+                      {canManage && (
                       <button
                         type="button"
                         title="Editar"
@@ -133,6 +138,7 @@ export function TaskTypesTab() {
                           <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
                         </svg>
                       </button>
+                      )}
                     </td>
                   </tr>
                 ))

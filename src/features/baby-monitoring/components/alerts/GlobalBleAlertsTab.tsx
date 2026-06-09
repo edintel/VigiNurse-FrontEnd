@@ -1,7 +1,8 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/toast";
 import { getAlerts, acknowledgeAlert } from "@/features/baby-monitoring/services/babyService";
+import { useBleAlerts } from "@/features/baby-monitoring/context/BleAlertsContext";
 import {
   TipoAlertaBLE,
   SeveridadAlerta,
@@ -43,7 +44,6 @@ function formatDT(d: string) {
   } catch { return d; }
 }
 
-// Componente principal que muestra la tabla de alertas BLE con filtros, paginación y acciones para reconocer/cerrar alertas.
 export default function GlobalBleAlertsTab() {
   const [alerts, setAlerts] = useState<AlertaBrazalete[]>([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -66,6 +66,15 @@ export default function GlobalBleAlertsTab() {
 
   const [acknowledging, setAcknowledging] = useState<number | null>(null);
   const [closeModalAlertId, setCloseModalAlertId] = useState<number | null>(null);
+
+  // Escucha nuevas alertas en tiempo real y refresca la lista + actualiza el conteo global
+  const { lastAlert, refresh: refreshCount } = useBleAlerts();
+  const lastAlertIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!lastAlert || lastAlert.id === lastAlertIdRef.current) return;
+    lastAlertIdRef.current = lastAlert.id;
+    void loadAlerts(1, appliedEstado, appliedSeveridad, appliedTipo, appliedDesde, appliedHasta);
+  }, [lastAlert]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadAlerts = useCallback(async (
     page: number,
@@ -125,6 +134,7 @@ export default function GlobalBleAlertsTab() {
     try {
       await acknowledgeAlert(id);
       toast.success("Alerta reconocida.");
+      refreshCount();
       void loadAlerts(currentPage, appliedEstado, appliedSeveridad, appliedTipo, appliedDesde, appliedHasta);
     } catch (err: unknown) {
       const data = (err as { response?: { data?: { mensaje?: string; message?: string } } })?.response?.data;
@@ -245,7 +255,7 @@ export default function GlobalBleAlertsTab() {
                             {acknowledging === a.id ? <span className="loading loading-spinner loading-xs" /> : "Reconocer"}
                           </button>
                         )}
-                        {a.estado !== EstadoAlertaBLE.Cerrada && (
+                        {a.estado === EstadoAlertaBLE.Reconocida && (
                           <button
                             type="button"
                             className="btn btn-xs btn-ghost text-slate-500 hover:text-red-600"
@@ -288,7 +298,8 @@ export default function GlobalBleAlertsTab() {
           onClose={() => setCloseModalAlertId(null)}
           onClosed={() => {
             setCloseModalAlertId(null);
-            void loadAlerts(currentPage, appliedEstado, appliedSeveridad, appliedTipo, appliedDesde, appliedHasta);
+            refreshCount();
+      void loadAlerts(currentPage, appliedEstado, appliedSeveridad, appliedTipo, appliedDesde, appliedHasta);
           }}
         />
       )}

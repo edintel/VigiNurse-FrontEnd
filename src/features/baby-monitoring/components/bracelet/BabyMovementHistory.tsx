@@ -10,6 +10,10 @@ import { CallyDatePicker } from "@/shared/ui/CallyDatePicker";
 import { FilterPanel, FilterLabel, filterInputCls } from "@/shared/ui/FilterPanel";
 import { PaginationFooter } from "@/shared/ui/PaginationFooter";
 
+function mVToPercent(mv: number): number {
+  return Math.min(100, Math.max(0, Math.round((mv - 2000) / 1000 * 100)));
+}
+
 const PAGE_SIZE = 20;
 
 interface BabyMovementHistoryProps {
@@ -218,10 +222,10 @@ export function BabyMovementHistory({ bebe, assignments, assignmentsLoading }: B
                   <td className="text-sm text-[#475569] whitespace-nowrap">{formatDT(ev.fechaEvento)}</td>
                   <td><EventTypeBadge tipo={ev.tipoEvento} /></td>
                   <td className="text-sm text-[#475569] truncate max-w-[120px]">{ev.zonaNombre ?? "—"}</td>
-                  <td className="text-sm text-[#475569] truncate max-w-[120px]">{ev.sensorNombre ?? "—"}</td>
+                  <td className="text-sm text-[#475569] font-mono truncate max-w-[120px]">{ev.gatewayMac ?? "—"}</td>
                   <td className="text-sm text-[#475569] font-mono whitespace-nowrap">{ev.brazaleteMac ?? "—"}</td>
                   <td className="text-sm text-[#475569] whitespace-nowrap">{ev.rssiDbm != null ? `${ev.rssiDbm} dBm` : "—"}</td>
-                  <td className="text-sm text-[#475569] whitespace-nowrap">{ev.nivelBateria != null ? `${ev.nivelBateria}%` : "—"}</td>
+                  <td className="text-sm text-[#475569] whitespace-nowrap">{ev.nivelBateria != null ? `${mVToPercent(ev.nivelBateria)}%` : "—"}</td>
                   <td className="text-sm text-[#475569] whitespace-nowrap">{formatDT(ev.fechaProcesado)}</td>
                 </tr>
               ))

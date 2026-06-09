@@ -123,6 +123,8 @@ export default function PatientRecordPage({ id, bebeId }: PatientRecordPageProps
   const canCreateVitalSigns = useHasPermission("patients.vitalSignsCreate");
   const canCreateNursingNotes = useHasPermission("patients.nursingNotesCreate");
   const canViewMedicalImages = useHasPermission("patients.medicalImagesView");
+  const canFeedingManage = useHasPermission("babyMonitoring.feedingManage");
+  const canCareManage = useHasPermission("babyMonitoring.careManage");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -256,9 +258,9 @@ export default function PatientRecordPage({ id, bebeId }: PatientRecordPageProps
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => router.push("/patients")}
+                onClick={() => router.push(bebeId ? "/baby-monitoring" : "/patients")}
                 className="btn btn-sm btn-ghost btn-circle text-[#64748b] hover:text-[#1A2B5E]"
-                title="Volver a gestión de pacientes"
+                title={bebeId ? "Volver a Gestión de Neonatos" : "Volver a gestión de pacientes"}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -468,10 +470,10 @@ export default function PatientRecordPage({ id, bebeId }: PatientRecordPageProps
         )}
 
         {activeTab === "alimentacion" && isBabyActive && (
-          <BabyFeedingTab episodioId={bebe!.episodioId} readOnly={false} />
+          <BabyFeedingTab episodioId={bebe!.episodioId} readOnly={!canFeedingManage} />
         )}
         {activeTab === "cuidados" && isBabyActive && (
-          <BabyCareTab episodioId={bebe!.episodioId} readOnly={false} />
+          <BabyCareTab episodioId={bebe!.episodioId} readOnly={!canCareManage} />
         )}
 
         {activeTab === "ubicacion" && isBabyActive && (
@@ -494,6 +496,7 @@ export default function PatientRecordPage({ id, bebeId }: PatientRecordPageProps
             episodio={episodioActivo}
             canCreate={canCreateOrders && episodioActivo.estado === EpisodioEstado.EnCurso}
             canChangeState={canChangeOrderState}
+            canViewImages={canViewMedicalImages}
           />
         )}
         {activeTab === "signos" && episodioActivo && (

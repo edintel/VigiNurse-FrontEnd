@@ -28,7 +28,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
     }
   }
   return (
-    <div className="flex flex-col w-full max-w-[448px] gap-[clamp(24px,5vw,40px)]">
+    <div className="flex flex-col w-full max-w-[560px] gap-[clamp(24px,5vw,40px)]">
       <button
         type="button"
         onClick={onBack}

@@ -1,5 +1,6 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
+import { useHasPermission } from "@/lib/hasPermission";
 import { toast } from "@/lib/toast";
 import { getTasks } from "../../services/taskService";
 import { getTaskAssignments } from "../../services/assignmentService";
@@ -74,6 +75,8 @@ function ActionBtn({
 
 // Componente principal de la pestaña de tasks
 export function TasksTab() {
+  const canSchedule = useHasPermission("staffMonitoring.scheduleManage");
+  const canAssign = useHasPermission("staffMonitoring.taskAssign");
   const [tasks, setTareas] = useState<Tarea[]>([]);
   const [asignacionMap, setAsignacionMap] = useState<Map<number, AsignacionTarea>>(new Map());
   const [tiposTarea, setTiposTarea] = useState<TipoTarea[]>([]);
@@ -181,17 +184,19 @@ export function TasksTab() {
             {totalRegistros} tarea{totalRegistros !== 1 ? "s" : ""} registrada{totalRegistros !== 1 ? "s" : ""}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setFormOpen(true)}
-          className="btn btn-sm text-white border-none gap-1.5"
-          style={{ background: "#09268E" }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          Nueva tarea
-        </button>
+        {canSchedule && (
+          <button
+            type="button"
+            onClick={() => setFormOpen(true)}
+            className="btn btn-sm text-white border-none gap-1.5"
+            style={{ background: "#09268E" }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Nueva tarea
+          </button>
+        )}
       </div>
 
       {/* Filters */}
@@ -399,7 +404,7 @@ export function TasksTab() {
                           </ActionBtn>
 
                           {/* Asignar (Pendiente sin responsable) */}
-                          {isPendienteNoAsignada && (
+                          {canAssign && isPendienteNoAsignada && (
                             <ActionBtn
                               title="Asignar responsable"
                               color="text-[#09268E]"
@@ -413,7 +418,7 @@ export function TasksTab() {
                           )}
 
                           {/* Reasignar (Asignada) */}
-                          {isAsignada && (
+                          {canAssign && isAsignada && (
                             <ActionBtn
                               title="Reasignar responsable"
                               color="text-amber-600"
@@ -428,7 +433,7 @@ export function TasksTab() {
                           )}
 
                           {/* Cancelar */}
-                          {canCancel && (
+                          {canAssign && canCancel && (
                             <ActionBtn
                               title="Cancelar tarea"
                               color="text-red-500"

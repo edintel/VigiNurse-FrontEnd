@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useHasPermission } from "@/lib/hasPermission";
 import {
   getBracelets,
   createBracelet,
@@ -388,6 +389,7 @@ function ChangeStatusModal({ open, brazalete, onClose, onUpdated }: CambiarEstad
 // Componente que muestra la lista de brazaletes y permite crear, editar y cambiar estado
 
 export default function BraceletsPage() {
+  const canManage = useHasPermission("babyMonitoring.braceletManage");
   const [brazaletes, setBrazaletes] = useState<Brazalete[]>([]);
   const [totalRegistros, setTotalRegistros] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(1);
@@ -440,6 +442,7 @@ export default function BraceletsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <h2 className="text-lg font-bold text-[#0f172a]">Brazaletes</h2>
+        {canManage && (
         <button type="button" className="btn text-white"
           style={{ backgroundColor: "#09268E", borderColor: "#09268E" }}
           onClick={() => setShowCreate(true)}>
@@ -448,6 +451,7 @@ export default function BraceletsPage() {
           </svg>
           Registrar brazalete
         </button>
+        )}
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] overflow-hidden">
@@ -501,6 +505,8 @@ export default function BraceletsPage() {
                     <td><StatusBadge estado={b.estado} /></td>
                     <td>
                       <div className="flex items-center justify-end gap-1">
+                        {canManage && (
+                        <>
                         {/* Editar: solo campos editables */}
                         <button type="button" className="btn btn-square btn-xs btn-ghost text-slate-500"
                           title="Editar" onClick={() => openEdit(b)}>
@@ -518,6 +524,8 @@ export default function BraceletsPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                           </svg>
                         </button>
+                        </>
+                        )}
                       </div>
                     </td>
                   </tr>

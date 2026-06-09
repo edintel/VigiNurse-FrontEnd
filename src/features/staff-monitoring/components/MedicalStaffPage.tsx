@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useHasPermission } from "@/lib/hasPermission";
 import { getMedicalStaff } from "@/features/staff-monitoring/services/medicalStaffService";
 import { getSpecialties } from "@/features/administration/users/services/userManagementService";
 import { SearchableSelect } from "@/shared/ui/SearchableSelect";
@@ -38,6 +39,7 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
 // carga de trabajo y disponibilidad
 function PersonalTab() {
   const router = useRouter();
+  const canEditArea = useHasPermission("staffMonitoring.editStaffArea");
   const [personal, setPersonal] = useState<PersonalMedico[]>([]);
   const [totalRegistros, setTotalRegistros] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(1);
@@ -285,6 +287,7 @@ function PersonalTab() {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                           </svg>
                         </button>
+                        {canEditArea && (
                         <button
                           type="button"
                           title="Editar área"
@@ -295,6 +298,7 @@ function PersonalTab() {
                             <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
                           </svg>
                         </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -323,7 +327,7 @@ export default function MedicalStaffPage() {
   const MAIN_TABS: { key: MainTab; label: string }[] = [
     { key: "personal", label: "Personal médico" },
     { key: "turnos", label: "Gestión de turnos" },
-    { key: "tasks", label: "Gestión de tasks" },
+    { key: "tasks", label: "Gestión de tareas" },
   ];
 
   return (

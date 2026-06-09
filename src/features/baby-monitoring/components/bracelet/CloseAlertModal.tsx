@@ -25,7 +25,8 @@ export function CloseAlertModal({ open, alertId, onClose, onClosed }: CloseAlert
     e.preventDefault();
     setSubmitting(true);
     try {
-      const dto: CloseAlertDTO = { notasCierre: closeReason.trim() || null };
+      if (!closeReason.trim()) return;
+      const dto: CloseAlertDTO = { notasCierre: closeReason.trim() };
       const updated = await closeAlert(alertId, dto);
       toast.success("Alerta cerrada correctamente.");
       onClosed(updated);
@@ -47,7 +48,7 @@ export function CloseAlertModal({ open, alertId, onClose, onClosed }: CloseAlert
         <form onSubmit={(e) => void handleSubmit(e)} className="px-6 py-5 space-y-4">
           <div>
             <label className="block text-sm font-semibold text-[#334155] mb-1.5">
-              Motivo de cierre <span className="text-xs font-normal text-slate-400">(opcional)</span>
+              Motivo de cierre <span className="text-red-500">*</span>
             </label>
             <textarea
               className="textarea textarea-bordered w-full text-sm rounded-lg resize-none"
@@ -56,17 +57,21 @@ export function CloseAlertModal({ open, alertId, onClose, onClosed }: CloseAlert
               value={closeReason}
               onChange={(e) => setCloseReason(e.target.value)}
               disabled={submitting}
+              required
             />
+            {closeReason.trim().length === 0 && (
+              <p className="text-xs text-red-500 mt-1">El motivo es obligatorio para cerrar la alerta.</p>
+            )}
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" className="btn btn-sm btn-ghost" onClick={onClose} disabled={submitting}>Cancelar</button>
             <button
               type="submit"
               className="btn btn-sm text-white"
-              style={submitting
+              style={submitting || closeReason.trim().length === 0
                 ? { backgroundColor: "#cbd5e1", borderColor: "#cbd5e1", color: "#94a3b8", cursor: "not-allowed" }
                 : { backgroundColor: "#09268E", borderColor: "#09268E" }}
-              disabled={submitting}
+              disabled={submitting || closeReason.trim().length === 0}
             >
               {submitting && <span className="loading loading-spinner loading-xs" />}
               Cerrar alerta

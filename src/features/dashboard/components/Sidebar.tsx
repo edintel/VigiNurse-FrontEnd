@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -12,6 +13,7 @@ import { clearSession } from "@/lib/session";
 import { toast } from "@/lib/toast";
 import { ROLES } from "@/constants/roles";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
+import { useBleAlerts } from "@/features/baby-monitoring/context/BleAlertsContext";
 
 // Define los elementos de navegación para la barra lateral.
 const NAV_ITEMS: {
@@ -237,27 +239,6 @@ const NAV_ITEMS: {
       </svg>
     ),
   },
-  {
-    label: "Configuración",
-    href: "/settings",
-    permission: "settings.view",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-      </svg>
-    ),
-  },
 ];
 // Da formato a la fecha.
 function formatDate(d: Date) {
@@ -297,6 +278,7 @@ export function Sidebar() {
   const [now, setNow] = useState<Date | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { openCount: bleOpenCount } = useBleAlerts();
   const sessionUser = currentUser;
   const userName = sessionUser?.name?.trim() || "Usuario";
   const userRole = sessionUser?.role ? formatRole(sessionUser.role) : "Sin rol";
@@ -346,125 +328,105 @@ export function Sidebar() {
 
       <aside
         className={[
-          "flex flex-col bg-white border-r border-slate-200 overflow-hidden flex-shrink-0",
+          "flex flex-col bg-white border-r border-slate-200 overflow-visible flex-shrink-0",
           "fixed inset-y-0 left-0 z-50 w-64",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
-          "md:relative md:inset-auto md:z-auto md:translate-x-0 md:h-screen",
+          "md:relative md:inset-auto md:z-30 md:translate-x-0 md:h-screen",
           collapsed ? "md:w-16" : "md:w-64",
           "transition-all duration-300 ease-in-out",
         ].join(" ")}
       >
+        <button
+          aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
+          title={collapsed ? "Expandir menú" : "Colapsar menú"}
+          className={[
+            "hidden md:flex absolute right-0 top-12 z-20 h-9 w-9 translate-x-[62%] -translate-y-1/2 items-center justify-center rounded-full",
+            "border border-slate-200 bg-white text-[#092168] shadow-[0_8px_18px_rgba(15,23,42,0.14)]",
+            "transition-[background-color,color,box-shadow,transform] duration-300 ease-out",
+            "hover:-translate-y-1/2 hover:translate-x-[62%] hover:scale-105 hover:border-blue-100 hover:bg-blue-50 hover:text-[#061447] hover:shadow-[0_12px_24px_rgba(9,33,104,0.2)]",
+            "active:-translate-y-1/2 active:translate-x-[62%] active:scale-95",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#092168]/30 focus-visible:ring-offset-2",
+          ].join(" ")}
+          onClick={() => setCollapsed((value) => !value)}
+        >
+          <svg
+            className={[
+              "transition-transform duration-300 ease-out",
+              collapsed ? "rotate-180" : "rotate-0",
+            ].join(" ")}
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+
         <div
           className={[
-            "border-b border-slate-100 py-3 flex flex-col gap-3 flex-shrink-0",
-            collapsed ? "px-2" : "px-3",
+            "border-b border-slate-100 bg-gradient-to-b from-white to-slate-50/70 py-3 flex flex-col gap-2 flex-shrink-0 transition-[padding] duration-300 ease-in-out",
+            collapsed ? "px-0 items-center" : "px-4",
           ].join(" ")}
         >
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="bg-[#092168] rounded-lg p-1.5 flex-shrink-0 flex items-center justify-center">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#fff"
-                  strokeWidth="2.5"
-                >
-                  <path d="M8 2H16V8H22V16H16V22H8V16H2V8H8z" />
-                </svg>
+          {collapsed ? (
+            <div className="flex h-[72px] w-full items-center justify-center">
+              <Image
+                src="/LogoSmall.png"
+                alt="VigiNurse"
+                width={1254}
+                height={1254}
+                className="h-[60px] w-[60px] -translate-x-1 object-contain drop-shadow-sm"
+              />
+            </div>
+          ) : (
+            <>
+              <div className="flex min-h-16 items-center justify-between gap-3">
+                <div className="relative h-16 w-[190px] flex-shrink-0 overflow-hidden">
+                  <Image
+                    src="/Logo-transparent.png"
+                    alt="VigiNurse"
+                    width={576}
+                    height={576}
+                    priority
+                    className="absolute left-1/2 top-0 h-56 w-56 max-w-none -translate-x-1/2 -translate-y-[78px] object-contain drop-shadow-sm"
+                  />
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0 md:hidden">
+                  <button
+                    aria-label="Cerrar menú"
+                    className="md:hidden flex items-center justify-center w-7 h-7 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
               </div>
-
-              {!collapsed && (
-                <span className="text-xl font-bold text-slate-900 tracking-tight whitespace-nowrap">
-                  VigiNurse
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-1 flex-shrink-0">
-              {!collapsed && <NotificationBell />}
-
-              <button
-                aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
-                className="hidden md:flex items-center justify-center w-7 h-7 rounded-md text-[#092168] hover:bg-blue-50 hover:text-[#061447] transition-colors"
-                onClick={() => setCollapsed(!collapsed)}
-              >
-                {collapsed ? (
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="9 18 15 12 9 6" />
+              <div className="flex min-w-0 items-center justify-between gap-3 pl-1 text-[11px] font-medium text-slate-500 tabular-nums">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span>{now ? formatDate(now) : "—"}</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
                   </svg>
-                ) : (
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="15 18 9 12 15 6" />
-                  </svg>
-                )}
-              </button>
-
-              <button
-                aria-label="Cerrar menú"
-                className="md:hidden flex items-center justify-center w-7 h-7 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
-                onClick={() => setMobileOpen(false)}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          {!collapsed && (
-            <div className="flex items-center gap-2 text-xs font-medium text-slate-500 tabular-nums">
-              <span>{now ? formatDate(now) : "—"}</span>
-
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#64748b"
-                strokeWidth="2"
-              >
-                <rect x="3" y="4" width="18" height="18" rx="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-
-              <span>{now ? formatTime(now) : "—"}</span>
-            </div>
+                  <span>{now ? formatTime(now) : "—"}</span>
+                </div>
+                <NotificationBell />
+              </div>
+            </>
           )}
         </div>
 
-        <nav className="flex-1 py-6 flex flex-col gap-1 overflow-y-auto">
+        <nav className="flex-1 py-5 flex flex-col gap-1 overflow-y-auto">
           {NAV_ITEMS.filter(
             (item) =>
               (!item.permission || userPermissions.includes(item.permission)) &&
@@ -489,8 +451,22 @@ export function Sidebar() {
                     : "text-slate-500 hover:bg-blue-50 hover:text-[#092168]",
                 ].join(" ")}
               >
-                <span className="flex-shrink-0">{item.icon}</span>
-                {!collapsed && <span className="truncate">{item.label}</span>}
+                <span className="flex-shrink-0 relative">
+                  {item.icon}
+                  {item.href === "/baby-monitoring" && bleOpenCount > 0 && collapsed && (
+                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-red-500 border border-white" />
+                  )}
+                </span>
+                {!collapsed && (
+                  <span className="truncate flex items-center gap-1.5">
+                    {item.label}
+                    {item.href === "/baby-monitoring" && bleOpenCount > 0 && (
+                      <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold px-1 animate-pulse flex-shrink-0">
+                        {bleOpenCount > 99 ? "99+" : bleOpenCount}
+                      </span>
+                    )}
+                  </span>
+                )}
               </Link>
             );
           })}

@@ -105,10 +105,12 @@ function toISODay(dateStr: string, end = false): string {
 
 interface AssetsPageProps {
   activoId: number;
+  canPlan?: boolean;
+  canExecute?: boolean;
 }
 
 // Página de mantenimientos para un activo específico
-export default function AssetsPage({ activoId }: AssetsPageProps) {
+export default function AssetsPage({ activoId, canPlan = false, canExecute = false }: AssetsPageProps) {
   const [tableData, setTableData] = useState<Mantenimiento[]>([]);
   const [loadingTable, setLoadingTable] = useState(false);
   const [tableError, setTableError] = useState<string | null>(null);
@@ -272,6 +274,7 @@ export default function AssetsPage({ activoId }: AssetsPageProps) {
     <div className="space-y-6">
       {/* Botón programar */}
       <div className="flex justify-end">
+        {canPlan && (
         <button
           type="button"
           className="btn text-white"
@@ -294,6 +297,7 @@ export default function AssetsPage({ activoId }: AssetsPageProps) {
           </svg>
           Programar mantenimiento
         </button>
+        )}
       </div>
 
       {/* Filtros */}
@@ -492,6 +496,7 @@ export default function AssetsPage({ activoId }: AssetsPageProps) {
                             />
                           </svg>
                         </button>
+                        {canPlan && (
                         <button
                           type="button"
                           className="btn btn-square btn-sm btn-ghost text-[#09268E] disabled:text-slate-300"
@@ -518,6 +523,7 @@ export default function AssetsPage({ activoId }: AssetsPageProps) {
                             />
                           </svg>
                         </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -553,6 +559,7 @@ export default function AssetsPage({ activoId }: AssetsPageProps) {
       <MantenimientoDetailModal
         open={detailMantenimiento !== null}
         mantenimiento={detailMantenimiento}
+        canExecute={canExecute}
         onClose={() => setDetailMantenimiento(null)}
         onUpdated={handleDetailUpdated}
       />

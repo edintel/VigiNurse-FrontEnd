@@ -8,6 +8,7 @@ import type { MonitorPacienteDto } from "@/features/vitals-monitoring/types";
 
 interface Props {
   monitor: MonitorPacienteDto;
+  canManage?: boolean;
   onDesasignado: (id: number) => void;
 }
 
@@ -141,7 +142,7 @@ function VitalCell({
 }
 
 // Componente principal para mostrar la tarjeta de monitorización de un paciente con sus signos vitales y estado de conexión
-export function MonitorCard({ monitor, onDesasignado }: Props) {
+export function MonitorCard({ monitor, canManage = false, onDesasignado }: Props) {
   const { lectura, estado } = useVitalSigns(monitor.pacienteId);
   const cfg = STATE_CONFIG[estado];
   const isDimmed = estado === "disconnected" || estado === "error";
@@ -226,16 +227,18 @@ export function MonitorCard({ monitor, onDesasignado }: Props) {
             {cfg.label}
           </span>
 
-          <button
-            onClick={abrirModal}
-            className="btn btn-ghost btn-xs text-slate-400 hover:text-red-500 hover:bg-red-50 p-1 min-h-0 h-auto"
-            title="Desasignar monitor"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
+          {canManage && (
+            <button
+              onClick={abrirModal}
+              className="btn btn-ghost btn-xs text-slate-400 hover:text-red-500 hover:bg-red-50 p-1 min-h-0 h-auto"
+              title="Desasignar monitor"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 

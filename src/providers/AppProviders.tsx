@@ -5,6 +5,7 @@ import { store } from "@/store/store";
 import { restoreSession, markSessionRestored } from "@/store/slices/authSlice";
 import { loadSession, clearSession } from "@/lib/session";
 import { NotificationsProvider } from "@/features/notifications/components/NotificationsProvider";
+import { BleAlertsProvider } from "@/features/baby-monitoring/context/BleAlertsProvider";
 
 function SessionRestorer() {
   useEffect(() => {
@@ -34,7 +35,11 @@ export function AppProviders({ children }: AppProvidersProps) {
   return (
     <StoreProvider>
       <SessionRestorer />
-      <NotificationsProvider>{children}</NotificationsProvider>
+      <NotificationsProvider>
+        <BleAlertsProvider>
+          {children}
+        </BleAlertsProvider>
+      </NotificationsProvider>
     </StoreProvider>
   );
 }

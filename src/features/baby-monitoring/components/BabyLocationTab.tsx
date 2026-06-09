@@ -12,6 +12,7 @@ import {
 import { BabyAllowedZonesSection } from "@/features/baby-monitoring/components/zones/BabyAllowedZonesSection";
 import { BabyRecentAlerts } from "@/features/baby-monitoring/components/bracelet/BabyRecentAlerts";
 import { BabyMovementHistory } from "@/features/baby-monitoring/components/bracelet/BabyMovementHistory";
+import { BabyFloorPlanMap } from "@/features/baby-monitoring/components/BabyFloorPlanMap";
 import { toast } from "@/lib/toast";
 import { EstadoBrazalete, EstadoUbicacionBebe, EstadoAlertaBLE } from "@/features/baby-monitoring/types";
 import type {
@@ -29,6 +30,10 @@ interface BabyLocationTabProps {
 }
 
 type LocationSubTab = "resumen" | "alertas" | "autorizaciones" | "historial";
+
+function mVToPercent(mv: number): number {
+  return Math.min(100, Math.max(0, Math.round((mv - 2000) / 1000 * 100)));
+}
 
 const SUB_TABS: { id: LocationSubTab; label: string }[] = [
   { id: "resumen", label: "Resumen" },
@@ -509,9 +514,9 @@ export function BabyLocationTab({ bebe, readOnly }: BabyLocationTabProps) {
               )}
               {ubicacion?.nivelBateria != null && (
                 <InfoField label="Batería" value={
-                  <span className={ubicacion.nivelBateria < 20 ? "text-red-600" : undefined}>
-                    {ubicacion.nivelBateria}%
-                    {ubicacion.nivelBateria < 20 && " — Baja"}
+                  <span className={mVToPercent(ubicacion.nivelBateria) < 20 ? "text-red-600" : undefined}>
+                    {mVToPercent(ubicacion.nivelBateria)}%
+                    {mVToPercent(ubicacion.nivelBateria) < 20 && " — Baja"}
                   </span>
                 } />
               )}
@@ -523,6 +528,13 @@ export function BabyLocationTab({ bebe, readOnly }: BabyLocationTabProps) {
               <div className="mt-4">
                 <LocationStatusBadge estado={ubicacion.estadoActual} mensaje={ubicacion.mensajeEstado} />
               </div>
+            )}
+            {ubicacion?.ultimaZonaId != null && (
+              <BabyFloorPlanMap
+                zonaId={ubicacion.ultimaZonaId}
+                pacienteId={bebe.pacienteId}
+                zonaNombre={ubicacion.ultimaZonaNombre}
+              />
             )}
           </div>
         ) : (

@@ -15,6 +15,11 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "messages", label: "Mensajes" },
 ];
 
+type NotificationBellProps = {
+  variant?: "icon" | "sidebar";
+  collapsed?: boolean;
+};
+
 function filterNotifications(
   notifications: InternalNotification[],
   tab: TabId,
@@ -97,7 +102,10 @@ function NotificationIcon({ type }: { type: NotificationType }) {
 }
 
 // Componente principal de la campana de notificaciones
-export function NotificationBell() {
+export function NotificationBell({
+  variant = "icon",
+  collapsed = false,
+}: NotificationBellProps) {
   const router = useRouter();
   const {
     notifications,
@@ -184,29 +192,57 @@ export function NotificationBell() {
     }
   }
 
+  const sidebarMode = variant === "sidebar";
+  const buttonClassName = sidebarMode
+    ? [
+        "relative flex w-full items-center gap-3 py-3 text-sm font-medium transition-colors cursor-pointer",
+        collapsed ? "px-[14px] justify-center" : "px-6",
+        open
+          ? "bg-blue-50 text-[#092168]"
+          : "text-slate-500 hover:bg-blue-50 hover:text-[#092168]",
+      ].join(" ")
+    : "relative flex items-center justify-center w-7 h-7 rounded-md text-[#092168] hover:bg-blue-50 transition-colors cursor-pointer";
+
   return (
     <>
       <button
         ref={buttonRef}
         aria-label="Notificaciones"
         title="Notificaciones"
-        className="relative flex items-center justify-center w-7 h-7 rounded-md text-[#092168] hover:bg-blue-50 transition-colors cursor-pointer"
+        className={buttonClassName}
         onClick={handleToggle}
       >
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-        </svg>
-        {unreadCount > 0 && (
+        <span className="relative flex flex-shrink-0 items-center justify-center">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
+          {sidebarMode && collapsed && unreadCount > 0 && (
+            <span className="absolute -top-2 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-bold leading-none text-white">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </span>
+        {sidebarMode && !collapsed && (
+          <>
+            <span className="truncate">Notificaciones</span>
+            {unreadCount > 0 && (
+              <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold leading-none text-white">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </>
+        )}
+        {!sidebarMode && unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] h-4 px-0.5 rounded-full bg-red-500 text-white text-[9px] font-bold leading-none">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>

@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { useHasPermission } from "@/lib/hasPermission";
 import { PaginationFooter } from "@/shared/ui/PaginationFooter";
 import { AlertsFilters } from "@/features/alerts/maintenance/components/AlertsFilters";
 import type { AlertsAppliedFilters } from "@/features/alerts/maintenance/components/AlertsFilters";
@@ -88,6 +89,7 @@ function LeidaBadge({ leida }: { leida: boolean }) {
 
 // Componente principal de la página de alertas, que maneja la lógica de carga, filtrado, paginación y marcado de alertas como leídas
 export default function AlertsPage() {
+  const canManageAlerts = useHasPermission("assetsManagement.alertsView");
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -263,7 +265,7 @@ export default function AlertsPage() {
                       <LeidaBadge leida={alerta.leida} />
                     </td>
                     <td className="text-right">
-                      {!alerta.leida && (
+                      {!alerta.leida && canManageAlerts && (
                         <button
                           type="button"
                           className="btn btn-xs font-semibold text-white"

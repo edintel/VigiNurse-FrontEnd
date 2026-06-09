@@ -279,6 +279,10 @@ export async function getAlerts(params?: {
       estado: params?.status,
       pacienteId: params?.babyId,
       brazaleteId: params?.braceletId,
+      severidad: params?.severity,
+      tipo: params?.type,
+      fechaDesde: params?.dateFrom ?? undefined,
+      fechaHasta: params?.dateTo ?? undefined,
     },
   });
   return res.data;

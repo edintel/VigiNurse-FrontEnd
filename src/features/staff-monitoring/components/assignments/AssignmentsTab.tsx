@@ -1,5 +1,6 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
+import { useHasPermission } from "@/lib/hasPermission";
 import { toast } from "@/lib/toast";
 import { getAssignments, deleteAssignment } from "../../services/shiftsService";
 import { getAllActiveGroups } from "../../services/groupsService";
@@ -43,6 +44,7 @@ function extractApiError(err: unknown, fallback: string): string {
 
 // Componente principal para la gestión de assignments
 export function AssignmentsTab() {
+  const canManage = useHasPermission("staffMonitoring.scheduleManage");
   const [subTab, setSubTab] = useState<"ciclo" | "manual">("ciclo");
 
   // Ciclo sub-tab
@@ -140,17 +142,19 @@ export function AssignmentsTab() {
                 />
                 <span className="text-xs text-slate-500">Mostrar canceladas</span>
               </label>
-              <button
-                type="button"
-                onClick={() => { setCicloModalMode("crear"); setRenovarTarget(null); setCicloModalOpen(true); }}
-                className="btn btn-sm text-white border-none gap-1.5"
-                style={{ background: "#09268E" }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Nueva asignación
-              </button>
+              {canManage && (
+                <button
+                  type="button"
+                  onClick={() => { setCicloModalMode("crear"); setRenovarTarget(null); setCicloModalOpen(true); }}
+                  className="btn btn-sm text-white border-none gap-1.5"
+                  style={{ background: "#09268E" }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                  Nueva asignación
+                </button>
+              )}
             </div>
           </div>
 
@@ -223,7 +227,7 @@ export function AssignmentsTab() {
                         </td>
                         <td className={tdCls + " text-right"}>
                           <div className="flex items-center justify-end gap-1">
-                            {a.estado === EstadoAsignacion.Activo && (
+                            {canManage && a.estado === EstadoAsignacion.Activo && (
                               <button
                                 type="button"
                                 title="Renovar"
@@ -235,7 +239,7 @@ export function AssignmentsTab() {
                                 </svg>
                               </button>
                             )}
-                            {a.estado !== EstadoAsignacion.Cancelado && (
+                            {canManage && a.estado !== EstadoAsignacion.Cancelado && (
                               <button
                                 type="button"
                                 title="Cancelar asignación"

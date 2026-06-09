@@ -228,8 +228,8 @@ export interface EventoRastreo {
   id: number;
   brazaleteId: number | null;
   brazaleteMac: string | null;
-  sensorId: number | null;
-  sensorNombre: string | null;
+  gatewayBleId: number | null;
+  gatewayMac: string | null;
   zonaId: number | null;
   zonaNombre: string | null;
   tipoEvento: TipoEventoRastreo;

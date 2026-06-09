@@ -47,6 +47,7 @@ type TabProps = {
   canChangeMedicationState: boolean;
   canCreateOrders: boolean;
   canChangeOrderState: boolean;
+  canViewImages: boolean;
   canCreateVitalSigns: boolean;
   canCreateClinicalEvolution: boolean;
   canCreateNursingNotes: boolean;
@@ -84,11 +85,12 @@ const CLINICAL_DETAIL_TABS: {
   {
     id: "ordenes",
     label: "Órdenes",
-    render: ({ episodio, canCreateOrders, canChangeOrderState }) => (
+    render: ({ episodio, canCreateOrders, canChangeOrderState, canViewImages }) => (
       <OrdersTab
         episodio={episodio}
         canCreate={canCreateOrders && episodio.estado === EpisodioEstado.EnCurso}
         canChangeState={canChangeOrderState}
+        canViewImages={canViewImages}
       />
     ),
   },
@@ -201,6 +203,7 @@ export default function EpisodeDetailPage({
   const canChangeMedicationState = useHasPermission("patients.medicationChangeState");
   const canCreateOrders = useHasPermission("patients.ordersCreate");
   const canChangeOrderState = useHasPermission("patients.ordersChangeState");
+  const canViewImages = useHasPermission("patients.medicalImagesView");
   const canCreateVitalSigns = useHasPermission("patients.vitalSignsCreate");
   const canCreateClinicalEvolution = useHasPermission("patients.clinicalEvolutionCreate");
   const canCreateNursingNotes = useHasPermission("patients.nursingNotesCreate");
@@ -528,6 +531,7 @@ export default function EpisodeDetailPage({
                 canChangeMedicationState,
                 canCreateOrders,
                 canChangeOrderState,
+                canViewImages,
                 canCreateVitalSigns,
                 canCreateClinicalEvolution,
                 canCreateNursingNotes,
@@ -541,6 +545,7 @@ export default function EpisodeDetailPage({
                 canChangeMedicationState,
                 canCreateOrders,
                 canChangeOrderState,
+                canViewImages,
                 canCreateVitalSigns,
                 canCreateClinicalEvolution,
                 canCreateNursingNotes,

@@ -51,6 +51,7 @@ export const API_ENDPOINTS = {
   zonas: {
     list: `${API_BASE_URL}/zonas`,
     byId: (id: number) => `${API_BASE_URL}/zonas/${id}`,
+    posicion: (id: number) => `${API_BASE_URL}/zonas/${id}/posicion`,
   },
   vitalSigns: {
     tipos: `${API_BASE_URL}/signos-vitales/tipos`,
@@ -272,3 +273,4 @@ export const API_ENDPOINTS = {
 export const SERVER_BASE_URL = API_BASE_URL.replace(/\/+$/g, "").replace(/\/api$/i, "");
 export const SIGNALR_HUB_URL = `${API_BASE_URL.replace(/\/+$/g, "").replace(/\/api$/i, "")}/hubs/signos-vitales`;
 export const CHAT_HUB_URL = `${API_BASE_URL.replace(/\/+$/g, "").replace(/\/api$/i, "")}/hubs/chat`;
+export const BLE_ALERTS_HUB_URL = `${API_BASE_URL.replace(/\/+$/g, "").replace(/\/api$/i, "")}/hubs/alertas-ble`;

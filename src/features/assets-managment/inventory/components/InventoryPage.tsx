@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useHasPermission } from "@/lib/hasPermission";
 import { getAssets } from "@/features/assets-managment/inventory/services/assetService";
 import { CreateAssetModal } from "@/features/assets-managment/inventory/components/CreateAssetModal";
 import { EditAssetModal } from "@/features/assets-managment/inventory/components/EditAssetModal";
@@ -90,6 +91,8 @@ function CriticoIcon({ esCritico }: { esCritico: boolean }) {
 // Componente principal de la pestaña de inventario.
 export default function InventoryPage() {
   const router = useRouter();
+  const canCreate = useHasPermission("assetsManagement.create");
+  const canEdit = useHasPermission("assetsManagement.edit");
   const [activos, setActivos] = useState<Activo[]>([]);
   const [totalRegistros, setTotalRegistros] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(1);
@@ -168,6 +171,7 @@ export default function InventoryPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
+        {canCreate && (
         <button
           type="button"
           className="btn text-white"
@@ -190,6 +194,7 @@ export default function InventoryPage() {
           </svg>
           Registrar nuevo activo
         </button>
+        )}
       </div>
 
       <InventoryFilters
@@ -311,6 +316,7 @@ export default function InventoryPage() {
                             />
                           </svg>
                         </button>
+                        {canEdit && (
                         <button
                           type="button"
                           className="btn btn-square btn-sm btn-ghost text-[#09268E] disabled:text-slate-300"
@@ -337,6 +343,7 @@ export default function InventoryPage() {
                             />
                           </svg>
                         </button>
+                        )}
                       </div>
                     </td>
                   </tr>

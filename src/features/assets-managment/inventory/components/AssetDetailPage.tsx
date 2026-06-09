@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useHasPermission } from "@/lib/hasPermission";
 import {
   getAssetById,
   getAssetQrBlob,
@@ -93,6 +94,10 @@ const TABS = [
 // Página de detalles de un activo específico. Muestra información detallada, código QR, historial de mantenimientos y permite editar o retirar el activo.
 export default function AssetDetailPage({ id }: AssetDetailPageProps) {
   const router = useRouter();
+  const canEdit = useHasPermission("assetsManagement.edit");
+  const canRetire = useHasPermission("assetsManagement.retire");
+  const canPlanMaintenance = useHasPermission("assetsManagement.maintenancePlan");
+  const canExecuteMaintenance = useHasPermission("assetsManagement.maintenanceExecute");
   const [activo, setActivo] = useState<Activo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -229,7 +234,7 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
               </svg>
             )}
           </div>
-          {!isRetirado && (
+          {!isRetirado && canEdit && (
             <button
               type="button"
               className="btn text-white flex items-center gap-2"
@@ -280,7 +285,7 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
 
         {/* Contenido tab Mantenimientos */}
         {activeTab === "mantenimientos" && (
-          <MaintenanceAssetsPage activoId={id} />
+          <MaintenanceAssetsPage activoId={id} canPlan={canPlanMaintenance} canExecute={canExecuteMaintenance} />
         )}
 
         {/* Contenido tab Información General */}
@@ -405,7 +410,7 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
 
               {/* Card: Localización — BLE para activos críticos, clásica para el resto */}
               {activo.esCritico ? (
-                <BleLocationCard activoId={activo.id} />
+                <BleLocationCard activoId={activo.id} canEdit={canEdit} />
               ) : (
                 <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6 flex flex-col gap-6">
                   <div className="flex items-center gap-2">
@@ -491,6 +496,7 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
                     <p className="text-sm text-slate-500">
                       Este activo no ha sido retirado.
                     </p>
+                    {canRetire && (
                     <button
                       type="button"
                       className="btn btn-sm text-white"
@@ -516,6 +522,7 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
                       </svg>
                       Registrar Retiro
                     </button>
+                    )}
                   </div>
                 )}
               </div>

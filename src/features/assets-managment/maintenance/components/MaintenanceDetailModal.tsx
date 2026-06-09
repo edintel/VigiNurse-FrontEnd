@@ -13,6 +13,7 @@ import { toast } from "@/lib/toast";
 interface MantenimientoDetailModalProps {
   open: boolean;
   mantenimiento: Mantenimiento | null;
+  canExecute?: boolean;
   onClose: () => void;
   onUpdated: (m: Mantenimiento) => void;
 }
@@ -75,6 +76,7 @@ const MAX_RESULTADO = 500;
 export function MantenimientoDetailModal({
   open,
   mantenimiento,
+  canExecute = false,
   onClose,
   onUpdated,
 }: MantenimientoDetailModalProps) {
@@ -460,7 +462,7 @@ export function MantenimientoDetailModal({
           </div>
 
           {/* Footer action bar */}
-          {!isFinal && (
+          {!isFinal && canExecute && (
             <div className="flex items-center justify-between gap-3 px-6 py-4 bg-[#EEEEEE] border-t border-[#E2E8F0]">
               <button
                 type="button"

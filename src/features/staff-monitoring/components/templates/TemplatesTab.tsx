@@ -1,5 +1,6 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
+import { useHasPermission } from "@/lib/hasPermission";
 import { toast } from "@/lib/toast";
 import { getTemplates, updateTemplate } from "../../services/templatesService";
 import { getAreas } from "../../services/areasService";
@@ -41,6 +42,7 @@ function StatusBadge({ activo }: { activo: boolean }) {
 
 // Pestaña de gestión de templates de turno, con tabla, paginación, creación/edición y activación/desactivación.
 export function TemplatesTab() {
+  const canManage = useHasPermission("staffMonitoring.scheduleManage");
   const [templates, setPlantillas] = useState<PlantillaTurno[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(1);
@@ -113,17 +115,19 @@ export function TemplatesTab() {
           <h2 className="text-base font-bold text-[#1A2B5E]">Plantillas de turno</h2>
           
         </div>
-        <button
-          type="button"
-          onClick={() => { setEditTarget(null); setFormOpen(true); }}
-          className="btn btn-sm text-white border-none gap-1.5"
-          style={{ background: "#09268E" }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          Nueva plantilla
-        </button>
+        {canManage && (
+          <button
+            type="button"
+            onClick={() => { setEditTarget(null); setFormOpen(true); }}
+            className="btn btn-sm text-white border-none gap-1.5"
+            style={{ background: "#09268E" }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Nueva plantilla
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -182,6 +186,7 @@ export function TemplatesTab() {
                     <td className={tdCls}><StatusBadge activo={p.activo} /></td>
                     <td className={tdCls + " text-right"}>
                       <div className="flex items-center justify-end gap-1 flex">
+                        {canManage && (
                         <button
                           type="button"
                           title="Editar"
@@ -192,7 +197,8 @@ export function TemplatesTab() {
                             <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
                           </svg>
                         </button>
-                        {p.activo ? (
+                        )}
+                        {canManage && (p.activo ? (
                           <button
                             type="button"
                             title="Desactivar"
@@ -219,7 +225,7 @@ export function TemplatesTab() {
                               </svg>
                             )}
                           </button>
-                        )}
+                        ))}
                       </div>
                     </td>
                   </tr>

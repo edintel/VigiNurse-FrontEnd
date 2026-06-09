@@ -4,6 +4,7 @@ import axiosInstance from "@/lib/axios";
 import { API_ENDPOINTS, SERVER_BASE_URL } from "@/config/api";
 import type { AreaConPosicion, VistaPlano, AreaEnPlano } from "@/features/administration/hospitalFloorPlans/types";
 
+
 interface Props {
   areaId: number | null;
   activoId?: number | null;
@@ -61,7 +62,7 @@ export function AssetFloorPlanMap({ areaId, activoId, areaName }: Props) {
       // Buscar el área que contiene el activo en dispositivos[] (tiempo real)
       // Si no se encuentra, usar el área por areaId como fallback
       const found = activoId
-        ? v.areas.find((a) => a.dispositivos.some((d) => d.activoId === activoId)) ?? null
+        ? v.areas.find((a) => a.activos.some((d) => d.activoId === activoId)) ?? null
         : null;
       const fallback = v.areas.find((a) => a.areaId === areaId) ?? null;
       setActiveArea(found ?? fallback);
@@ -192,7 +193,7 @@ export function AssetFloorPlanMap({ areaId, activoId, areaName }: Props) {
                     posX={activeArea.posX}
                     posY={activeArea.posY}
                     label={displayName}
-                    deviceCount={activeArea.dispositivos.length}
+                    deviceCount={activeArea.activos.length}
                   />
                 )}
 
@@ -233,10 +234,13 @@ function GhostPin({ area }: { area: AreaEnPlano }) {
       onMouseLeave={() => setHover(false)}
     >
       {hover && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 bg-slate-700 text-white text-[10px] rounded-lg px-2 py-1 whitespace-nowrap shadow pointer-events-none z-30">
+        <div className={[
+          "absolute left-1/2 -translate-x-1/2 bg-slate-700 text-white text-[10px] rounded-lg px-2 py-1 whitespace-nowrap shadow pointer-events-none z-30",
+          area.posY < 30 ? "top-full mt-1" : "bottom-full mb-1",
+        ].join(" ")}>
           {area.areaNombre}
-          {area.dispositivos.length > 0 && (
-            <span className="ml-1 text-blue-300">· {area.dispositivos.length} activo{area.dispositivos.length !== 1 ? "s" : ""}</span>
+          {area.activos.length > 0 && (
+            <span className="ml-1 text-blue-300">· {area.activos.length} activo{area.activos.length !== 1 ? "s" : ""}</span>
           )}
         </div>
       )}
@@ -264,7 +268,10 @@ function AssetPin({ posX, posY, label, deviceCount }: { posX: number; posY: numb
       onMouseLeave={() => setHover(false)}
     >
       {hover && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 bg-[#1A2B5E] text-white text-xs rounded-lg px-2.5 py-1.5 whitespace-nowrap shadow-lg pointer-events-none z-30">
+        <div className={[
+          "absolute left-1/2 -translate-x-1/2 bg-[#1A2B5E] text-white text-xs rounded-lg px-2.5 py-1.5 whitespace-nowrap shadow-lg pointer-events-none z-30",
+          posY < 30 ? "top-full mt-1" : "bottom-full mb-1",
+        ].join(" ")}>
           <span className="font-semibold">{label}</span>
           <div className="text-[10px] text-blue-200 mt-0.5">
             {deviceCount > 1 ? `${deviceCount} activos en esta área` : "Activo detectado aquí"}

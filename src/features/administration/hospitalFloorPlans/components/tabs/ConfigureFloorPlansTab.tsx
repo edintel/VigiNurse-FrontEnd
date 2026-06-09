@@ -4,10 +4,13 @@ import {
   getHospitalFloorPlans,
   getAreasList,
   saveAreaPosition,
+  getZonesList,
+  saveZonePosition,
 } from "@/features/administration/hospitalFloorPlans/services/hospitalFloorPlanService";
 import type {
   PlanoHospital,
   AreaConPosicion,
+  ZonaConPosicion,
 } from "@/features/administration/hospitalFloorPlans/types";
 import { UploadFloorPlanModal } from "@/features/administration/hospitalFloorPlans/components/UploadFloorPlanModal";
 import { DeleteFloorPlanModal } from "@/features/administration/hospitalFloorPlans/components/DeleteFloorPlanModal";
@@ -19,18 +22,21 @@ interface Props {
   isSuperAdmin?: boolean;
 }
 
+type PinMode = "area" | "zona";
+
 function getImageUrl(urlImagen: string) {
   return `${SERVER_BASE_URL}${urlImagen}`;
 }
 
-// Componente principal para configurar planos hospitalarios
 export default function ConfigureFloorPlansTab({ hospitalId, isSuperAdmin }: Props) {
   const imageRef = useRef<HTMLImageElement>(null);
 
   const [planos, setPlanos] = useState<PlanoHospital[]>([]);
   const [areas, setAreas] = useState<AreaConPosicion[]>([]);
+  const [zonas, setZonas] = useState<ZonaConPosicion[]>([]);
   const [selectedPlano, setSelectedPlano] = useState<PlanoHospital | null>(null);
-  const [selectedAreaId, setSelectedAreaId] = useState<number | null>(null);
+  const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
+  const [pinMode, setPinMode] = useState<PinMode>("area");
   const [loadingData, setLoadingData] = useState(true);
   const [loadingPin, setLoadingPin] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,12 +47,14 @@ export default function ConfigureFloorPlansTab({ hospitalId, isSuperAdmin }: Pro
     setLoadingData(true);
     setError(null);
     try {
-      const [ps, as] = await Promise.all([
+      const [ps, as, zs] = await Promise.all([
         getHospitalFloorPlans(hospitalId),
         getAreasList(),
+        getZonesList(),
       ]);
       setPlanos(ps);
       setAreas(as.filter((a) => a.hospitalId === hospitalId));
+      setZonas(zs.filter((z) => z.hospitalId === hospitalId));
     } catch {
       setError("Error al cargar los datos. Intenta nuevamente.");
     } finally {
@@ -59,31 +67,44 @@ export default function ConfigureFloorPlansTab({ hospitalId, isSuperAdmin }: Pro
   const areasDelPlano = selectedPlano
     ? areas.filter((a) => a.planoHospitalId === selectedPlano.id)
     : [];
-
   const areasSinPlano = areas.filter((a) => a.planoHospitalId === null);
 
+  const zonasDelPlano = selectedPlano
+    ? zonas.filter((z) => z.planoHospitalId === selectedPlano.id)
+    : [];
+  const zonasSinPlano = zonas.filter((z) => z.planoHospitalId === null);
+
   function handleImageClick(e: React.MouseEvent<HTMLDivElement>) {
-    if (!selectedAreaId || !imageRef.current || loadingPin) return;
+    if (!selectedItemId || !imageRef.current || loadingPin) return;
     const rect = imageRef.current.getBoundingClientRect();
     const posX = ((e.clientX - rect.left) / rect.width) * 100;
     const posY = ((e.clientY - rect.top) / rect.height) * 100;
-    void savePin(selectedAreaId, posX, posY);
+    void savePin(selectedItemId, posX, posY);
   }
 
-  async function savePin(areaId: number, posX: number, posY: number) {
+  async function savePin(itemId: number, posX: number, posY: number) {
     if (!selectedPlano) return;
     setLoadingPin(true);
+    const dto = {
+      planoHospitalId: selectedPlano.id,
+      posX: Math.round(posX * 100) / 100,
+      posY: Math.round(posY * 100) / 100,
+    };
     try {
-      await saveAreaPosition(areaId, {
-        planoHospitalId: selectedPlano.id,
-        posX: Math.round(posX * 100) / 100,
-        posY: Math.round(posY * 100) / 100,
-      });
-      const area = areas.find((a) => a.id === areaId);
-      toast.success(`Área "${area?.nombre ?? ""}" posicionada.`);
-      setSelectedAreaId(null);
-      const updated = await getAreasList();
-      setAreas(updated.filter((a) => a.hospitalId === hospitalId));
+      if (pinMode === "area") {
+        await saveAreaPosition(itemId, dto);
+        const item = areas.find((a) => a.id === itemId);
+        toast.success(`Área "${item?.nombre ?? ""}" posicionada.`);
+        const updated = await getAreasList();
+        setAreas(updated.filter((a) => a.hospitalId === hospitalId));
+      } else {
+        await saveZonePosition(itemId, dto);
+        const item = zonas.find((z) => z.id === itemId);
+        toast.success(`Zona "${item?.nombre ?? ""}" posicionada.`);
+        const updated = await getZonesList();
+        setZonas(updated.filter((z) => z.hospitalId === hospitalId));
+      }
+      setSelectedItemId(null);
     } catch {
       toast.error("Error al guardar la posición.");
     } finally {
@@ -91,18 +112,29 @@ export default function ConfigureFloorPlansTab({ hospitalId, isSuperAdmin }: Pro
     }
   }
 
-  async function removePin(area: AreaConPosicion) {
+  async function removeAreaPin(area: AreaConPosicion) {
     if (loadingPin) return;
     setLoadingPin(true);
     try {
-      await saveAreaPosition(area.id, {
-        planoHospitalId: null,
-        posX: null,
-        posY: null,
-      });
+      await saveAreaPosition(area.id, { planoHospitalId: null, posX: null, posY: null });
       toast.success(`Pin de "${area.nombre}" eliminado.`);
       const updated = await getAreasList();
       setAreas(updated.filter((a) => a.hospitalId === hospitalId));
+    } catch {
+      toast.error("Error al eliminar el pin.");
+    } finally {
+      setLoadingPin(false);
+    }
+  }
+
+  async function removeZonaPin(zona: ZonaConPosicion) {
+    if (loadingPin) return;
+    setLoadingPin(true);
+    try {
+      await saveZonePosition(zona.id, { planoHospitalId: null, posX: null, posY: null });
+      toast.success(`Pin de "${zona.nombre}" eliminado.`);
+      const updated = await getZonesList();
+      setZonas(updated.filter((z) => z.hospitalId === hospitalId));
     } catch {
       toast.error("Error al eliminar el pin.");
     } finally {
@@ -164,7 +196,7 @@ export default function ConfigureFloorPlansTab({ hospitalId, isSuperAdmin }: Pro
             </svg>
           </div>
           <p className="text-sm font-semibold text-slate-600">Sin planos cargados</p>
-          <p className="text-xs text-slate-400 mt-1">Sube la imagen de un plano para comenzar a posicionar áreas.</p>
+          <p className="text-xs text-slate-400 mt-1">Sube la imagen de un plano para comenzar a posicionar áreas y zonas.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -179,7 +211,7 @@ export default function ConfigureFloorPlansTab({ hospitalId, isSuperAdmin }: Pro
               ].join(" ")}
               onClick={() => {
                 setSelectedPlano(plano);
-                setSelectedAreaId(null);
+                setSelectedItemId(null);
               }}
             >
               <div className="bg-slate-100 h-28 flex items-center justify-center overflow-hidden relative">
@@ -211,8 +243,9 @@ export default function ConfigureFloorPlansTab({ hospitalId, isSuperAdmin }: Pro
                 </div>
                 <p className="text-xs text-slate-400 mt-0.5">
                   {areas.filter((a) => a.planoHospitalId === plano.id).length} área
-                  {areas.filter((a) => a.planoHospitalId === plano.id).length !== 1 ? "s" : ""} posicionada
-                  {areas.filter((a) => a.planoHospitalId === plano.id).length !== 1 ? "s" : ""}
+                  {areas.filter((a) => a.planoHospitalId === plano.id).length !== 1 ? "s" : ""} ·{" "}
+                  {zonas.filter((z) => z.planoHospitalId === plano.id).length} zona
+                  {zonas.filter((z) => z.planoHospitalId === plano.id).length !== 1 ? "s" : ""}
                 </p>
               </div>
             </div>
@@ -232,8 +265,37 @@ export default function ConfigureFloorPlansTab({ hospitalId, isSuperAdmin }: Pro
             <span className="text-sm font-bold text-[#1A2B5E]">
               Editando: {selectedPlano.nombre}
             </span>
-            {selectedAreaId && (
-              <span className="ml-auto text-xs bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-2.5 py-0.5 font-medium flex items-center gap-1.5">
+
+            {/* Mode toggle */}
+            <div className="ml-auto flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
+              <button
+                type="button"
+                onClick={() => { setPinMode("area"); setSelectedItemId(null); }}
+                className={[
+                  "px-3 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer",
+                  pinMode === "area"
+                    ? "bg-white text-[#09268E] shadow-sm"
+                    : "text-slate-500 hover:text-[#09268E]",
+                ].join(" ")}
+              >
+                Áreas
+              </button>
+              <button
+                type="button"
+                onClick={() => { setPinMode("zona"); setSelectedItemId(null); }}
+                className={[
+                  "px-3 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer",
+                  pinMode === "zona"
+                    ? "bg-white text-purple-700 shadow-sm"
+                    : "text-slate-500 hover:text-purple-700",
+                ].join(" ")}
+              >
+                Zonas
+              </button>
+            </div>
+
+            {selectedItemId && (
+              <span className="text-xs bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-2.5 py-0.5 font-medium flex items-center gap-1.5">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <circle cx="12" cy="10" r="3" /><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
                 </svg>
@@ -247,7 +309,7 @@ export default function ConfigureFloorPlansTab({ hospitalId, isSuperAdmin }: Pro
             <div className="flex-1 p-4">
               <div
                 className="relative rounded-lg overflow-hidden border border-[#E2E8F0] bg-slate-50 select-none"
-                style={{ cursor: selectedAreaId ? "crosshair" : "default" }}
+                style={{ cursor: selectedItemId ? "crosshair" : "default" }}
                 onClick={handleImageClick}
               >
                 {loadingPin && (
@@ -266,105 +328,54 @@ export default function ConfigureFloorPlansTab({ hospitalId, isSuperAdmin }: Pro
                     el.style.display = "none";
                   }}
                 />
-                {/* Pins */}
+                {/* Area pins */}
                 {areasDelPlano
                   .filter((a) => a.posX !== null && a.posY !== null)
                   .map((area) => (
-                    <PinOverlay
+                    <AreaPinOverlay
                       key={area.id}
                       area={area}
-                      isSelected={selectedAreaId === area.id}
-                      onRemove={() => void removePin(area)}
+                      isSelected={pinMode === "area" && selectedItemId === area.id}
+                      onRemove={() => void removeAreaPin(area)}
+                    />
+                  ))}
+                {/* Zone pins */}
+                {zonasDelPlano
+                  .filter((z) => z.posX !== null && z.posY !== null)
+                  .map((zona) => (
+                    <ZonaPinOverlay
+                      key={zona.id}
+                      zona={zona}
+                      isSelected={pinMode === "zona" && selectedItemId === zona.id}
+                      onRemove={() => void removeZonaPin(zona)}
                     />
                   ))}
               </div>
               <p className="text-xs text-slate-400 mt-2 text-center">
-                Selecciona un área de la lista y luego haz clic sobre el plano para colocar su pin.
+                Selecciona un elemento de la lista y luego haz clic sobre el plano para colocar su pin.
               </p>
             </div>
 
-            {/* Areas panel */}
+            {/* Sidebar */}
             <div className="lg:w-72 border-t lg:border-t-0 lg:border-l border-[#E2E8F0] flex flex-col">
-              <div className="px-4 py-3 border-b border-[#E2E8F0] bg-slate-50">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Áreas sin posición
-                  <span className="ml-2 bg-amber-100 text-amber-700 rounded-full px-1.5 py-0.5 text-[10px]">
-                    {areasSinPlano.length}
-                  </span>
-                </p>
-              </div>
-              <div className="flex-1 overflow-y-auto max-h-72">
-                {areasSinPlano.length === 0 ? (
-                  <div className="px-4 py-6 text-center">
-                    <p className="text-xs text-slate-400">Todas las áreas tienen posición asignada.</p>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-[#f1f5f9]">
-                    {areasSinPlano.map((area) => (
-                      <button
-                        key={area.id}
-                        type="button"
-                        className={[
-                          "w-full px-4 py-2.5 flex items-center gap-3 text-left transition-colors cursor-pointer",
-                          selectedAreaId === area.id
-                            ? "bg-[#EBF0FF] text-[#09268E]"
-                            : "hover:bg-slate-50 text-slate-700",
-                        ].join(" ")}
-                        onClick={() => setSelectedAreaId(selectedAreaId === area.id ? null : area.id)}
-                      >
-                        <div className={[
-                          "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors",
-                          selectedAreaId === area.id ? "border-[#09268E] bg-[#09268E]" : "border-slate-300",
-                        ].join(" ")}>
-                          {selectedAreaId === area.id && (
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
-                              <circle cx="12" cy="10" r="4" fill="white" stroke="white" />
-                            </svg>
-                          )}
-                        </div>
-                        <span className="text-sm font-medium truncate">{area.nombre}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {areasDelPlano.filter((a) => a.posX !== null).length > 0 && (
-                <>
-                  <div className="px-4 py-3 border-t border-[#E2E8F0] bg-slate-50">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Áreas posicionadas
-                      <span className="ml-2 bg-emerald-100 text-emerald-700 rounded-full px-1.5 py-0.5 text-[10px]">
-                        {areasDelPlano.filter((a) => a.posX !== null).length}
-                      </span>
-                    </p>
-                  </div>
-                  <div className="overflow-y-auto max-h-48">
-                    <div className="divide-y divide-[#f1f5f9]">
-                      {areasDelPlano
-                        .filter((a) => a.posX !== null)
-                        .map((area) => (
-                          <div key={area.id} className="px-4 py-2.5 flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-                              <span className="text-sm text-slate-700 truncate">{area.nombre}</span>
-                            </div>
-                            <button
-                              type="button"
-                              title="Quitar pin"
-                              className="text-slate-400 hover:text-red-500 transition-colors flex-shrink-0 cursor-pointer"
-                              onClick={() => void removePin(area)}
-                              disabled={loadingPin}
-                            >
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                              </svg>
-                            </button>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                </>
+              {pinMode === "area" ? (
+                <AreaSidebar
+                  areasSinPlano={areasSinPlano}
+                  areasDelPlano={areasDelPlano}
+                  selectedItemId={selectedItemId}
+                  onSelect={(id) => setSelectedItemId(selectedItemId === id ? null : id)}
+                  onRemove={removeAreaPin}
+                  loadingPin={loadingPin}
+                />
+              ) : (
+                <ZonaSidebar
+                  zonasSinPlano={zonasSinPlano}
+                  zonasDelPlano={zonasDelPlano}
+                  selectedItemId={selectedItemId}
+                  onSelect={(id) => setSelectedItemId(selectedItemId === id ? null : id)}
+                  onRemove={removeZonaPin}
+                  loadingPin={loadingPin}
+                />
               )}
             </div>
           </div>
@@ -396,7 +407,217 @@ export default function ConfigureFloorPlansTab({ hospitalId, isSuperAdmin }: Pro
   );
 }
 
-function PinOverlay({
+// ─── Area sidebar ──────────────────────────────────────────────────────────────
+
+function AreaSidebar({
+  areasSinPlano,
+  areasDelPlano,
+  selectedItemId,
+  onSelect,
+  onRemove,
+  loadingPin,
+}: {
+  areasSinPlano: AreaConPosicion[];
+  areasDelPlano: AreaConPosicion[];
+  selectedItemId: number | null;
+  onSelect: (id: number) => void;
+  onRemove: (a: AreaConPosicion) => void;
+  loadingPin: boolean;
+}) {
+  return (
+    <>
+      <div className="px-4 py-3 border-b border-[#E2E8F0] bg-slate-50">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Áreas sin posición
+          <span className="ml-2 bg-amber-100 text-amber-700 rounded-full px-1.5 py-0.5 text-[10px]">
+            {areasSinPlano.length}
+          </span>
+        </p>
+      </div>
+      <div className="flex-1 overflow-y-auto max-h-72">
+        {areasSinPlano.length === 0 ? (
+          <div className="px-4 py-6 text-center">
+            <p className="text-xs text-slate-400">Todas las áreas tienen posición asignada.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-[#f1f5f9]">
+            {areasSinPlano.map((area) => (
+              <button
+                key={area.id}
+                type="button"
+                className={[
+                  "w-full px-4 py-2.5 flex items-center gap-3 text-left transition-colors cursor-pointer",
+                  selectedItemId === area.id
+                    ? "bg-[#EBF0FF] text-[#09268E]"
+                    : "hover:bg-slate-50 text-slate-700",
+                ].join(" ")}
+                onClick={() => onSelect(area.id)}
+              >
+                <div className={[
+                  "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors",
+                  selectedItemId === area.id ? "border-[#09268E] bg-[#09268E]" : "border-slate-300",
+                ].join(" ")}>
+                  {selectedItemId === area.id && (
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                      <circle cx="12" cy="10" r="4" fill="white" stroke="white" />
+                    </svg>
+                  )}
+                </div>
+                <span className="text-sm font-medium truncate">{area.nombre}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {areasDelPlano.filter((a) => a.posX !== null).length > 0 && (
+        <>
+          <div className="px-4 py-3 border-t border-[#E2E8F0] bg-slate-50">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Áreas posicionadas
+              <span className="ml-2 bg-emerald-100 text-emerald-700 rounded-full px-1.5 py-0.5 text-[10px]">
+                {areasDelPlano.filter((a) => a.posX !== null).length}
+              </span>
+            </p>
+          </div>
+          <div className="overflow-y-auto max-h-48">
+            <div className="divide-y divide-[#f1f5f9]">
+              {areasDelPlano
+                .filter((a) => a.posX !== null)
+                .map((area) => (
+                  <div key={area.id} className="px-4 py-2.5 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                      <span className="text-sm text-slate-700 truncate">{area.nombre}</span>
+                    </div>
+                    <button
+                      type="button"
+                      title="Quitar pin"
+                      className="text-slate-400 hover:text-red-500 transition-colors flex-shrink-0 cursor-pointer"
+                      onClick={() => onRemove(area)}
+                      disabled={loadingPin}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
+// ─── Zone sidebar ──────────────────────────────────────────────────────────────
+
+function ZonaSidebar({
+  zonasSinPlano,
+  zonasDelPlano,
+  selectedItemId,
+  onSelect,
+  onRemove,
+  loadingPin,
+}: {
+  zonasSinPlano: ZonaConPosicion[];
+  zonasDelPlano: ZonaConPosicion[];
+  selectedItemId: number | null;
+  onSelect: (id: number) => void;
+  onRemove: (z: ZonaConPosicion) => void;
+  loadingPin: boolean;
+}) {
+  return (
+    <>
+      <div className="px-4 py-3 border-b border-[#E2E8F0] bg-slate-50">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Zonas sin posición
+          <span className="ml-2 bg-amber-100 text-amber-700 rounded-full px-1.5 py-0.5 text-[10px]">
+            {zonasSinPlano.length}
+          </span>
+        </p>
+      </div>
+      <div className="flex-1 overflow-y-auto max-h-72">
+        {zonasSinPlano.length === 0 ? (
+          <div className="px-4 py-6 text-center">
+            <p className="text-xs text-slate-400">Todas las zonas tienen posición asignada.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-[#f1f5f9]">
+            {zonasSinPlano.map((zona) => (
+              <button
+                key={zona.id}
+                type="button"
+                className={[
+                  "w-full px-4 py-2.5 flex items-center gap-3 text-left transition-colors cursor-pointer",
+                  selectedItemId === zona.id
+                    ? "bg-purple-50 text-purple-700"
+                    : "hover:bg-slate-50 text-slate-700",
+                ].join(" ")}
+                onClick={() => onSelect(zona.id)}
+              >
+                <div className={[
+                  "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors",
+                  selectedItemId === zona.id ? "border-purple-600 bg-purple-600" : "border-slate-300",
+                ].join(" ")}>
+                  {selectedItemId === zona.id && (
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                      <circle cx="12" cy="10" r="4" fill="white" stroke="white" />
+                    </svg>
+                  )}
+                </div>
+                <span className="text-sm font-medium truncate">{zona.nombre}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {zonasDelPlano.filter((z) => z.posX !== null).length > 0 && (
+        <>
+          <div className="px-4 py-3 border-t border-[#E2E8F0] bg-slate-50">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Zonas posicionadas
+              <span className="ml-2 bg-purple-100 text-purple-700 rounded-full px-1.5 py-0.5 text-[10px]">
+                {zonasDelPlano.filter((z) => z.posX !== null).length}
+              </span>
+            </p>
+          </div>
+          <div className="overflow-y-auto max-h-48">
+            <div className="divide-y divide-[#f1f5f9]">
+              {zonasDelPlano
+                .filter((z) => z.posX !== null)
+                .map((zona) => (
+                  <div key={zona.id} className="px-4 py-2.5 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
+                      <span className="text-sm text-slate-700 truncate">{zona.nombre}</span>
+                    </div>
+                    <button
+                      type="button"
+                      title="Quitar pin"
+                      className="text-slate-400 hover:text-red-500 transition-colors flex-shrink-0 cursor-pointer"
+                      onClick={() => onRemove(zona)}
+                      disabled={loadingPin}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
+// ─── Pin overlays ──────────────────────────────────────────────────────────────
+
+function AreaPinOverlay({
   area,
   isSelected,
   onRemove,
@@ -418,17 +639,17 @@ function PinOverlay({
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      {/* Tooltip */}
       {hover && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 bg-[#1A2B5E] text-white text-xs rounded-lg px-2.5 py-1.5 whitespace-nowrap shadow-lg z-20 pointer-events-none">
+        <div className={[
+          "absolute left-1/2 -translate-x-1/2 bg-[#1A2B5E] text-white text-xs rounded-lg px-2.5 py-1.5 whitespace-nowrap shadow-lg z-20 pointer-events-none",
+          (area.posY ?? 50) < 30 ? "top-full mt-1" : "bottom-full mb-1",
+        ].join(" ")}>
           <div className="font-semibold">{area.nombre}</div>
           <div className="text-[10px] text-blue-200 mt-0.5">
             ({area.posX?.toFixed(1)}%, {area.posY?.toFixed(1)}%)
           </div>
         </div>
       )}
-
-      {/* Pin */}
       <div className="relative flex flex-col items-center">
         <div
           className={[
@@ -441,12 +662,69 @@ function PinOverlay({
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
           </svg>
         </div>
-        <div
-          className="w-0.5 h-2 bg-[#09268E]"
-          style={{ marginTop: "-1px" }}
-        />
+        <div className="w-0.5 h-2 bg-[#09268E]" style={{ marginTop: "-1px" }} />
+        {hover && (
+          <button
+            type="button"
+            className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors cursor-pointer z-30"
+            onClick={(e) => { e.stopPropagation(); onRemove(); }}
+          >
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 
-        {/* Remove button */}
+function ZonaPinOverlay({
+  zona,
+  isSelected,
+  onRemove,
+}: {
+  zona: ZonaConPosicion;
+  isSelected: boolean;
+  onRemove: () => void;
+}) {
+  const [hover, setHover] = useState(false);
+
+  return (
+    <div
+      className="absolute z-10"
+      style={{
+        left: `${zona.posX}%`,
+        top: `${zona.posY}%`,
+        transform: "translate(-50%, -100%)",
+      }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      {hover && (
+        <div className={[
+          "absolute left-1/2 -translate-x-1/2 bg-purple-900 text-white text-xs rounded-lg px-2.5 py-1.5 whitespace-nowrap shadow-lg z-20 pointer-events-none",
+          (zona.posY ?? 50) < 30 ? "top-full mt-1" : "bottom-full mb-1",
+        ].join(" ")}>
+          <div className="font-semibold">{zona.nombre}</div>
+          <div className="text-[10px] text-purple-200 mt-0.5">
+            ({zona.posX?.toFixed(1)}%, {zona.posY?.toFixed(1)}%)
+          </div>
+        </div>
+      )}
+      <div className="relative flex flex-col items-center">
+        <div
+          className={[
+            "w-8 h-8 rounded-full border-2 flex items-center justify-center shadow-md transition-transform hover:scale-110",
+            isSelected ? "border-amber-400 bg-amber-500" : "border-white bg-purple-600",
+          ].join(" ")}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+        </div>
+        <div className="w-0.5 h-2 bg-purple-600" style={{ marginTop: "-1px" }} />
         {hover && (
           <button
             type="button"

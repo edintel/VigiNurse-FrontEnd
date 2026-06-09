@@ -12,6 +12,7 @@ import { toast } from "@/lib/toast";
 
 interface BleLocationCardProps {
   activoId: number;
+  canEdit?: boolean;
 }
 
 function mVToPercent(mv: number): number {
@@ -101,7 +102,7 @@ function tiempoTranscurrido(iso: string): string {
 }
 
 // Componente principal de la card de localización BLE
-export function BleLocationCard({ activoId }: BleLocationCardProps) {
+export function BleLocationCard({ activoId, canEdit = false }: BleLocationCardProps) {
   const [asignacion, setAsignacion] = useState<AsignacionTagActivoDto | null>(null);
   const [ubicacion, setUbicacion] = useState<UbicacionActivoDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -204,6 +205,7 @@ export function BleLocationCard({ activoId }: BleLocationCardProps) {
                   real del activo.
                 </p>
               </div>
+              {canEdit && (
               <button
                 type="button"
                 className="btn btn-sm text-white mt-1"
@@ -226,6 +228,7 @@ export function BleLocationCard({ activoId }: BleLocationCardProps) {
                 </svg>
                 Vincular tag
               </button>
+              )}
             </div>
           ) : (
             <>
@@ -253,6 +256,7 @@ export function BleLocationCard({ activoId }: BleLocationCardProps) {
                     </p>
                   </div>
                 </div>
+                {canEdit && (
                 <button
                   type="button"
                   className="btn btn-xs btn-ghost text-red-500 hover:bg-red-50 shrink-0"
@@ -280,6 +284,7 @@ export function BleLocationCard({ activoId }: BleLocationCardProps) {
                   )}
                   Desvincular
                 </button>
+                )}
               </div>
 
               {/* Sección de ubicación */}

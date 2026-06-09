@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useHasPermission } from "@/lib/hasPermission";
 import dynamic from "next/dynamic";
 import InventoryPage from "@/features/assets-managment/inventory/components/InventoryPage";
 import MaintenanceCalendarPage from "@/features/assets-managment/maintenance/components/MaintenanceCalendarPage";
@@ -23,6 +24,7 @@ const TABS: { id: ActiveTab; label: string }[] = [
 
 // Página principal de gestión de activos médicos.
 export default function AssetsPage() {
+  const canViewAlerts = useHasPermission("assetsManagement.alertsView");
   const [activeTab, setActiveTab] = useState<ActiveTab>("inventario");
 
   return (
@@ -59,7 +61,7 @@ export default function AssetsPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-[#D1D9E6]">
-        {TABS.map((tab) => (
+        {TABS.filter((tab) => (tab.id !== "alertas" && tab.id !== "sensores") || canViewAlerts).map((tab) => (
           <button
             key={tab.id}
             type="button"

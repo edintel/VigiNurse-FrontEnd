@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAppSelector } from "@/store/hooks";
 import { selectCurrentUser, selectAuthToken } from "@/store/slices/authSlice";
 import { getHospitalFloorPlans, getFloorPlanView } from "@/features/administration/hospitalFloorPlans/services/hospitalFloorPlanService";
-import type { PlanoHospital, VistaPlano, AreaEnPlano, DispositivoEnPlano } from "@/features/administration/hospitalFloorPlans/types";
+import type { PlanoHospital, VistaPlano, AreaEnPlano, ActivoEnArea } from "@/features/administration/hospitalFloorPlans/types";
 import { SERVER_BASE_URL } from "@/config/api";
 
 const REFRESH_MS = 30_000;
@@ -90,9 +90,10 @@ export default function AssetMapTab() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [activePlanoId, loadVista]);
 
-  const areasConPosicion = vista?.areas.filter((a) => a.posX != null) ?? [];
-  const totalActivos = areasConPosicion.reduce((n, a) => n + a.dispositivos.filter((d) => d.tipo === "Activo").length, 0);
-  const areasOcupadas = areasConPosicion.filter((a) => a.dispositivos.some((d) => d.tipo === "Activo")).length;
+  const areasConPosicion = (vista?.areas.filter((a) => a.posX != null) ?? [])
+    .map((a) => ({ ...a, activos: a.activos ?? [] }));
+  const totalActivos = areasConPosicion.reduce((n, a) => n + a.activos.length, 0);
+  const areasOcupadas = areasConPosicion.filter((a) => a.activos.length > 0).length;
 
   if (!hospitalId) {
     return (
@@ -247,13 +248,13 @@ export default function AssetMapTab() {
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {areasConPosicion.filter((a) => a.dispositivos.some((d) => d.tipo === "Activo")).length === 0 ? (
+                  {areasConPosicion.filter((a) => a.activos.length > 0).length === 0 ? (
                     <p className="text-xs text-slate-400">Ningún activo detectado en este piso ahora mismo.</p>
                   ) : (
                     areasConPosicion
-                      .filter((a) => a.dispositivos.some((d) => d.tipo === "Activo"))
+                      .filter((a) => a.activos.length > 0)
                       .map((area) => {
-                        const activos = area.dispositivos.filter((d) => d.tipo === "Activo");
+                        const activos = area.activos;
                         return (
                           <div key={area.areaId} className="inline-flex items-center gap-1.5 bg-white border border-[#E2E8F0] rounded-full px-3 py-1 text-xs font-medium text-slate-700">
                             <div className="w-2 h-2 rounded-full bg-[#09268E]" />
@@ -279,7 +280,7 @@ export default function AssetMapTab() {
 // y un tooltip con detalles al hacer hover.
 function AreaPin({ area }: { area: AreaEnPlano }) {
   const [hover, setHover] = useState(false);
-  const activos = area.dispositivos.filter((d) => d.tipo === "Activo");
+  const activos = area.activos;
   const hasActivos = activos.length > 0;
 
   return (
@@ -289,7 +290,7 @@ function AreaPin({ area }: { area: AreaEnPlano }) {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      {hover && <AreaTooltip area={area} activos={activos} />}
+      {hover && <AreaTooltip area={area} activos={activos} flipTooltip={area.posY < 30} />}
 
       <div className="flex flex-col items-center cursor-default">
         <div className={[
@@ -327,41 +328,58 @@ function AreaPin({ area }: { area: AreaEnPlano }) {
 
 // Componente que muestra un tooltip con información detallada del área 
 // y los activos presentes en ella al hacer hover sobre el pin del área en el plano.
-function AreaTooltip({ area, activos }: { area: AreaEnPlano; activos: DispositivoEnPlano[] }) {
-  return (
-    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-30 pointer-events-none">
-      <div className="bg-[#1A2B5E] text-white rounded-xl shadow-xl min-w-52 max-w-72 overflow-hidden">
-        <div className="px-3 py-2.5 border-b border-white/10">
-          <p className="font-bold text-sm">{area.areaNombre}</p>
-          <p className="text-[10px] text-blue-200 mt-0.5">
-            {activos.length === 0 ? "Sin activos detectados" : `${activos.length} activo${activos.length !== 1 ? "s" : ""} detectado${activos.length !== 1 ? "s" : ""}`}
-          </p>
-        </div>
-        {activos.length > 0 && (
-          <div className="divide-y divide-white/10 max-h-48 overflow-y-auto">
-            {activos.map((d, i) => (
-              <div key={i} className="px-3 py-2 flex items-start gap-2">
-                <div className="w-5 h-5 rounded bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2.5">
-                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                  </svg>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-white truncate">
-                    {d.activoDescripcion ?? "Activo sin descripción"}
-                  </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">
-                    Últ. señal: {formatRelative(d.ultimaActualizacion)} atrás
-                  </p>
-                </div>
+function AreaTooltip({ area, activos, flipTooltip }: { area: AreaEnPlano; activos: ActivoEnArea[]; flipTooltip?: boolean }) {
+  const box = (
+    <div className="bg-[#1A2B5E] text-white rounded-xl shadow-xl min-w-52 max-w-72 overflow-hidden">
+      <div className="px-3 py-2.5 border-b border-white/10">
+        <p className="font-bold text-sm">{area.areaNombre}</p>
+        <p className="text-[10px] text-blue-200 mt-0.5">
+          {activos.length === 0 ? "Sin activos detectados" : `${activos.length} activo${activos.length !== 1 ? "s" : ""} detectado${activos.length !== 1 ? "s" : ""}`}
+        </p>
+      </div>
+      {activos.length > 0 && (
+        <div className="divide-y divide-white/10 max-h-48 overflow-y-auto">
+          {activos.map((d, i) => (
+            <div key={i} className="px-3 py-2 flex items-start gap-2">
+              <div className="w-5 h-5 rounded bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2.5">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                </svg>
               </div>
-            ))}
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-white truncate">
+                  {d.activoDescripcion ?? "Activo sin descripción"}
+                </p>
+                <p className="text-[10px] text-slate-400 mt-0.5">
+                  Últ. señal: {formatRelative(d.ultimaActualizacion)} atrás
+                </p>
+              </div>
+            </div>
+          ))}
+
           </div>
         )}
       </div>
-      <div className="flex justify-center">
-        <div className="w-0 h-0" style={{ borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid #1A2B5E" }} />
-      </div>
+  );
+  const arrowDown = (
+    <div className="flex justify-center">
+      <div className="w-0 h-0" style={{ borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid #1A2B5E" }} />
+    </div>
+  );
+  const arrowUp = (
+    <div className="flex justify-center">
+      <div className="w-0 h-0" style={{ borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderBottom: "6px solid #1A2B5E" }} />
+    </div>
+  );
+  return flipTooltip ? (
+    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-30 pointer-events-none">
+      {arrowUp}
+      {box}
+    </div>
+  ) : (
+    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-30 pointer-events-none">
+      {box}
+      {arrowDown}
     </div>
   );
 }

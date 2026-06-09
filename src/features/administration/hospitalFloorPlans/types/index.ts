@@ -7,12 +7,9 @@ export interface PlanoHospital {
   orden: number;
 }
 
-export interface DispositivoEnPlano {
-  tipo: string;
+export interface ActivoEnArea {
   activoId: number | null;
-  activoDescripcion: string | null;
-  bebeId: number | null;
-  bebeNombre: string | null;
+  activoDescripcion: string;
   ultimaActualizacion: string;
 }
 
@@ -21,7 +18,24 @@ export interface AreaEnPlano {
   areaNombre: string;
   posX: number;
   posY: number;
-  dispositivos: DispositivoEnPlano[];
+  activos: ActivoEnArea[];
+}
+
+export interface BebeEnZona {
+  brazaleteId: number;
+  brazaleteCodigo: string;
+  pacienteId: number | null;
+  pacienteNombre: string | null;
+  ultimaActualizacion: string;
+}
+
+export interface ZonaEnPlano {
+  zonaId: number;
+  zonaNombre: string;
+  tipoZona: string;
+  posX: number | null;
+  posY: number | null;
+  bebes: BebeEnZona[];
 }
 
 export interface VistaPlano {
@@ -30,6 +44,7 @@ export interface VistaPlano {
   urlImagen: string;
   orden: number;
   areas: AreaEnPlano[];
+  zonas: ZonaEnPlano[];
 }
 
 export interface AreaConPosicion {
@@ -37,6 +52,18 @@ export interface AreaConPosicion {
   hospitalId: number;
   hospitalNombre: string;
   nombre: string;
+  planoHospitalId: number | null;
+  planoNombre: string | null;
+  posX: number | null;
+  posY: number | null;
+}
+
+export interface ZonaConPosicion {
+  id: number;
+  hospitalId: number;
+  nombre: string;
+  tipo: number;
+  estado: number;
   planoHospitalId: number | null;
   planoNombre: string | null;
   posX: number | null;

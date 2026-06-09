@@ -374,7 +374,7 @@ export default function StaffHomePage() {
               )}
             </div>
             {urgentPairs.length === 0 ? (
-              <EmptyState icon={iconCheck} title="Sin tasks urgentes" subtitle="No tienes tasks de alta prioridad en este momento." />
+              <EmptyState icon={iconCheck} title="Sin tareas urgentes" subtitle="No tienes tareas de alta prioridad en este momento." />
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {urgentPairs.map(({ tarea, asignacion }) => (
@@ -478,11 +478,11 @@ export default function StaffHomePage() {
             {filteredPairs.length === 0 ? (
               <EmptyState
                 icon={iconCheck}
-                title="Sin tasks activas"
+                title="Sin tareas activas"
                 subtitle={
                   filterPriority === "todas"
-                    ? "No tienes tasks asignadas en este momento."
-                    : `No hay tasks de prioridad ${filterPriority}.`
+                    ? "No tienes tareas asignadas en este momento."
+                    : `No hay tareas de prioridad ${filterPriority}.`
                 }
               />
             ) : (
