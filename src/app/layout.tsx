@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     },
     description: "Sistema de monitoreo hospitalario inteligente",
     icons: {
-        icon: "/LogoSmall.png",
+        icon: "/FaviconLogo.png",
     },
 };
 // Muestra el componente de root layout.
