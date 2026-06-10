@@ -18,11 +18,13 @@ import type {
   PacienteFilters,
   PaginatedPacientes,
 } from "@/features/patients/types";
+import { formatApellidosNombre } from "@/shared/utils/personName";
 
 const PAGE_SIZE = 10;
 
 // Formatea una fecha ISO a DD/MM/AAAA.
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return "---";
   try {
     const d = new Date(dateStr);
     return d.toLocaleDateString("es-ES", {
@@ -251,7 +253,7 @@ export default function PatientsListPage() {
                     <td>
                       <div className="flex flex-col">
                         <span className="font-semibold text-sm text-[#0f172a]">
-                          {paciente.apellidos}, {paciente.nombre}
+                          {formatApellidosNombre(paciente.nombre, paciente.apellidos)}
                         </span>
                         {!paciente.activo && (
                           <span className="text-[10px] text-red-400 font-medium">
@@ -261,7 +263,7 @@ export default function PatientsListPage() {
                       </div>
                     </td>
                     <td className="text-sm text-[#475569] font-mono">
-                      {paciente.cedula}
+                      {paciente.cedula || "---"}
                     </td>
                     <td className="text-sm text-[#475569]">
                       {formatDate(paciente.fechaNacimiento)}

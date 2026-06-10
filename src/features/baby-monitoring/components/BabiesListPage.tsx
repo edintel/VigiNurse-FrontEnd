@@ -5,10 +5,12 @@ import { getBabies } from "@/features/baby-monitoring/services/babyService";
 import { CreateBabyModal } from "@/features/baby-monitoring/components/CreateBabyModal";
 import { PaginationFooter } from "@/shared/ui/PaginationFooter";
 import type { Bebe, PaginatedBebes } from "@/features/baby-monitoring/types";
+import { formatApellidosNombre, formatBabyName } from "@/shared/utils/personName";
 
 const PAGE_SIZE = 10;
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return "---";
   try {
     return new Date(dateStr).toLocaleDateString("es-ES", {
       day: "2-digit",
@@ -166,12 +168,12 @@ export default function BabiesListPage() {
                   <tr key={bebe.id} className="hover:bg-base-200">
                     <td>
                       <span className="font-semibold text-sm text-[#0f172a]">
-                        {bebe.apellidos}, {bebe.nombre}
+                        {formatBabyName(bebe.nombre, bebe.apellidos, bebe.nombreMadre, bebe.apellidosMadre)}
                       </span>
                     </td>
                     <td className="text-sm text-[#475569]">
-                      {bebe.nombreMadre ? (
-                        `${bebe.apellidosMadre ?? ""}, ${bebe.nombreMadre}`.trim().replace(/^,\s*/, "")
+                      {bebe.nombreMadre || bebe.apellidosMadre ? (
+                        formatApellidosNombre(bebe.nombreMadre, bebe.apellidosMadre)
                       ) : (
                         <span className="text-slate-400 italic text-xs">Sin registrar</span>
                       )}

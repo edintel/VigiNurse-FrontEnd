@@ -1,8 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { InputField } from "@/shared/ui/InputField";
+import { CallyDatePicker } from "@/shared/ui/CallyDatePicker";
 import { updatePatient } from "@/features/patients/services/patientService";
 import { toast } from "@/lib/toast";
+import { useAppSelector } from "@/store/hooks";
+import { selectCurrentRole } from "@/store/slices/authSlice";
+import { Sexo, TIPOS_SANGRE } from "@/features/patients/types";
 import type { Paciente, UpdatePacienteDTO } from "@/features/patients/types";
 
 interface EditVitalsModalProps {
@@ -12,7 +16,8 @@ interface EditVitalsModalProps {
   onUpdated: (paciente: Paciente) => void;
 }
 
-// Modal para editar el peso y la altura del paciente.
+// Modal para editar los datos del paciente. Los administradores pueden editar
+// también nombre, apellidos y tipo de sangre; el resto solo peso, altura y teléfono.
 export function EditVitalsModal({
   open,
   paciente,
@@ -20,7 +25,15 @@ export function EditVitalsModal({
   onUpdated,
 }: EditVitalsModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const currentRole = useAppSelector(selectCurrentRole);
+  const isAdmin = currentRole === "ADMIN" || currentRole === "SUPER_ADMIN";
 
+  const [cedula, setCedula] = useState("");
+  const [nombre, setNombre] = useState("");
+  const [apellidos, setApellidos] = useState("");
+  const [fechaNacimiento, setFechaNacimiento] = useState("");
+  const [sexo, setSexo] = useState<Sexo>(Sexo.Masculino);
+  const [tipoSangre, setTipoSangre] = useState("");
   const [peso, setPeso] = useState("");
   const [altura, setAltura] = useState("");
   const [telefono, setTelefono] = useState("");
@@ -28,9 +41,18 @@ export function EditVitalsModal({
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
+  const selectCls =
+    "select select-bordered w-full bg-[#FFFFFF] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E] focus:outline-none";
+
   useEffect(() => {
     if (open) {
       dialogRef.current?.showModal();
+      setCedula(paciente.cedula ?? "");
+      setNombre(paciente.nombre ?? "");
+      setApellidos(paciente.apellidos ?? "");
+      setFechaNacimiento(paciente.fechaNacimiento?.split("T")[0] ?? "");
+      setSexo(paciente.sexo);
+      setTipoSangre(paciente.tipoSangre ?? "");
       setPeso(String(paciente.peso));
       setAltura(String(paciente.altura));
       setTelefono(paciente.telefono ?? "");
@@ -39,7 +61,18 @@ export function EditVitalsModal({
     } else {
       dialogRef.current?.close();
     }
-  }, [open, paciente.peso, paciente.altura, paciente.telefono]);
+  }, [
+    open,
+    paciente.cedula,
+    paciente.nombre,
+    paciente.apellidos,
+    paciente.fechaNacimiento,
+    paciente.sexo,
+    paciente.tipoSangre,
+    paciente.peso,
+    paciente.altura,
+    paciente.telefono,
+  ]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -62,13 +95,19 @@ export function EditVitalsModal({
     setApiError(null);
     try {
       const dto: UpdatePacienteDTO = {
-        nombre: paciente.nombre,
-        apellidos: paciente.apellidos,
-        tipoSangre: paciente.tipoSangre,
+        nombre: nombre.trim() || null,
+        apellidos: apellidos.trim() || null,
+        tipoSangre: tipoSangre || null,
         peso: pesoNum,
         altura: alturaNum,
         telefono: telefono.trim(),
       };
+      // La cédula, fecha de nacimiento y sexo solo las acepta el backend de roles Admin/SuperAdmin
+      if (isAdmin) {
+        dto.cedula = cedula.trim() || null;
+        dto.fechaNacimiento = fechaNacimiento ? new Date(fechaNacimiento).toISOString() : null;
+        dto.sexo = sexo;
+      }
       const updated = await updatePatient(paciente.id, dto);
       toast.success("Datos del paciente actualizados.");
       onUpdated(updated);
@@ -90,7 +129,7 @@ export function EditVitalsModal({
 
   return (
     <dialog ref={dialogRef} className="modal" onClose={onClose}>
-      <div className="modal-box bg-[#EEEEEE] w-full max-w-sm">
+      <div className="modal-box bg-[#FFFFFF] w-full max-w-md">
         <button
           type="button"
           className="absolute right-3 top-3 text-gray-500 hover:text-[#1A2B5E] transition-colors"
@@ -110,6 +149,119 @@ export function EditVitalsModal({
         )}
 
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-4">
+            <InputField
+              id="edit-vitals-cedula"
+              label={
+                <>
+                  Cédula{" "}
+                  <span className="text-slate-400 font-normal text-xs">(opcional)</span>
+                </>
+              }
+              value={cedula}
+              onChange={(e) => {
+                setCedula(e.target.value);
+                setErrors((p) => ({ ...p, cedula: "" }));
+              }}
+              error={errors.cedula}
+              disabled={!isAdmin}
+            />
+            <CallyDatePicker
+              id="edit-vitals-fecha-nacimiento"
+              label={
+                <>
+                  Fecha de nacimiento{" "}
+                  <span className="text-slate-400 font-normal text-xs">(opcional)</span>
+                </>
+              }
+              value={fechaNacimiento}
+              onChange={(v) => {
+                setFechaNacimiento(v);
+                setErrors((p) => ({ ...p, fechaNacimiento: "" }));
+              }}
+              error={errors.fechaNacimiento}
+              disabled={!isAdmin}
+              max={new Date().toISOString().split("T")[0]}
+              variant="modal"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <InputField
+              id="edit-vitals-nombre"
+              label={
+                <>
+                  Nombre{" "}
+                  <span className="text-slate-400 font-normal text-xs">(opcional)</span>
+                </>
+              }
+              value={nombre}
+              onChange={(e) => {
+                setNombre(e.target.value);
+                setErrors((p) => ({ ...p, nombre: "" }));
+              }}
+              error={errors.nombre}
+              disabled={!isAdmin}
+            />
+            <InputField
+              id="edit-vitals-apellidos"
+              label={
+                <>
+                  Apellidos{" "}
+                  <span className="text-slate-400 font-normal text-xs">(opcional)</span>
+                </>
+              }
+              value={apellidos}
+              onChange={(e) => {
+                setApellidos(e.target.value);
+                setErrors((p) => ({ ...p, apellidos: "" }));
+              }}
+              error={errors.apellidos}
+              disabled={!isAdmin}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="form-control w-full">
+              <label className="label pb-1" htmlFor="edit-vitals-sexo">
+                <span className="label-text text-sm font-medium" style={{ color: "#1A2B5E" }}>
+                  Sexo {isAdmin && <span className="text-error">*</span>}
+                </span>
+              </label>
+              <select
+                id="edit-vitals-sexo"
+                className={selectCls}
+                value={sexo}
+                disabled={!isAdmin}
+                onChange={(e) => setSexo(Number(e.target.value) as Sexo)}
+              >
+                <option value={Sexo.Masculino}>Masculino</option>
+                <option value={Sexo.Femenino}>Femenino</option>
+              </select>
+            </div>
+
+            <div className="form-control w-full">
+              <label className="label pb-1" htmlFor="edit-vitals-tipo-sangre">
+                <span className="label-text text-sm font-medium" style={{ color: "#1A2B5E" }}>
+                  Tipo de sangre{" "}
+                  <span className="text-slate-400 font-normal text-xs">(opcional)</span>
+                </span>
+              </label>
+              <select
+                id="edit-vitals-tipo-sangre"
+                className={selectCls}
+                value={tipoSangre}
+                disabled={!isAdmin}
+                onChange={(e) => setTipoSangre(e.target.value)}
+              >
+                <option value="">Sin registrar</option>
+                {TIPOS_SANGRE.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <InputField
               id="edit-vitals-peso"

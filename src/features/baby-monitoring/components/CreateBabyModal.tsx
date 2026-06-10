@@ -10,6 +10,7 @@ import type { Area } from "@/features/administration/areas/types";
 import type { Paciente } from "@/features/patients/types";
 import type { Bebe, CreateBebeDTO } from "@/features/baby-monitoring/types";
 import { toast } from "@/lib/toast";
+import { formatApellidosNombre } from "@/shared/utils/personName";
 
 interface CreateBabyModalProps {
   open: boolean;
@@ -130,7 +131,7 @@ export function CreateBabyModal({ open, onClose, onCreated }: CreateBabyModalPro
 
   function handleSelectMadre(paciente: Paciente) {
     setSelectedMadre(paciente);
-    setMadreQuery(`${paciente.apellidos}, ${paciente.nombre}`);
+    setMadreQuery(formatApellidosNombre(paciente.nombre, paciente.apellidos));
     setShowMadreDrop(false);
   }
 
@@ -146,8 +147,6 @@ export function CreateBabyModal({ open, onClose, onCreated }: CreateBabyModalPro
     e.preventDefault();
     const errs: Record<string, string> = {};
 
-    if (!nombre.trim()) errs.nombre = "El nombre es obligatorio.";
-    if (!apellidos.trim()) errs.apellidos = "Los apellidos son obligatorios.";
     if (!fechaNacimiento) errs.fechaNacimiento = "La fecha de nacimiento es obligatoria.";
     if (!horaNacimiento) errs.horaNacimiento = "La hora de nacimiento es obligatoria.";
 
@@ -169,20 +168,24 @@ export function CreateBabyModal({ open, onClose, onCreated }: CreateBabyModalPro
 
     if (!areaId) errs.areaId = "El área es obligatoria.";
 
+    if (!selectedMadre) errs.madre = "La madre es obligatoria.";
+
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
       return;
     }
 
+    if (!selectedMadre) return;
+
     setLoading(true);
     try {
       const dto: CreateBebeDTO = {
-        nombre: nombre.trim(),
-        apellidos: apellidos.trim(),
+        nombre: nombre.trim() || null,
+        apellidos: apellidos.trim() || null,
         fechaNacimiento: new Date(`${fechaNacimiento}T${horaNacimiento}`).toISOString(),
         sexo,
         tipoSangre: tipoSangre || null,
-        madreId: selectedMadre?.id ?? null,
+        madreId: selectedMadre.id,
         peso: pesoNum,
         tamano: tamanoNum,
         puntuacionApgar: apgarNum,
@@ -190,7 +193,11 @@ export function CreateBabyModal({ open, onClose, onCreated }: CreateBabyModalPro
         areaId: parseInt(areaId),
       };
       const bebe = await createBaby(dto);
-      toast.success(`Bebé "${bebe.nombre} ${bebe.apellidos}" registrado exitosamente.`);
+      const nombreCompleto =
+        bebe.nombre || bebe.apellidos
+          ? `${bebe.nombre ?? ""} ${bebe.apellidos ?? ""}`.trim()
+          : "Bebé sin nombre";
+      toast.success(`${nombreCompleto} registrado exitosamente.`);
       onCreated(bebe);
       onClose();
     } catch (err: unknown) {
@@ -239,22 +246,28 @@ export function CreateBabyModal({ open, onClose, onCreated }: CreateBabyModalPro
           {/* Nombre · Apellidos */}
           <div className="grid grid-cols-2 gap-4">
             <InputField
-              label="Nombre"
+              label={
+                <>
+                  Nombre{" "}
+                  <span className="text-slate-400 font-normal text-xs">(opcional)</span>
+                </>
+              }
               id="bebe-nombre"
               value={nombre}
-              onChange={(e) => { setNombre(e.target.value); clearErr("nombre"); }}
-              placeholder="Ej. Sofía"
-              error={err("nombre")}
-              required
+              onChange={(e) => setNombre(e.target.value)}
+              placeholder="Ej. Sofía (dejar en blanco si aún no tiene nombre)"
             />
             <InputField
-              label="Apellidos"
+              label={
+                <>
+                  Apellidos{" "}
+                  <span className="text-slate-400 font-normal text-xs">(opcional)</span>
+                </>
+              }
               id="bebe-apellidos"
               value={apellidos}
-              onChange={(e) => { setApellidos(e.target.value); clearErr("apellidos"); }}
+              onChange={(e) => setApellidos(e.target.value)}
               placeholder="Ej. Martínez López"
-              error={err("apellidos")}
-              required
             />
           </div>
 
@@ -422,22 +435,24 @@ export function CreateBabyModal({ open, onClose, onCreated }: CreateBabyModalPro
             )}
           </div>
 
-          {/* Madre (opcional) */}
+          {/* Madre */}
           <div className="form-control w-full">
             <label className="label pb-1" htmlFor="bebe-madre">
               <span className="label-text text-sm font-medium" style={{ color: "#1A2B5E" }}>
-                Madre{" "}
-                <span className="text-slate-400 font-normal text-xs">(opcional)</span>
+                Madre <span className="text-red-500">*</span>
               </span>
             </label>
             <div className="relative">
               <input
                 id="bebe-madre"
                 type="text"
-                className="input input-bordered w-full bg-[#FFFFFF] border-[#B0B0B0] text-[#1A2B5E] placeholder:text-[#B0B0B0] focus:border-[#09268E] focus:outline-none pr-8"
+                className={`input input-bordered w-full bg-[#FFFFFF] border-[#B0B0B0] text-[#1A2B5E] placeholder:text-[#B0B0B0] focus:border-[#09268E] focus:outline-none pr-8 ${err("madre") ? "input-error" : ""}`}
                 placeholder="Buscar por nombre..."
                 value={madreQuery}
-                onChange={(e) => handleMadreQueryChange(e.target.value)}
+                onChange={(e) => {
+                  handleMadreQueryChange(e.target.value);
+                  clearErr("madre");
+                }}
                 onBlur={() => setTimeout(() => setShowMadreDrop(false), 150)}
                 autoComplete="off"
                 disabled={!!selectedMadre}
@@ -482,9 +497,9 @@ export function CreateBabyModal({ open, onClose, onCreated }: CreateBabyModalPro
                         onClick={() => handleSelectMadre(p)}
                       >
                         <span className="font-semibold">
-                          {p.apellidos}, {p.nombre}
+                          {formatApellidosNombre(p.nombre, p.apellidos)}
                         </span>
-                        <span className="text-slate-400 ml-2 text-xs">{p.cedula}</span>
+                        <span className="text-slate-400 ml-2 text-xs">{p.cedula || "---"}</span>
                       </button>
                     </li>
                   ))}
@@ -501,8 +516,11 @@ export function CreateBabyModal({ open, onClose, onCreated }: CreateBabyModalPro
 
             {selectedMadre && (
               <p className="text-xs text-emerald-600 mt-1 font-medium">
-                Madre seleccionada: {selectedMadre.apellidos}, {selectedMadre.nombre} (ID {selectedMadre.id})
+                Madre seleccionada: {formatApellidosNombre(selectedMadre.nombre, selectedMadre.apellidos)} (ID {selectedMadre.id})
               </p>
+            )}
+            {err("madre") && (
+              <span className="text-xs text-red-500 mt-0.5">{err("madre")}</span>
             )}
           </div>
 

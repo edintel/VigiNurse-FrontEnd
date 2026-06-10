@@ -24,12 +24,12 @@ export const TIPOS_SANGRE = [
 export interface Paciente {
   id: number;
   usuarioId: number | null;
-  cedula: string;
-  nombre: string;
-  apellidos: string;
-  fechaNacimiento: string;
+  cedula: string | null;
+  nombre: string | null;
+  apellidos: string | null;
+  fechaNacimiento: string | null;
   sexo: Sexo;
-  tipoSangre: string;
+  tipoSangre: string | null;
   peso: number;
   altura: number;
   telefono: string | null;
@@ -46,12 +46,12 @@ export interface PaginatedPacientes {
 }
 
 export interface CreatePacienteDTO {
-  cedula: string;
-  nombre: string;
-  apellidos: string;
-  fechaNacimiento: string;
+  cedula: string | null;
+  nombre: string | null;
+  apellidos: string | null;
+  fechaNacimiento: string | null;
   sexo: Sexo;
-  tipoSangre: string;
+  tipoSangre: string | null;
   peso: number;
   altura: number;
   telefono: string;
@@ -189,9 +189,9 @@ export const CONDICION_CONFIG: Record<
 export interface EpisodioActivo {
   episodioId: number;
   pacienteId: number;
-  nombre: string;
-  apellidos: string;
-  cedula: string;
+  nombre: string | null;
+  apellidos: string | null;
+  cedula: string | null;
   areaId: number;
   areaNombre: string;
   nivelTriage: TriageNivel;
@@ -394,9 +394,12 @@ export interface ContactoPaciente {
 }
 
 export interface UpdatePacienteDTO {
-  nombre: string;
-  apellidos: string;
-  tipoSangre: string;
+  cedula?: string | null;
+  nombre: string | null;
+  apellidos: string | null;
+  fechaNacimiento?: string | null;
+  sexo?: Sexo;
+  tipoSangre: string | null;
   peso: number;
   altura: number;
   telefono: string;

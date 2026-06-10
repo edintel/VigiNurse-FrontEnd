@@ -3,12 +3,14 @@ import { useRouter } from "next/navigation";
 import { PatientAllergyCard } from "@/features/patients/components/patients/PatientAllergyCard";
 import type { Bebe } from "@/features/baby-monitoring/types";
 import type React from "react";
+import { formatApellidosNombre, formatBabyName } from "@/shared/utils/personName";
 
 interface BabyInfoCardProps {
   bebe: Bebe;
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return "---";
   return new Date(dateStr).toLocaleDateString("es-ES", {
     day: "2-digit",
     month: "2-digit",
@@ -16,7 +18,8 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function formatTime(dateStr: string): string {
+function formatTime(dateStr: string | null): string {
+  if (!dateStr) return "---";
   return new Date(dateStr).toLocaleTimeString("es-ES", {
     hour: "2-digit",
     minute: "2-digit",
@@ -109,7 +112,7 @@ export function BabyInfoCard({ bebe }: BabyInfoCardProps) {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">
               <DataField
                 label="Nombre completo"
-                value={`${bebe.apellidos}, ${bebe.nombre}`}
+                value={formatBabyName(bebe.nombre, bebe.apellidos, bebe.nombreMadre, bebe.apellidosMadre)}
               />
               <DataField label="Sexo" value={bebe.sexo} />
               <DataField
@@ -206,7 +209,7 @@ export function BabyInfoCard({ bebe }: BabyInfoCardProps) {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-[#0f172a]">
-                      {bebe.apellidosMadre}, {bebe.nombreMadre}
+                      {formatApellidosNombre(bebe.nombreMadre, bebe.apellidosMadre)}
                     </p>
                     <p className="text-xs text-slate-400">
                       Paciente #{bebe.madreId}

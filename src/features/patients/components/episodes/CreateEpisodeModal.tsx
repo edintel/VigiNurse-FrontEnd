@@ -11,6 +11,7 @@ import {
   TIPO_EPISODIO_LABELS,
 } from "@/features/patients/types";
 import { toast } from "@/lib/toast";
+import { formatFullName } from "@/shared/utils/personName";
 
 interface SelectOption {
   id: number;
@@ -89,8 +90,8 @@ export function CreateEpisodeModal({
         setPacienteOptions(
           res.datos.map((p) => ({
             id: p.id,
-            label: `${p.nombre} ${p.apellidos}`,
-            sublabel: p.cedula,
+            label: formatFullName(p.nombre, p.apellidos),
+            sublabel: p.cedula ?? undefined,
           })),
         ),
       )
@@ -234,7 +235,7 @@ export function CreateEpisodeModal({
 
   return (
     <dialog ref={dialogRef} className="modal" onClose={onClose}>
-      <div className="modal-box bg-[#EEEEEE] w-full max-w-2xl">
+      <div className="modal-box bg-[#FFFFFF] w-full max-w-2xl">
         <button
           type="button"
           className="absolute right-3 top-3 text-gray-500 hover:text-[#1A2B5E] transition-colors"
@@ -376,7 +377,7 @@ export function CreateEpisodeModal({
               <SelectLabel htmlFor="create-episodio-tipo" text="Tipo de episodio" required />
               <select
                 id="create-episodio-tipo"
-                className={"select select-bordered w-full bg-[#EEEEEE] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E] focus:outline-none"}
+                className={"select select-bordered w-full bg-[#FFFFFF] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E] focus:outline-none"}
                 value={tipo}
                 onChange={(e) => {
                   const newTipo = parseInt(e.target.value) as TipoEpisodio;
@@ -395,7 +396,7 @@ export function CreateEpisodeModal({
                 <SelectLabel htmlFor="create-episodio-triage" text="Nivel de triage" required />
                 <select
                   id="create-episodio-triage"
-                  className={"select select-bordered w-full bg-[#EEEEEE] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E] focus:outline-none"}
+                  className={"select select-bordered w-full bg-[#FFFFFF] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E] focus:outline-none"}
                   value={nivelTriage}
                   onChange={(e) => setNivelTriage(parseInt(e.target.value) as TriageNivel)}
                 >
@@ -415,7 +416,7 @@ export function CreateEpisodeModal({
             <textarea
               id="create-episodio-razon"
               rows={3}
-              className={`textarea textarea-bordered w-full bg-[#EEEEEE] border-[#B0B0B0] text-[#1A2B5E] placeholder:text-[#B0B0B0] focus:border-[#09268E] focus:outline-none resize-none ${
+              className={`textarea textarea-bordered w-full bg-[#FFFFFF] border-[#B0B0B0] text-[#1A2B5E] placeholder:text-[#B0B0B0] focus:border-[#09268E] focus:outline-none resize-none ${
                 errors.razonVisita ? "textarea-error" : ""
               }`}
               placeholder="Describa el motivo de la visita..."

@@ -106,7 +106,7 @@ export function EditContactModal({
 
   return (
     <dialog ref={dialogRef} className="modal" onClose={onClose}>
-      <div className="modal-box bg-[#EEEEEE] w-full max-w-lg">
+      <div className="modal-box bg-[#FFFFFF] w-full max-w-lg">
         <button
           type="button"
           className="absolute right-3 top-3 text-gray-500 hover:text-[#1A2B5E] transition-colors"
