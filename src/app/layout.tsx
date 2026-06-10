@@ -9,10 +9,13 @@ const montserrat = Montserrat({
 });
 export const metadata: Metadata = {
     title: {
-        default: "VigiNurse",
-        template: "%s | VigiNurse",
+        default: "VigiNurse - Edintel",
+        template: "%s | VigiNurse - Edintel",
     },
     description: "Sistema de monitoreo hospitalario inteligente",
+    icons: {
+        icon: "/FaviconLogo.png",
+    },
 };
 // Muestra el componente de root layout.
 export default function RootLayout({ children, }: Readonly<{

@@ -311,8 +311,8 @@ export function Sidebar() {
           "fixed inset-y-0 left-0 z-50 w-64",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
           "md:relative md:inset-auto md:z-30 md:translate-x-0 md:h-screen",
-          collapsed ? "md:w-16" : "md:w-64",
-          "transition-all duration-300 ease-in-out",
+          collapsed ? "md:w-20" : "md:w-64",
+          "transition-[width,transform] duration-300 ease-in-out will-change-[width]",
         ].join(" ")}
       >
         <button
@@ -349,45 +349,58 @@ export function Sidebar() {
         <div
           className={[
             "border-b border-slate-100 bg-gradient-to-b from-white to-slate-50/70 py-3 flex flex-col gap-2 flex-shrink-0 transition-[padding] duration-300 ease-in-out",
-            collapsed ? "px-0 items-center" : "px-4",
+            collapsed ? "px-0" : "px-4",
           ].join(" ")}
         >
-          {collapsed ? (
-            <div className="flex h-[72px] w-full items-center justify-center">
+          <div className="flex min-h-16 items-center justify-between gap-3">
+            <div
+              className={[
+                "relative h-16 flex-shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out",
+                collapsed ? "w-full" : "w-[190px]",
+              ].join(" ")}
+            >
+              <Image
+                src="/Logo-transparent.png"
+                alt="VigiNurse"
+                width={576}
+                height={576}
+                priority
+                className={[
+                  "absolute left-1/2 top-0 h-56 w-56 max-w-none -translate-x-1/2 -translate-y-[78px] object-contain drop-shadow-sm transition-opacity duration-200 ease-in-out",
+                  collapsed ? "opacity-0" : "opacity-100",
+                ].join(" ")}
+              />
               <Image
                 src="/LogoSmall.png"
                 alt="VigiNurse"
-                width={1254}
-                height={1254}
-                className="h-[60px] w-[60px] -translate-x-1 object-contain drop-shadow-sm"
+                width={345}
+                height={447}
+                className={[
+                  "absolute left-1/2 top-1/2 h-[60px] w-[46px] -translate-x-1/2 -translate-y-1/2 object-contain drop-shadow-sm transition-opacity duration-200 ease-in-out",
+                  collapsed ? "opacity-100" : "opacity-0",
+                ].join(" ")}
               />
             </div>
-          ) : (
-            <>
-              <div className="flex min-h-16 items-center justify-between gap-3">
-                <div className="relative h-16 w-[190px] flex-shrink-0 overflow-hidden">
-                  <Image
-                    src="/Logo-transparent.png"
-                    alt="VigiNurse"
-                    width={576}
-                    height={576}
-                    priority
-                    className="absolute left-1/2 top-0 h-56 w-56 max-w-none -translate-x-1/2 -translate-y-[78px] object-contain drop-shadow-sm"
-                  />
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0 md:hidden">
-                  <button
-                    aria-label="Cerrar menú"
-                    className="md:hidden flex items-center justify-center w-7 h-7 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
+            <div className="flex items-center gap-1 flex-shrink-0 md:hidden">
+              <button
+                aria-label="Cerrar menú"
+                className="md:hidden flex items-center justify-center w-7 h-7 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                onClick={() => setMobileOpen(false)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div
+            className={[
+              "grid min-h-0 transition-[grid-template-rows,opacity] duration-300 ease-in-out",
+              collapsed ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100",
+            ].join(" ")}
+          >
+            <div className="overflow-hidden">
               <div className="flex min-w-0 items-center justify-between gap-3 pl-1 text-[11px] font-medium text-slate-500 tabular-nums">
                 <div className="flex min-w-0 items-center gap-2">
                   <span>{now ? formatDate(now) : "—"}</span>
@@ -401,8 +414,8 @@ export function Sidebar() {
                 </div>
                 <NotificationBell />
               </div>
-            </>
-          )}
+            </div>
+          </div>
         </div>
 
         <nav className="flex-1 py-5 flex flex-col gap-1 overflow-y-auto">
@@ -423,8 +436,8 @@ export function Sidebar() {
                 title={collapsed ? item.label : undefined}
                 onClick={() => setMobileOpen(false)}
                 className={[
-                  "flex items-center gap-3 py-3 text-sm font-medium transition-colors",
-                  collapsed ? "px-[14px] justify-center" : "px-6",
+                  "flex items-center py-3 text-sm font-medium transition-[background-color,color,gap,padding] duration-300 ease-in-out",
+                  collapsed ? "px-[14px] justify-center gap-0" : "px-6 gap-3",
                   isActive
                     ? "bg-blue-50 text-[#092168] border-r-4 border-[#092168]"
                     : "text-slate-500 hover:bg-blue-50 hover:text-[#092168]",
@@ -436,16 +449,23 @@ export function Sidebar() {
                     <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-red-500 border border-white" />
                   )}
                 </span>
-                {!collapsed && (
-                  <span className="truncate flex items-center gap-1.5">
-                    {item.label}
-                    {item.href === "/baby-monitoring" && bleOpenCount > 0 && (
-                      <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold px-1 animate-pulse flex-shrink-0">
-                        {bleOpenCount > 99 ? "99+" : bleOpenCount}
-                      </span>
-                    )}
+                <span
+                  className={[
+                    "grid min-w-0 transition-[grid-template-columns,opacity] duration-300 ease-in-out",
+                    collapsed ? "grid-cols-[0fr] opacity-0" : "grid-cols-[1fr] opacity-100",
+                  ].join(" ")}
+                >
+                  <span className="overflow-hidden">
+                    <span className="truncate flex items-center gap-1.5">
+                      {item.label}
+                      {item.href === "/baby-monitoring" && bleOpenCount > 0 && (
+                        <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold px-1 animate-pulse flex-shrink-0">
+                          {bleOpenCount > 99 ? "99+" : bleOpenCount}
+                        </span>
+                      )}
+                    </span>
                   </span>
-                )}
+                </span>
               </Link>
             );
           })}
@@ -453,22 +473,30 @@ export function Sidebar() {
 
         <div
           className={[
-            "border-t border-slate-100 py-6 flex flex-col gap-4 flex-shrink-0",
+            "border-t border-slate-100 py-6 flex flex-col gap-4 flex-shrink-0 transition-[padding] duration-300 ease-in-out",
             collapsed ? "px-3 items-center" : "px-6",
           ].join(" ")}
         >
           <Link
             href="/profile"
             title={collapsed ? userName : undefined}
-            className="flex items-center gap-3"
+            className={[
+              "flex items-center transition-[gap] duration-300 ease-in-out",
+              collapsed ? "gap-0" : "gap-3",
+            ].join(" ")}
             onClick={() => setMobileOpen(false)}
           >
             <div className="w-10 h-10 rounded-full border border-slate-200 bg-slate-200 flex-shrink-0 flex items-center justify-center font-semibold text-sm text-[#092168]">
               {userInitials}
             </div>
 
-            {!collapsed && (
-              <div className="flex flex-col overflow-hidden">
+            <div
+              className={[
+                "grid min-w-0 transition-[grid-template-columns,opacity] duration-300 ease-in-out",
+                collapsed ? "grid-cols-[0fr] opacity-0" : "grid-cols-[1fr] opacity-100",
+              ].join(" ")}
+            >
+              <div className="overflow-hidden flex flex-col">
                 <span className="text-xs font-semibold text-slate-900 truncate">
                   {userName}
                 </span>
@@ -476,50 +504,39 @@ export function Sidebar() {
                   {userRole}
                 </span>
               </div>
-            )}
+            </div>
           </Link>
 
-          {!collapsed && (
-            <button
-              className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors"
-              onClick={() => logoutDialogRef.current?.showModal()}
+          <button
+            title={collapsed ? "Cerrar Sesión" : undefined}
+            className={[
+              "flex items-center text-xs font-semibold text-slate-400 hover:text-slate-600 transition-[color,gap] duration-300 ease-in-out",
+              collapsed ? "justify-center gap-0" : "gap-2",
+            ].join(" ")}
+            onClick={() => logoutDialogRef.current?.showModal()}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              className="flex-shrink-0"
             >
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-              Cerrar Sesión
-            </button>
-          )}
-
-          {collapsed && (
-            <button
-              title="Cerrar Sesión"
-              className="flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
-              onClick={() => logoutDialogRef.current?.showModal()}
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <span
+              className={[
+                "grid min-w-0 transition-[grid-template-columns,opacity] duration-300 ease-in-out",
+                collapsed ? "grid-cols-[0fr] opacity-0" : "grid-cols-[1fr] opacity-100",
+              ].join(" ")}
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-            </button>
-          )}
+              <span className="overflow-hidden whitespace-nowrap">Cerrar Sesión</span>
+            </span>
+          </button>
         </div>
       </aside>
 
