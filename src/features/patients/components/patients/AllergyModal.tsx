@@ -109,7 +109,7 @@ export function AllergyModal({
 
   return (
     <dialog ref={dialogRef} className="modal" onClose={onClose}>
-      <div className="modal-box bg-[#EEEEEE] w-full max-w-md">
+      <div className="modal-box bg-[#FFFFFF] w-full max-w-md">
         <button
           type="button"
           className="absolute right-3 top-3 text-gray-500 hover:text-[#1A2B5E] transition-colors"
@@ -152,7 +152,7 @@ export function AllergyModal({
             </label>
             <select
               id="alergia-severidad"
-              className="select select-bordered w-full bg-[#EEEEEE] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E]"
+              className="select select-bordered w-full bg-[#FFFFFF] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E]"
               value={severidad}
               onChange={(e) =>
                 setSeveridad(Number(e.target.value) as SeveridadAlergia)
@@ -177,7 +177,7 @@ export function AllergyModal({
               id="alergia-reaccion"
               rows={3}
               placeholder="Describa la reacción que presenta el paciente..."
-              className={`textarea textarea-bordered w-full bg-[#EEEEEE] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E] resize-none ${
+              className={`textarea textarea-bordered w-full bg-[#FFFFFF] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E] resize-none ${
                 errors.reaccion ? "border-red-500" : ""
               }`}
               value={reaccion}

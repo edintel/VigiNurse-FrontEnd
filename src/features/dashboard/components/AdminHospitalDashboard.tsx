@@ -12,6 +12,7 @@ import { getAreas } from "@/features/staff-monitoring/services/areasService";
 import { getBabies } from "@/features/baby-monitoring/services/babyService";
 import { EstadoDisponibilidadPersonal } from "@/features/staff-monitoring/types";
 import { TriageNivel, TRIAGE_CONFIG } from "@/features/patients/types";
+import { formatFullName } from "@/shared/utils/personName";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -108,7 +109,7 @@ export default function AdminHospitalDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [recentPatients, setRecentPatients] = useState<
-    { episodioId: number; nombre: string; apellidos: string; areaNombre: string; nivelTriage: TriageNivel; fechaAdmision: string }[]
+    { episodioId: number; nombre: string | null; apellidos: string | null; areaNombre: string; nivelTriage: TriageNivel; fechaAdmision: string }[]
   >([]);
   const [todayShifts, setTodayShifts] = useState<
     { id: number; nombreUsuario: string; apellidosUsuario: string; nombreArea: string; fechaInicio: string; fechaFin: string }[]
@@ -375,7 +376,7 @@ export default function AdminHospitalDashboard() {
                       return (
                         <tr key={p.episodioId} className="hover:bg-slate-50 transition-colors">
                           <td className="px-4 py-3 font-medium text-[#1A2B5E] whitespace-nowrap">
-                            {p.nombre} {p.apellidos}
+                            {formatFullName(p.nombre, p.apellidos)}
                           </td>
                           <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{p.areaNombre}</td>
                           <td className="px-4 py-3">

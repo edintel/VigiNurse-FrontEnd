@@ -3,6 +3,7 @@ import { useRef, useState, useEffect } from "react";
 import { createPatientAccount } from "@/features/patients/services/patientService";
 import { toast } from "@/lib/toast";
 import type { Paciente } from "@/features/patients/types";
+import { formatFullName } from "@/shared/utils/personName";
 
 interface CreatePatientAccountModalProps {
   open: boolean;
@@ -40,6 +41,10 @@ export function CreatePatientAccountModal({
   }, [open]);
 
   function validate(): boolean {
+    if (!paciente.cedula) {
+      setError("El paciente no tiene una cédula registrada. Asigne una cédula antes de crear la cuenta.");
+      return false;
+    }
     const trimmed = email.trim();
     if (!trimmed) { setError("El correo electrónico es obligatorio."); return false; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
@@ -53,7 +58,7 @@ export function CreatePatientAccountModal({
   // Valida el correo electrónico, llama a la API y maneja el estado de carga, éxito y error.
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate() || !paciente.cedula) return;
     setLoading(true);
     setError(null);
     try {
@@ -91,7 +96,7 @@ export function CreatePatientAccountModal({
           <div className="flex-1 min-w-0">
             <h3 className="text-base font-bold text-[#0f172a]">Crear cuenta de acceso</h3>
             <p className="text-xs text-[#64748b] truncate">
-              {paciente.nombre} {paciente.apellidos}
+              {formatFullName(paciente.nombre, paciente.apellidos)}
             </p>
           </div>
           <button

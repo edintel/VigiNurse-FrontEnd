@@ -37,6 +37,7 @@ import { DischargeBabyModal } from "@/features/baby-monitoring/components/Discha
 import { getBabyById } from "@/features/baby-monitoring/services/babyService";
 import type { Bebe } from "@/features/baby-monitoring/types";
 import { getUserById } from "@/features/staff-monitoring/services/personalDetailService";
+import { formatApellidosNombre, formatFullName } from "@/shared/utils/personName";
 
 type NoEpisodeTab = "informacion" | "historial";
 type ActiveEpisodeTab =
@@ -81,7 +82,8 @@ const CLINICAL_TABS: { id: ActiveEpisodeTab; label: string }[] = [
 
 // Funcion para calcular la edad a partir de la fecha de nacimiento. Se muestra en la cabecera de la ficha del paciente.
 
-function calcularEdad(fechaNacimiento: string): number {
+function calcularEdad(fechaNacimiento: string | null): number | null {
+  if (!fechaNacimiento) return null;
   const hoy = new Date();
   const nac = new Date(fechaNacimiento);
   let edad = hoy.getFullYear() - nac.getFullYear();
@@ -279,14 +281,14 @@ export default function PatientRecordPage({ id, bebeId }: PatientRecordPageProps
               </button>
               <div>
                 <h1 className="text-lg font-bold text-[#0f172a] leading-tight">
-                  {paciente.apellidos}, {paciente.nombre}
+                  {formatApellidosNombre(paciente.nombre, paciente.apellidos)}
                 </h1>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   <span className="text-[11px] font-medium text-[#64748b] bg-[#f1f5f9] rounded px-1.5 py-0.5 font-mono">
-                    {paciente.cedula}
+                    {paciente.cedula || "---"}
                   </span>
                   <span className="text-[11px] font-medium text-[#64748b] bg-[#f1f5f9] rounded px-1.5 py-0.5">
-                    {bebe ? "Recién nacido" : `${edad} años`}
+                    {bebe ? "Recién nacido" : edad !== null ? `${edad} años` : "---"}
                   </span>
                 </div>
               </div>
@@ -528,7 +530,7 @@ export default function PatientRecordPage({ id, bebeId }: PatientRecordPageProps
           onClose={() => setShowEpisodeModal(false)}
           onCreated={() => void loadData()}
           initialPacienteId={paciente.id}
-          initialPacienteName={`${paciente.nombre} ${paciente.apellidos}`}
+          initialPacienteName={formatFullName(paciente.nombre, paciente.apellidos)}
         />
       )}
 

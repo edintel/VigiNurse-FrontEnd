@@ -17,6 +17,7 @@ import {
   MedicacionEstado,
   OrdenEstado,
 } from "@/features/patients/types";
+import { formatApellidosNombre } from "@/shared/utils/personName";
 import type {
   EpisodioActivo,
   EpisodioFilters,
@@ -547,10 +548,10 @@ export default function ActivePatientsPage() {
                       <td>
                         <div className="flex flex-col">
                           <span className="font-semibold text-sm text-[#0f172a]">
-                            {ep.apellidos}, {ep.nombre}
+                            {formatApellidosNombre(ep.nombre, ep.apellidos)}
                           </span>
                           <span className="text-[11px] text-[#64748b] font-mono">
-                            {ep.cedula}
+                            {ep.cedula || "---"}
                           </span>
                         </div>
                       </td>

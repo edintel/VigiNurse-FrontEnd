@@ -59,9 +59,9 @@ export interface Bebe {
   id: number;
   pacienteId: number;
   episodioId: number;
-  nombre: string;
-  apellidos: string;
-  fechaNacimiento: string;
+  nombre: string | null;
+  apellidos: string | null;
+  fechaNacimiento: string | null;
   sexo: string; // "Masculino" | "Femenino" — backend devuelve string
   tipoSangre: string | null;
   madreId: number | null;
@@ -90,8 +90,8 @@ export interface DarDeAltaBebeDTO {
 }
 
 export interface CreateBebeDTO {
-  nombre: string;
-  apellidos: string;
+  nombre: string | null;
+  apellidos: string | null;
   fechaNacimiento: string;
   sexo: Sexo;
   tipoSangre?: string | null;

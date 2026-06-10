@@ -7,6 +7,7 @@ import { deletePatientContact } from "@/features/patients/services/patientServic
 import { toast } from "@/lib/toast";
 import { Sexo, SEXO_LABELS } from "@/features/patients/types";
 import type { ContactoPaciente, Paciente } from "@/features/patients/types";
+import { formatFullName } from "@/shared/utils/personName";
 
 interface PatientInfoCardProps {
   paciente: Paciente;
@@ -20,7 +21,8 @@ interface PatientInfoCardProps {
 }
 
 // Formatea una fecha ISO a DD/MM/AAAA.
-function fmt(dateStr: string): string {
+function fmt(dateStr: string | null): string {
+  if (!dateStr) return "---";
   try {
     return new Date(dateStr).toLocaleDateString("es-ES", {
       day: "2-digit",
@@ -144,7 +146,7 @@ export function PatientInfoCard({
                 type="button"
                 className="btn btn-xs btn-ghost gap-1.5 text-[#09268E]"
                 onClick={() => setShowEdit(true)}
-                title="Editar datos vitales"
+                title="Editar datos del paciente"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -172,10 +174,10 @@ export function PatientInfoCard({
           <div>
             <SectionHead>Datos personales</SectionHead>
             <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-              <Field label="Cédula" value={paciente.cedula} />
+              <Field label="Cédula" value={paciente.cedula || "---"} />
               <Field
                 label="Nombre completo"
-                value={`${paciente.nombre} ${paciente.apellidos}`}
+                value={formatFullName(paciente.nombre, paciente.apellidos)}
               />
               <Field
                 label="Fecha de nacimiento"
@@ -185,7 +187,7 @@ export function PatientInfoCard({
                 label="Sexo"
                 value={SEXO_LABELS[paciente.sexo as Sexo]}
               />
-              <Field label="Tipo de sangre" value={paciente.tipoSangre} />
+              <Field label="Tipo de sangre" value={paciente.tipoSangre || "---"} />
               <Field label="Teléfono" value={paciente.telefono ?? "—"} />
             </div>
           </div>

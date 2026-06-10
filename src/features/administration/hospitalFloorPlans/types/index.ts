@@ -26,6 +26,9 @@ export interface BebeEnZona {
   brazaleteCodigo: string;
   pacienteId: number | null;
   pacienteNombre: string | null;
+  pacienteApellidos: string | null;
+  nombreMadre: string | null;
+  apellidosMadre: string | null;
   ultimaActualizacion: string;
 }
 

@@ -7,6 +7,7 @@ import { dischargeBaby, getActiveBraceletAssignmentByPatient } from "@/features/
 import { toast } from "@/lib/toast";
 import type { Bebe } from "@/features/baby-monitoring/types";
 import type { EpisodioHistorial } from "@/features/patients/types";
+import { formatBabyName } from "@/shared/utils/personName";
 
 interface DischargeBabyModalProps {
   open: boolean;
@@ -90,7 +91,7 @@ export function DischargeBabyModal({
     try {
       await dischargeBaby(bebe.id, { observaciones: observaciones.trim() });
       toast.success(
-        `Alta registrada para ${bebe.nombre} ${bebe.apellidos} correctamente.`,
+        `Alta registrada para ${formatBabyName(bebe.nombre, bebe.apellidos, bebe.nombreMadre, bebe.apellidosMadre)} correctamente.`,
       );
       onDadoDeAlta();
       onClose();

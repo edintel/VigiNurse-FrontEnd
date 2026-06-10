@@ -5,6 +5,7 @@ import { selectCurrentUser, selectAuthToken } from "@/store/slices/authSlice";
 import { getHospitalFloorPlans, getFloorPlanView } from "@/features/administration/hospitalFloorPlans/services/hospitalFloorPlanService";
 import type { PlanoHospital, VistaPlano, ZonaEnPlano, BebeEnZona } from "@/features/administration/hospitalFloorPlans/types";
 import { SERVER_BASE_URL } from "@/config/api";
+import { formatBabyName } from "@/shared/utils/personName";
 
 const REFRESH_MS = 30_000;
 
@@ -375,7 +376,7 @@ function BebeRow({ bebe }: { bebe: BebeEnZona }) {
       </div>
       <div className="min-w-0">
         <p className="text-xs font-semibold text-white truncate">
-          {bebe.pacienteNombre ?? `Brazalete ${bebe.brazaleteCodigo}`}
+          {formatBabyName(bebe.pacienteNombre, bebe.pacienteApellidos, bebe.nombreMadre, bebe.apellidosMadre)}
         </p>
         <p className="text-[10px] text-pink-300 mt-0.5">
           Últ. señal: {formatRelative(bebe.ultimaActualizacion)} atrás

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 // Tipado de las etiquetas web de Cally para poder usarlas en JSX sin errores de TypeScript.
@@ -28,7 +29,7 @@ declare global {
 // Interface de props para el componente CallyDatePicker, con valor controlado en formato YYYY-MM-DD y opciones de configuración para estilos y validación.
 interface CallyDatePickerProps {
   id: string;
-  label: string;
+  label: ReactNode;
   value: string;
   onChange: (value: string) => void;
   required?: boolean;
@@ -39,6 +40,7 @@ interface CallyDatePickerProps {
   variant?: "modal" | "filter";
   inputClassName?: string;
   labelClassName?: string;
+  disabled?: boolean;
 }
 
 const MESES = [
@@ -110,6 +112,7 @@ export function CallyDatePicker({
   variant = "modal",
   inputClassName,
   labelClassName,
+  disabled = false,
 }: CallyDatePickerProps) {
   const [open, setOpen] = useState(false);
   const [dropCoords, setDropCoords] = useState<{
@@ -261,6 +264,7 @@ export function CallyDatePicker({
   // Abre/cierra el calendario y calcula posición fija para renderizar el dropdown.
   // El portal se monta en <dialog> si existe para respetar el top-layer de modales.
   function handleToggle() {
+    if (disabled) return;
     if (!open && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
       setDropCoords({
@@ -346,7 +350,8 @@ export function CallyDatePicker({
         id={id}
         type="button"
         onClick={handleToggle}
-        className={btnCls}
+        disabled={disabled}
+        className={`${btnCls} disabled:opacity-50 disabled:cursor-not-allowed`}
       >
         <span className={textCls}>{formatDisplay(value, placeholder)}</span>
         <svg

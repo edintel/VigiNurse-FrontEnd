@@ -16,6 +16,7 @@ import { MedicalImagesTab } from "@/features/patients/components/medicalImages/M
 import { AssignEpisodeDoctorModal } from "@/features/patients/components/episodes/AssignEpisodeDoctorModal";
 import { EpisodioEstado, type EpisodioHistorial } from "@/features/patients/types";
 import type { Bebe } from "@/features/baby-monitoring/types";
+import { formatBabyName } from "@/shared/utils/personName";
 
 type BabyTab =
   | "informacion"
@@ -40,7 +41,8 @@ const BABY_TABS: { id: BabyTab; label: string }[] = [
   { id: "imagenes", label: "Imágenes" },
 ];
 
-function calcularEdadNeonatal(fechaNacimiento: string): string {
+function calcularEdadNeonatal(fechaNacimiento: string | null): string {
+  if (!fechaNacimiento) return "---";
   const hoy = new Date();
   const nac = new Date(fechaNacimiento);
   const totalDias = Math.floor((hoy.getTime() - nac.getTime()) / 86400000);
@@ -161,7 +163,7 @@ export default function BabyRecordPage({ id }: BabyRecordPageProps) {
               </button>
               <div>
                 <h1 className="text-lg font-bold text-[#0f172a] leading-tight">
-                  {bebe.apellidos}, {bebe.nombre}
+                  {formatBabyName(bebe.nombre, bebe.apellidos, bebe.nombreMadre, bebe.apellidosMadre)}
                 </h1>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   {/* Edad neonatal */}

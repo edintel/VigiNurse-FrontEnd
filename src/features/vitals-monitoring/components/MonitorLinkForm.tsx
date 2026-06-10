@@ -10,6 +10,7 @@ import { toast } from "@/lib/toast";
 import type { CrearMonitorPacienteDto, MonitorPacienteDto } from "@/features/vitals-monitoring/types";
 import type { Paciente, PaginatedPacientes } from "@/features/patients/types";
 import type { Activo } from "@/features/assets-managment/inventory/types";
+import { formatFullName } from "@/shared/utils/personName";
 
 interface SelectOption {
   id: number;
@@ -89,8 +90,8 @@ export function MonitorLinkForm({ onVinculado, onCancelar }: Props) {
       setPacOptions(
         resPacientes.data.datos.map((p: Paciente) => ({
           id: p.id,
-          label: `${p.nombre} ${p.apellidos}`,
-          sublabel: p.cedula,
+          label: formatFullName(p.nombre, p.apellidos),
+          sublabel: p.cedula ?? undefined,
         })),
       );
     } catch {

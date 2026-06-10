@@ -67,14 +67,10 @@ export function CreatePatientModal({
   }
 
   // Validación básica antes de enviar al backend. El backend también validará, pero esto mejora la UX.
+  // Cédula, nombre, apellidos, fecha de nacimiento y tipo de sangre son opcionales: permiten registrar pacientes sin identificar.
   async function handleSubmitPatient(e: React.FormEvent) {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
-    if (!cedula.trim()) newErrors.cedula = "La cédula es obligatoria.";
-    if (!nombre.trim()) newErrors.nombre = "El nombre es obligatorio.";
-    if (!apellidos.trim()) newErrors.apellidos = "Los apellidos son obligatorios.";
-    if (!fechaNacimiento) newErrors.fechaNacimiento = "La fecha de nacimiento es obligatoria.";
-    if (!tipoSangre) newErrors.tipoSangre = "El tipo de sangre es obligatorio.";
     const pesoNum = parseFloat(peso);
     if (!peso || isNaN(pesoNum) || pesoNum <= 0)
       newErrors.peso = "Ingrese un peso válido en kg.";
@@ -90,17 +86,21 @@ export function CreatePatientModal({
     setLoading(true);
     try {
       const paciente = await createPatient({
-        cedula: cedula.trim(),
-        nombre: nombre.trim(),
-        apellidos: apellidos.trim(),
-        fechaNacimiento: new Date(fechaNacimiento).toISOString(),
+        cedula: cedula.trim() || null,
+        nombre: nombre.trim() || null,
+        apellidos: apellidos.trim() || null,
+        fechaNacimiento: fechaNacimiento ? new Date(fechaNacimiento).toISOString() : null,
         sexo,
-        tipoSangre,
+        tipoSangre: tipoSangre || null,
         peso: pesoNum,
         altura: alturaNum,
         telefono: telefono.trim(),
       });
-      toast.success(`Paciente "${paciente.nombre} ${paciente.apellidos}" registrado exitosamente.`);
+      const nombreCompleto =
+        paciente.nombre || paciente.apellidos
+          ? `${paciente.nombre ?? ""} ${paciente.apellidos ?? ""}`.trim()
+          : "Paciente sin identificar";
+      toast.success(`Paciente "${nombreCompleto}" registrado exitosamente.`);
       onCreated(paciente);
       setCreatedId(paciente.id);
       setStep("contact_prompt");
@@ -120,11 +120,11 @@ export function CreatePatientModal({
 
 
   const selectCls =
-    "select select-bordered w-full bg-[#EEEEEE] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E] focus:outline-none";
+    "select select-bordered w-full bg-[#FFFFFF] border-[#B0B0B0] text-[#1A2B5E] focus:border-[#09268E] focus:outline-none";
 
   return (
     <dialog ref={dialogRef} className="modal" onClose={onClose}>
-      <div className="modal-box bg-[#EEEEEE] w-full max-w-2xl">
+      <div className="modal-box bg-[#FFFFFF] w-full max-w-2xl">
         <button
           type="button"
           className="absolute right-3 top-3 text-gray-500 hover:text-[#1A2B5E] transition-colors"
@@ -144,48 +144,53 @@ export function CreatePatientModal({
               {/* Fila 1: Nombre · Apellidos */}
               <div className="grid grid-cols-2 gap-4">
                 <InputField
-                  label="Nombre"
+                  label={
+                    <>
+                      Nombre{" "}
+                      <span className="text-slate-400 font-normal text-xs">(opcional)</span>
+                    </>
+                  }
                   id="create-paciente-nombre"
                   value={nombre}
-                  onChange={(e) => {
-                    setNombre(e.target.value);
-                    setErrors((p) => ({ ...p, nombre: "" }));
-                  }}
-                  placeholder="Ej. María"
-                  error={errors.nombre}
-                  required
+                  onChange={(e) => setNombre(e.target.value)}
+                  placeholder="Ej. María (dejar en blanco si no se identifica)"
                 />
                 <InputField
-                  label="Apellidos"
+                  label={
+                    <>
+                      Apellidos{" "}
+                      <span className="text-slate-400 font-normal text-xs">(opcional)</span>
+                    </>
+                  }
                   id="create-paciente-apellidos"
                   value={apellidos}
-                  onChange={(e) => {
-                    setApellidos(e.target.value);
-                    setErrors((p) => ({ ...p, apellidos: "" }));
-                  }}
+                  onChange={(e) => setApellidos(e.target.value)}
                   placeholder="Ej. González Pérez"
-                  error={errors.apellidos}
-                  required
                 />
               </div>
 
               {/* Fila 2: Cédula · Fecha de nacimiento */}
               <div className="grid grid-cols-2 gap-4">
                 <InputField
-                  label="Cédula"
+                  label={
+                    <>
+                      Cédula{" "}
+                      <span className="text-slate-400 font-normal text-xs">(opcional)</span>
+                    </>
+                  }
                   id="create-paciente-cedula"
                   value={cedula}
-                  onChange={(e) => {
-                    setCedula(e.target.value);
-                    setErrors((p) => ({ ...p, cedula: "" }));
-                  }}
+                  onChange={(e) => setCedula(e.target.value)}
                   placeholder="Ej. 208440805"
-                  error={errors.cedula}
-                  required
                 />
                 <CallyDatePicker
                   id="create-paciente-fecha"
-                  label="Fecha de nacimiento"
+                  label={
+                    <>
+                      Fecha de nacimiento{" "}
+                      <span className="text-slate-400 font-normal text-xs">(opcional)</span>
+                    </>
+                  }
                   value={fechaNacimiento}
                   onChange={(v) => {
                     setFechaNacimiento(v);
@@ -193,7 +198,6 @@ export function CreatePatientModal({
                   }}
                   placeholder="DD/MM/AAAA"
                   error={errors.fechaNacimiento}
-                  required
                   max={new Date().toISOString().split("T")[0]}
                   variant="modal"
                 />
@@ -231,28 +235,21 @@ export function CreatePatientModal({
                 <div className="form-control w-full">
                   <label className="label pb-1" htmlFor="create-paciente-sangre">
                     <span className="label-text text-sm font-medium" style={{ color: "#1A2B5E" }}>
-                      Tipo de sangre <span className="text-red-500">*</span>
+                      Tipo de sangre{" "}
+                      <span className="text-slate-400 font-normal text-xs">(opcional)</span>
                     </span>
                   </label>
                   <select
                     id="create-paciente-sangre"
-                    className={`${selectCls} ${errors.tipoSangre ? "select-error" : ""}`}
+                    className={selectCls}
                     value={tipoSangre}
-                    onChange={(e) => {
-                      setTipoSangre(e.target.value);
-                      setErrors((p) => ({ ...p, tipoSangre: "" }));
-                    }}
+                    onChange={(e) => setTipoSangre(e.target.value)}
                   >
-                    <option value="" disabled>Seleccionar tipo...</option>
+                    <option value="">Sin registrar</option>
                     {TIPOS_SANGRE.map((t) => (
                       <option key={t} value={t}>{t}</option>
                     ))}
                   </select>
-                  {errors.tipoSangre && (
-                    <label className="label pt-1">
-                      <span className="label-text-alt text-error">{errors.tipoSangre}</span>
-                    </label>
-                  )}
                 </div>
               </div>
 
