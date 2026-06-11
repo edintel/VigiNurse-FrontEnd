@@ -24,10 +24,22 @@ function fmtHora(iso: string): string { return iso.slice(11, 16); }
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
 }
-function getShiftLabel(horaInicio: string): string {
-  const h = parseInt(horaInicio.slice(0, 2), 10);
-  if (h >= 6 && h < 14) return "Mañana";
-  if (h >= 14 && h < 20) return "Tarde";
+function normalizeText(s: string): string {
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+// Determina la etiqueta del turno (Mañana/Tarde/Noche/Guardia) priorizando el nombre
+// de la plantilla asignada, y usando el rango horario solo como respaldo.
+function getShiftLabel(g: TurnoGrupo): string {
+  if (g.tipoTurno === TipoTurno.Guardia) return "Guardia";
+  if (g.nombrePlantilla) {
+    const n = normalizeText(g.nombrePlantilla);
+    if (n.includes("manana")) return "Mañana";
+    if (n.includes("tarde")) return "Tarde";
+    if (n.includes("noche")) return "Noche";
+  }
+  const h = parseInt(g.horaInicio.slice(0, 2), 10);
+  if (h >= 4 && h < 14) return "Mañana";
+  if (h >= 12 && h < 22) return "Tarde";
   return "Noche";
 }
 
@@ -38,6 +50,7 @@ interface TurnoGrupo {
   areaId: number;
   nombreArea: string;
   nombreGrupo: string | null;
+  nombrePlantilla: string | null;
   tipoTurno: TipoTurno;
   horaInicio: string;  // HH:MM (del slice del ISO UTC)
   horaFin: string;
@@ -61,6 +74,7 @@ function groupShiftsByDate(turnos: TurnoPersonal[]): Record<string, TurnoGrupo[]
       map[fechaKey][groupKey] = {
         key: groupKey, fechaKey, areaId: t.areaId, nombreArea: t.nombreArea,
         nombreGrupo: t.nombreGrupo ?? null,
+        nombrePlantilla: t.nombrePlantilla ?? null,
         tipoTurno: t.tipoTurno, horaInicio, horaFin, personas: [],
       };
     }
@@ -74,11 +88,12 @@ function groupShiftsByDate(turnos: TurnoPersonal[]): Record<string, TurnoGrupo[]
 }
 
 function getGroupColors(g: TurnoGrupo): { bg: string; text: string; border: string } {
-  if (g.tipoTurno === TipoTurno.Guardia) return { bg: "#fef2f2", text: "#dc2626", border: "#fecaca" };
-  const h = parseInt(g.horaInicio.slice(0, 2), 10);
-  if (h >= 6 && h < 14) return { bg: "#f0fdf4", text: "#16a34a", border: "#bbf7d0" };
-  if (h >= 14 && h < 20) return { bg: "#fff7ed", text: "#ea580c", border: "#fed7aa" };
-  return { bg: "#eef2ff", text: "#4f46e5", border: "#c7d2fe" };
+  switch (getShiftLabel(g)) {
+    case "Guardia": return { bg: "#fef2f2", text: "#dc2626", border: "#fecaca" };
+    case "Mañana": return { bg: "#f0fdf4", text: "#16a34a", border: "#bbf7d0" };
+    case "Tarde": return { bg: "#fff7ed", text: "#ea580c", border: "#fed7aa" };
+    default: return { bg: "#eef2ff", text: "#4f46e5", border: "#c7d2fe" };
+  }
 }
 
 
@@ -98,7 +113,7 @@ interface GrupoPopoverProps {
 // Popover que muestra los detalles de un grupo de turnos al hacer click en el chip del calendar, con opción de eliminar turnos si allowDelete es true.
 function GroupPopover({ grupo, anchorRect, onDeleteTurno, onClose, allowDelete = true }: GrupoPopoverProps) {
   const colors = getGroupColors(grupo);
-  const label = grupo.tipoTurno === TipoTurno.Guardia ? "Guardia" : getShiftLabel(grupo.horaInicio);
+  const label = getShiftLabel(grupo);
   const popoverRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
 
@@ -321,7 +336,7 @@ export function ShiftCalendar({ usuarioId, showAreaFilter = true, allowDelete = 
   function renderGroupChip(g: TurnoGrupo, compact = false) {
     const colors = getGroupColors(g);
     const isActive = activeGrupo?.fechaKey === g.fechaKey && activeGrupo?.key === g.key;
-    const label = g.tipoTurno === TipoTurno.Guardia ? "Guardia" : getShiftLabel(g.horaInicio);
+    const label = getShiftLabel(g);
 
     return (
       <div key={g.key}>
