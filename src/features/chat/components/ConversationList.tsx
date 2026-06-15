@@ -72,7 +72,7 @@ export function ConversationList({
       {/* Header */}
       <div className="px-4 pt-4 pb-3 border-b border-[#e2e8f0] flex-shrink-0">
         <div className="flex items-center justify-between mb-3">
-          <h1 className="text-base font-extrabold text-[#0f172a]">VigiChat</h1>
+          <h1 className="text-base font-extrabold text-[#0f172a]">Chat</h1>
           <div className="flex items-center gap-1">
             <button
               type="button"

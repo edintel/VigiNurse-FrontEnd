@@ -198,7 +198,7 @@ const NAV_ITEMS: {
     ),
   },
   {
-    label: "VigiChat",
+    label: "Chat",
     href: "/chat",
     hideForRoles: ["PACIENTE"],
     icon: (
