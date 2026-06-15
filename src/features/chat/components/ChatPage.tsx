@@ -286,7 +286,7 @@ export default function ChatPage() {
               </svg>
             </div>
             <div>
-              <p className="text-base font-bold text-[#0f172a]">VigiChat</p>
+              <p className="text-base font-bold text-[#0f172a]">Chat</p>
               <p className="text-sm text-slate-400 mt-1">
                 Selecciona una conversación o inicia un nuevo chat.
               </p>
