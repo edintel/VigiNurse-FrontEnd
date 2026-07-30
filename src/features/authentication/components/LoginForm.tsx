@@ -37,7 +37,7 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
     dispatch(loginStart());
     const result = await login({ email, password });
     if (result.success) {
-      const { token, user: rawUser, expiracion } = result.data;
+      const { user: rawUser, expiracion } = result.data;
       const VALID_ROLES: AuthRole[] = [
         "SUPER_ADMIN",
         "ADMIN",
@@ -58,10 +58,13 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
         email: rawUser.email,
         name: rawUser.name,
         role,
+        // Antes se perdia aqui y se recuperaba decodificando el JWT; ahora llega
+        // en la respuesta del backend porque el token ya no es legible desde JS.
+        hospitalId: rawUser.hospitalId ?? null,
       };
       const permissions = generatePermissions(role);
-      saveSession({ token, user, permissions, expiracion });
-      dispatch(loginSuccess({ user, token, permissions }));
+      saveSession({ user, permissions, expiracion });
+      dispatch(loginSuccess({ user, permissions }));
       setFailedAttempts(0);
       toast.success(`¡Bienvenido, ${user.name}!`);
       router.replace("/dashboard");

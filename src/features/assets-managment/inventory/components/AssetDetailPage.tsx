@@ -123,7 +123,8 @@ export default function AssetDetailPage({ id }: AssetDetailPageProps) {
     void fetchAsset();
   }, [fetchAsset]);
 
-  // Carga la imagen QR como blob para incluir el token de autenticación.
+  // Carga la imagen QR como blob: al pedirla por axios viaja la cookie de sesión,
+  // cosa que no ocurriría con un <img src> apuntando directo al endpoint.
   useEffect(() => {
     let objectUrl: string | null = null;
     getAssetQrBlob(id)

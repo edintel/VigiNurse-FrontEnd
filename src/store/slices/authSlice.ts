@@ -4,11 +4,12 @@ import type { RootState } from "@/store/store";
 
 // Interface para el estado de autenticación.
 
+// El JWT no se guarda en el estado: vive en una cookie httpOnly gestionada por el navegador.
+
 export interface AuthState {
   isAuthenticated: boolean;
   sessionRestored: boolean;
   user: AuthUser | null;
-  token: string | null;
   permissions: string[];
   loading: boolean;
   error: string | null;
@@ -20,7 +21,6 @@ const initialState: AuthState = {
   isAuthenticated: false,
   sessionRestored: false,
   user: null,
-  token: null,
   permissions: [],
   loading: false,
   error: null,
@@ -30,7 +30,6 @@ const initialState: AuthState = {
 
 export interface LoginSuccessPayload {
   user: AuthUser;
-  token: string;
   permissions: string[];
 }
 
@@ -45,11 +44,10 @@ export const authSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    // Acción para manejar un login exitoso, actualizando el estado con la información del usuario y token.
+    // Acción para manejar un login exitoso, actualizando el estado con la información del usuario.
     loginSuccess(state, action: PayloadAction<LoginSuccessPayload>) {
       state.isAuthenticated = true;
       state.user = action.payload.user;
-      state.token = action.payload.token;
       state.permissions = action.payload.permissions;
       state.loading = false;
       state.error = null;
@@ -65,7 +63,6 @@ export const authSlice = createSlice({
       state.isAuthenticated = false;
       state.sessionRestored = true;
       state.user = null;
-      state.token = null;
       state.permissions = [];
       state.loading = false;
       state.error = null;
@@ -75,7 +72,6 @@ export const authSlice = createSlice({
       state.isAuthenticated = true;
       state.sessionRestored = true;
       state.user = action.payload.user;
-      state.token = action.payload.token;
       state.permissions = action.payload.permissions;
       state.loading = false;
       state.error = null;
@@ -110,7 +106,8 @@ export const selectIsAuthenticated = (state: RootState) =>
 export const selectSessionRestored = (state: RootState) =>
   state.auth.sessionRestored;
 export const selectCurrentUser = (state: RootState) => state.auth.user;
-export const selectAuthToken = (state: RootState) => state.auth.token;
+export const selectHospitalId = (state: RootState) =>
+  state.auth.user?.hospitalId ?? null;
 export const selectCurrentRole = (state: RootState) =>
   state.auth.user?.role ?? null;
 export const selectPermissions = (state: RootState) => state.auth.permissions;

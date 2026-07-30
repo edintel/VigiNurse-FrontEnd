@@ -10,30 +10,13 @@ import type {
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
-// Extrae hospitalId del claim "hospital_id" del JWT.
-function hospitalIdFromToken(token: string): number | null {
-  try {
-    const part = token.split(".")[1];
-    if (!part) return null;
-    const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
-    const payload = JSON.parse(atob(padded)) as Record<string, unknown>;
-    const raw = payload["hospital_id"];
-    if (typeof raw === "number") return raw;
-    if (typeof raw === "string") return parseInt(raw, 10) || null;
-    return null;
-  } catch {
-    return null;
-  }
-}
-// Normaliza token.
-function normalizeToken(raw: unknown): string | null {
-  if (typeof raw !== "string") return null;
-  let token = raw.trim();
-  if (!token) return null;
-  token = token.replace(/^Bearer\s+/i, "").trim();
-  token = token.replace(/^['"]+|['"]+$/g, "").trim();
-  return token || null;
+// Normaliza el hospitalId que envia el backend en la respuesta de login.
+// Antes se extraia decodificando el JWT; ahora el token va en una cookie httpOnly
+// ilegible desde JavaScript, por lo que el backend lo entrega explicitamente.
+function normalizeHospitalId(raw: unknown): number | null {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+  if (typeof raw === "string") return parseInt(raw, 10) || null;
+  return null;
 }
 // Normaliza rol.
 function normalizeRole(raw: unknown): string {
@@ -66,8 +49,6 @@ function normalizeLoginResponse(payload: unknown): LoginSuccessResponse {
   if (!isRecord(payload)) {
     throw new Error("Invalid login response");
   }
-  const token = normalizeToken(payload.token);
-  if (!token) throw new Error("Invalid login response");
   if (isRecord(payload.user)) {
     const user = payload.user;
     if (
@@ -77,13 +58,12 @@ function normalizeLoginResponse(payload: unknown): LoginSuccessResponse {
       typeof user.role === "string"
     ) {
       return {
-        token,
         user: {
           id: String(user.id),
           email: user.email,
           name: user.name,
           role: normalizeRole(user.role),
-          hospitalId: hospitalIdFromToken(token),
+          hospitalId: normalizeHospitalId(user.hospitalId),
         },
       };
     }
@@ -99,7 +79,6 @@ function normalizeLoginResponse(payload: unknown): LoginSuccessResponse {
       typeof usuario.nombreCompleto === "string"
     ) {
       return {
-        token,
         expiracion:
           typeof payload.expiracion === "string"
             ? payload.expiracion
@@ -109,7 +88,7 @@ function normalizeLoginResponse(payload: unknown): LoginSuccessResponse {
           email: usuario.email,
           name: usuario.nombreCompleto,
           role: normalizeRole(firstRole),
-          hospitalId: hospitalIdFromToken(token),
+          hospitalId: normalizeHospitalId(usuario.hospitalId),
         },
       };
     }

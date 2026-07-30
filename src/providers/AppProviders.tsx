@@ -10,7 +10,10 @@ import { BleAlertsProvider } from "@/features/baby-monitoring/context/BleAlertsP
 function SessionRestorer() {
   useEffect(() => {
     const session = loadSession();
-    if (session?.token && session.user) {
+    // Ya no se valida la presencia del token: vive en la cookie httpOnly. Si la cookie
+    // expiro o fue invalidada, la primera peticion respondera 401 y el interceptor
+    // de axios limpiara la sesion y redirigira al login.
+    if (session?.user) {
       if (session.expiracion) {
         const expired = new Date(session.expiracion) <= new Date();
         if (expired) {

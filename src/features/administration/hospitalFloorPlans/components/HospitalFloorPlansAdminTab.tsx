@@ -2,24 +2,7 @@
 import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { useAppSelector } from "@/store/hooks";
-import { selectCurrentUser, selectCurrentRole, selectAuthToken } from "@/store/slices/authSlice";
-
-// Funcion para extraer el hospitalId de un JWT, 
-// asumiendo que el token tiene un campo "hospital_id" en su payload. Devuelve null si no se puede extraer un número válido.
-function hospitalIdFromJwt(token: string): number | null {
-  try {
-    const part = token.split(".")[1];
-    const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
-    const payload = JSON.parse(atob(padded)) as Record<string, unknown>;
-    const raw = payload["hospital_id"];
-    if (typeof raw === "number") return raw;
-    if (typeof raw === "string") return parseInt(raw, 10) || null;
-    return null;
-  } catch {
-    return null;
-  }
-}
+import { selectCurrentRole, selectHospitalId } from "@/store/slices/authSlice";
 
 const ConfigureFloorPlansTab = dynamic(
   () => import("@/features/administration/hospitalFloorPlans/components/tabs/ConfigureFloorPlansTab"),
@@ -30,8 +13,9 @@ const ConfigureFloorPlansTab = dynamic(
 // Maneja la lógica de selección de hospital para SuperAdmin y 
 // muestra el componente de configuración de planos para el hospital seleccionado.
 export default function HospitalFloorPlansAdminTab() {
-  const currentUser = useAppSelector(selectCurrentUser);
-  const token = useAppSelector(selectAuthToken);
+  // El hospitalId llega en la respuesta de login y se guarda en el perfil de sesion;
+  // ya no se decodifica del JWT, que ahora vive en una cookie httpOnly.
+  const sessionHospitalId = useAppSelector(selectHospitalId);
   const role = useAppSelector(selectCurrentRole);
   const isSuperAdmin = role === "SUPER_ADMIN";
 
@@ -40,8 +24,8 @@ export default function HospitalFloorPlansAdminTab() {
 
   const hospitalId = useMemo(() => {
     if (isSuperAdmin) return confirmedHospitalId;
-    return currentUser?.hospitalId ?? (token ? hospitalIdFromJwt(token) : null);
-  }, [isSuperAdmin, confirmedHospitalId, currentUser?.hospitalId, token]);
+    return sessionHospitalId;
+  }, [isSuperAdmin, confirmedHospitalId, sessionHospitalId]);
 
   if (isSuperAdmin && confirmedHospitalId === null) {
     return (

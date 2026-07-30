@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAppSelector } from "@/store/hooks";
-import { selectCurrentUser, selectAuthToken } from "@/store/slices/authSlice";
+import { selectHospitalId } from "@/store/slices/authSlice";
 import { getHospitalFloorPlans, getFloorPlanView } from "@/features/administration/hospitalFloorPlans/services/hospitalFloorPlanService";
 import type { PlanoHospital, VistaPlano, ZonaEnPlano, BebeEnZona } from "@/features/administration/hospitalFloorPlans/types";
 import { SERVER_BASE_URL } from "@/config/api";
@@ -13,19 +13,6 @@ function getImageUrl(url: string) {
   return `${SERVER_BASE_URL}${url}`;
 }
 
-function hospitalIdFromJwt(token: string): number | null {
-  try {
-    const part = token.split(".")[1];
-    const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
-    const payload = JSON.parse(atob(padded)) as Record<string, unknown>;
-    const raw = payload["hospital_id"];
-    if (typeof raw === "number") return raw;
-    if (typeof raw === "string") return parseInt(raw, 10) || null;
-    return null;
-  } catch { return null; }
-}
-
 function formatRelative(iso: string) {
   const secs = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
   if (secs < 60) return `${secs}s`;
@@ -35,9 +22,9 @@ function formatRelative(iso: string) {
 }
 
 export default function BabyMapTab() {
-  const currentUser = useAppSelector(selectCurrentUser);
-  const token = useAppSelector(selectAuthToken);
-  const hospitalId = currentUser?.hospitalId ?? (token ? hospitalIdFromJwt(token) : null);
+  // El hospitalId llega en la respuesta de login y se guarda en el perfil de sesion;
+  // ya no se decodifica del JWT, que ahora vive en una cookie httpOnly.
+  const hospitalId = useAppSelector(selectHospitalId);
 
   const [planos, setPlanos] = useState<PlanoHospital[]>([]);
   const [activePlanoId, setActivePlanoId] = useState<number | null>(null);

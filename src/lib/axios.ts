@@ -1,20 +1,17 @@
 import axios from "axios";
 import { API_BASE_URL } from "@/config/api";
+
+// withCredentials hace que el navegador envie la cookie de sesion httpOnly en cada
+// peticion. Ya no se lee ningun token desde localStorage ni se arma el header
+// Authorization a mano: el JWT es inaccesible para el JavaScript de la pagina.
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
-// Normaliza autenticacion token.
-function normalizeAuthToken(raw: unknown): string | null {
-  if (typeof raw !== "string") return null;
-  let token = raw.trim();
-  if (!token) return null;
-  token = token.replace(/^Bearer\s+/i, "").trim();
-  token = token.replace(/^['"]+|['"]+$/g, "").trim();
-  return token || null;
-}
+
 // Valida inicio de sesion
 function isLoginRequest(url: unknown): boolean {
   if (typeof url !== "string" || !url) return false;
@@ -25,28 +22,6 @@ function isLoginRequest(url: unknown): boolean {
     return url.includes("/auth/login");
   }
 }
-
-// Interceptors para agregar token a las solicitudes y manejar errores de autenticación.
-axiosInstance.interceptors.request.use(
-  (config) => {
-    if (typeof window !== "undefined") {
-      try {
-        const raw = localStorage.getItem("hospital_auth");
-        if (raw) {
-          const { token } = JSON.parse(raw) as {
-            token?: unknown;
-          };
-          const normalizedToken = normalizeAuthToken(token);
-          if (normalizedToken) {
-            config.headers.Authorization = `Bearer ${normalizedToken}`;
-          }
-        }
-      } catch {}
-    }
-    return config;
-  },
-  (error) => Promise.reject(error),
-);
 
 // Interceptor para manejar errores de autenticación globalmente.
 axiosInstance.interceptors.response.use(
