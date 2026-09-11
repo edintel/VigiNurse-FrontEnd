@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.gitignore
+npm-debug.log
+
+# Nunca deben entrar a la imagen: config local que pisaría los build-args
+.env
+.env.*
+!.env.example

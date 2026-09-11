@@ -1,0 +1,103 @@
+name: Desplegar panel web
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: false
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  GRUPO_RECURSOS: rg-viginurse-prod
+  ACR: acrviginurseprod2dopde6bjmfwu
+  APP_WEB: app-viginurse-prod-web
+  IMAGEN: viginurse-web
+
+jobs:
+  desplegar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Verificar tipos
+        # `npm run dev` no hace type-check: sin este paso los errores de tipos se
+        # acumulan sin que nadie los vea. En VIGIGO había 12, y uno era un bug
+        # real de producto que llegó a producción.
+        run: npx tsc --noEmit
+
+      - name: Iniciar sesión en Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Etiqueta de la imagen
+        id: meta
+        run: echo "tag=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Autenticarse contra el registro
+        run: az acr login --name "$ACR"
+
+      - name: Construir y publicar
+        # Las NEXT_PUBLIC_ van como build-arg porque se hornean en el bundle.
+        # Van como `vars` y no como `secrets` a propósito: terminan en el
+        # JavaScript que baja el navegador, así que llamarlas secretas sería
+        # engañoso.
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_API_BASE_URL="${{ vars.NEXT_PUBLIC_API_BASE_URL }}" \
+            --build-arg NEXT_PUBLIC_OHIF_URL="${{ vars.NEXT_PUBLIC_OHIF_URL }}" \
+            -t "$ACR.azurecr.io/$IMAGEN:${{ steps.meta.outputs.tag }}" \
+            -t "$ACR.azurecr.io/$IMAGEN:latest" .
+          docker push "$ACR.azurecr.io/$IMAGEN:${{ steps.meta.outputs.tag }}"
+          docker push "$ACR.azurecr.io/$IMAGEN:latest"
+
+      - name: Comprobar que no se coló configuración local en el bundle
+        # Un localhost horneado en el bundle es el valor de producción: la app
+        # intentaría hablarle a la máquina del visitante.
+        run: |
+          if docker run --rm --entrypoint sh "$ACR.azurecr.io/$IMAGEN:${{ steps.meta.outputs.tag }}" \
+               -c "grep -rl 'localhost\|192\.168' .next/static 2>/dev/null" | grep -q .; then
+            echo "Hay localhost o IPs privadas en el bundle. Revisar las variables del build."
+            exit 1
+          fi
+          echo "Bundle limpio."
+
+      - name: Apuntar el App Service a la imagen nueva
+        run: |
+          az webapp config container set \
+            --name "$APP_WEB" --resource-group "$GRUPO_RECURSOS" \
+            --container-image-name "$ACR.azurecr.io/$IMAGEN:${{ steps.meta.outputs.tag }}"
+
+      - name: Reiniciar
+        run: |
+          az webapp start --name "$APP_WEB" --resource-group "$GRUPO_RECURSOS" || true
+          az webapp restart --name "$APP_WEB" --resource-group "$GRUPO_RECURSOS"
+
+      - name: Verificar que responda
+        run: |
+          URL="https://${APP_WEB}.azurewebsites.net/"
+          for i in $(seq 1 30); do
+            CODIGO=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || echo 000)
+            echo "intento $i -> $CODIGO"
+            if [ "$CODIGO" = "200" ] || [ "$CODIGO" = "307" ]; then echo "Web arriba"; exit 0; fi
+            sleep 10
+          done
+          echo "El panel web no respondió tras 5 minutos."
+          exit 1

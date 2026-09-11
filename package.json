@@ -11,10 +11,10 @@
   "dependencies": {
     "@microsoft/signalr": "^10.0.0",
     "@reduxjs/toolkit": "^2.11.2",
-    "axios": "1.13.6",
+    "axios": "^1.19.0",
     "cally": "^0.9.2",
     "daisyui": "^5.5.19",
-    "next": "16.1.6",
+    "next": "^16.2.12",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-redux": "^9.2.0",

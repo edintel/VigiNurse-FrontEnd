@@ -65,6 +65,10 @@ if (!isDev) {
 }
 
 const nextConfig: NextConfig = {
+  // Empaqueta el servidor con solo las dependencias que realmente usa, en
+  // .next/standalone. Sin esto habría que copiar node_modules entero a la
+  // imagen: cientos de megas de más y un arranque más lento.
+  output: "standalone",
   async headers() {
     return [
       {
