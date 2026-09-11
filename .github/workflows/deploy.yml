@@ -68,16 +68,38 @@ jobs:
           docker push "$ACR.azurecr.io/$IMAGEN:${{ steps.meta.outputs.tag }}"
           docker push "$ACR.azurecr.io/$IMAGEN:latest"
 
-      - name: Comprobar que no se coló configuración local en el bundle
-        # Un localhost horneado en el bundle es el valor de producción: la app
-        # intentaría hablarle a la máquina del visitante.
+      - name: Comprobar que la configuración llegó al bundle
+        # Las NEXT_PUBLIC_ se hornean en tiempo de build. Si la variable no llega,
+        # src/config/api.ts cae a su valor por defecto (http://localhost:5025/api)
+        # y la app publicada le hablaría a la máquina del visitante. El pipeline
+        # pasaría en verde y el fallo aparecería recién en el navegador.
+        #
+        # Se afirma que la URL esperada ESTÁ presente, en vez de buscar "localhost"
+        # a secas: esa palabra aparece siempre dentro de las librerías (axios trae
+        # un fallback http://localhost, y los parsers de URL la tratan como caso
+        # especial), así que buscarla daba un falso positivo garantizado.
         run: |
-          if docker run --rm --entrypoint sh "$ACR.azurecr.io/$IMAGEN:${{ steps.meta.outputs.tag }}" \
-               -c "grep -rl 'localhost\|192\.168' .next/static 2>/dev/null" | grep -q .; then
-            echo "Hay localhost o IPs privadas en el bundle. Revisar las variables del build."
+          ESPERADA="${{ vars.NEXT_PUBLIC_API_BASE_URL }}"
+          if [ -z "$ESPERADA" ]; then
+            echo "La variable de repositorio NEXT_PUBLIC_API_BASE_URL está vacía."
             exit 1
           fi
-          echo "Bundle limpio."
+
+          SALIDA=$(docker run --rm --entrypoint sh "$ACR.azurecr.io/$IMAGEN:${{ steps.meta.outputs.tag }}" \
+            -c "grep -rl -- '$ESPERADA' .next/static 2>/dev/null | head -1")
+          if [ -z "$SALIDA" ]; then
+            echo "La URL de la API ($ESPERADA) no aparece en el bundle: la variable no llegó al build."
+            exit 1
+          fi
+
+          FALLBACK=$(docker run --rm --entrypoint sh "$ACR.azurecr.io/$IMAGEN:${{ steps.meta.outputs.tag }}" \
+            -c "grep -rl -- 'localhost:5025' .next/static 2>/dev/null | head -1")
+          if [ -n "$FALLBACK" ]; then
+            echo "El bundle contiene el valor por defecto de desarrollo (localhost:5025)."
+            exit 1
+          fi
+
+          echo "Bundle correcto: apunta a $ESPERADA"
 
       - name: Apuntar el App Service a la imagen nueva
         run: |
