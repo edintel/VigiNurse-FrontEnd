@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { login } from "@/features/authentication/services/authService";
+import { login, logoutRequest } from "@/features/authentication/services/authService";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   loginStart,
@@ -53,6 +53,15 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
       const role: AuthRole = (VALID_ROLES as string[]).includes(rawUser.role)
         ? (rawUser.role as AuthRole)
         : "PACIENTE";
+      // VigiNurse es para el personal del hospital; los pacientes usan VigiCare.
+      // La cookie de sesion ya quedo puesta, asi que se cierra en la API.
+      if (role === "PACIENTE") {
+        await logoutRequest();
+        dispatch(
+          loginFailure("Esta cuenta es de paciente. Ingresá desde VigiCare."),
+        );
+        return;
+      }
       const user: AuthUser = {
         id: rawUser.id,
         email: rawUser.email,

@@ -225,6 +225,12 @@ export async function resetPassword(
     return { success: false, error: "No se pudo conectar con el servidor." };
   }
 }
+// Cierra la sesion en la API, que invalida la cookie httpOnly. Si ya expiro, no hay nada que cerrar.
+export async function logoutRequest(): Promise<void> {
+  try {
+    await axiosInstance.post(API_ENDPOINTS.auth.logout);
+  } catch {}
+}
 // Ejecuta la logica de inicio de sesion.
 export async function login(
   credentials: LoginCredentials,

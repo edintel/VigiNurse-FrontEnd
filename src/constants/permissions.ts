@@ -54,7 +54,7 @@ export const PERMISSIONS = {
         nursingNotesCreate: ["SUPER_ADMIN", "ADMIN", "SUPERVISOR", "ENFERMERO"] as AuthRole[],
         medicalImagesView: ["SUPER_ADMIN", "ADMIN", "SUPERVISOR", "DOCTOR"] as AuthRole[],
         recetaAltaCreate: ["SUPER_ADMIN", "ADMIN", "DOCTOR"] as AuthRole[],
-        ordersFilesView: ["SUPER_ADMIN", "ADMIN", "SUPERVISOR", "DOCTOR", "ENFERMERO", "PACIENTE"] as AuthRole[],
+        ordersFilesView: ["SUPER_ADMIN", "ADMIN", "SUPERVISOR", "DOCTOR", "ENFERMERO"] as AuthRole[],
         ordersFilesManage: ["SUPER_ADMIN", "ADMIN", "SUPERVISOR", "DOCTOR", "ENFERMERO"] as AuthRole[],
     },
     vitalsMonitoring: {
@@ -97,8 +97,5 @@ export const PERMISSIONS = {
     reports: {
         view: ["SUPER_ADMIN", "ADMIN", "SUPERVISOR", "GESTOR"] as AuthRole[],
         export: ["SUPER_ADMIN", "ADMIN", "GESTOR"] as AuthRole[],
-    },
-    patientPortal: {
-        view: ["SUPER_ADMIN", "ADMIN", "PACIENTE"] as AuthRole[],
     },
 } as const satisfies Record<string, Record<string, AuthRole[]>>;

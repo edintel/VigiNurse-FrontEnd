@@ -3,6 +3,7 @@ export const API_BASE_URL =
 export const API_ENDPOINTS = {
   auth: {
     login: `${API_BASE_URL}/auth/login`,
+    logout: `${API_BASE_URL}/auth/logout`,
     changePassword: `${API_BASE_URL}/auth/cambiar-password`,
     requestRecovery: `${API_BASE_URL}/auth/solicitar-recuperacion`,
     validateToken: `${API_BASE_URL}/auth/validar-token`,

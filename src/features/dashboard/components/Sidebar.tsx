@@ -21,7 +21,6 @@ const NAV_ITEMS: {
   href: string;
   icon: React.ReactNode;
   permission?: string;
-  hideForRoles?: string[];
 }[] = [
   {
     label: "Inicio",
@@ -200,7 +199,6 @@ const NAV_ITEMS: {
   {
     label: "Chat",
     href: "/chat",
-    hideForRoles: ["PACIENTE"],
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -421,11 +419,7 @@ export function Sidebar() {
         <nav className="flex-1 py-5 flex flex-col gap-1 overflow-y-auto">
           {NAV_ITEMS.filter(
             (item) =>
-              (!item.permission || userPermissions.includes(item.permission)) &&
-              (!item.hideForRoles ||
-                !item.hideForRoles.includes(
-                  sessionUser?.role?.trim().toUpperCase() ?? "",
-                )),
+              !item.permission || userPermissions.includes(item.permission),
           ).map((item) => {
             const isActive =
               pathname === item.href || pathname.startsWith(item.href + "/");
