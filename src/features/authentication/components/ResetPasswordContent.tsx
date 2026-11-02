@@ -12,14 +12,13 @@ const BTN_CLS =
 // Componente principal para la pantalla de restablecimiento de contraseña. Se encarga de validar el token y mostrar el formulario o mensajes de error según corresponda.
 export function ResetPasswordContent({ token }: ResetPasswordContentProps) {
   const router = useRouter();
-  const [pageState, setPageState] = useState<PageState>("loading");
-  const [tokenError, setTokenError] = useState<string | null>(null);
+  const [validatedState, setPageState] = useState<PageState>("loading");
+  const [validationError, setTokenError] = useState<string | null>(null);
+  // Sin token no hay nada que validar: se resuelve en el render, sin pasar por el efecto.
+  const pageState: PageState = token ? validatedState : "invalid";
+  const tokenError = token ? validationError : "El enlace no contiene un token válido.";
   useEffect(() => {
-    if (!token) {
-      setTokenError("El enlace no contiene un token válido.");
-      setPageState("invalid");
-      return;
-    }
+    if (!token) return;
     validateResetToken(token).then((result) => {
       if (result.valid) {
         setPageState("form");

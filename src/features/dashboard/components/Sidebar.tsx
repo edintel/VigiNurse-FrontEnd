@@ -11,6 +11,7 @@ import {
 } from "@/store/slices/authSlice";
 import { clearSession } from "@/lib/session";
 import { toast } from "@/lib/toast";
+import { logoutRequest } from "@/features/authentication/services/authService";
 import { ROLES } from "@/constants/roles";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 import { useBleAlerts } from "@/features/baby-monitoring/context/BleAlertsContext";
@@ -260,8 +261,9 @@ export function Sidebar() {
   const userName = sessionUser?.name?.trim() || "Usuario";
   const userRole = sessionUser?.role ? formatRole(sessionUser.role) : "Sin rol";
   const userInitials = getInitials(userName);
-  // Maneja cierre de sesion.
-  function handleLogoutConfirm() {
+  // Maneja cierre de sesion: invalida la cookie en la API y luego limpia la sesion local.
+  async function handleLogoutConfirm() {
+    await logoutRequest();
     clearSession();
     dispatch(logout());
     toast.info("Sesión cerrada. ¡Hasta pronto!");
