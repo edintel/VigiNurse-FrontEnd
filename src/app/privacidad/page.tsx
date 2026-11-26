@@ -221,6 +221,10 @@ export default function PoliticaPrivacidadPage() {
                         >
                             {CORREO_PRIVACIDAD}
                         </a>
+                        . Para eliminar su cuenta, siga los pasos de{" "}
+                        <a className="font-medium text-blue-700 underline" href="/eliminar-cuenta">
+                            Eliminar su cuenta de VigiNurse
+                        </a>
                         .
                     </p>
                     <p>
