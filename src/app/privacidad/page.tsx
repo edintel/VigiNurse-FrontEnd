@@ -6,7 +6,7 @@ export const metadata: Metadata = {
         "Cómo VigiNurse trata los datos personales de su personal usuario y de los pacientes del hospital.",
 };
 
-const ACTUALIZADO = "18 de setiembre de 2026";
+const ACTUALIZADO = "26 de noviembre de 2026";
 
 // El correo de contacto del responsable de datos. Google Play exige que sea una
 // dirección atendida: la usa para contactar ante consultas de privacidad.
@@ -63,6 +63,14 @@ export default function PoliticaPrivacidadPage() {
                         clínicos para fines propios, no los cedemos a terceros ni los empleamos
                         para entrenar modelos, elaborar perfiles o cualquier otro fin ajeno a la
                         prestación del servicio.
+                    </p>
+                    <p>
+                        <strong>Historial compartido entre hospitales.</strong> Los datos de
+                        identificación y los antecedentes clínicos de cada paciente forman un
+                        historial único que comparten los hospitales de la red VigiNurse. Así,
+                        cualquier hospital de la red que atienda al paciente conoce sus
+                        antecedentes, alergias y tratamientos previos. Solo accede el personal
+                        clínico autorizado y cada consulta queda en el registro de auditoría.
                     </p>
                 </Seccion>
 
@@ -169,8 +177,10 @@ export default function PoliticaPrivacidadPage() {
                             con política <code>SameSite</code> restrictiva.
                         </li>
                         <li>
-                            Control de acceso por rol, con separación estricta entre hospitales:
-                            el personal de un hospital no puede ver datos de otro.
+                            Control de acceso por rol. La gestión de cada hospital (usuarios,
+                            áreas, activos y atenciones) está separada; el historial del paciente
+                            se comparte entre los hospitales de la red, como se explica en la
+                            sección 2.
                         </li>
                         <li>Registro de auditoría de los accesos y las modificaciones.</li>
                         <li>Límite de intentos de autenticación para contener ataques de fuerza bruta.</li>
