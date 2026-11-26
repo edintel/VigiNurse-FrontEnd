@@ -10,7 +10,7 @@ const ACTUALIZADO = "18 de setiembre de 2026";
 
 // El correo de contacto del responsable de datos. Google Play exige que sea una
 // dirección atendida: la usa para contactar ante consultas de privacidad.
-const CORREO_PRIVACIDAD = "REEMPLAZAR@edintel.com";
+const CORREO_PRIVACIDAD = "edintelvigiapp@gmail.com";
 
 function Seccion({ titulo, children }: { titulo: string; children: React.ReactNode }) {
     return (
